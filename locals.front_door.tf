@@ -58,7 +58,7 @@ locals {
       https_port                     = 443
       priority                       = 1
       weight                         = 1000
-      private_link = var.front_door_sku == "Premium_AzureFrontDoor" && local.virtual_network_enabled ? {
+      private_link = var.front_door_sku == "Premium_AzureFrontDoor" && local.virtual_network_enabled && !var.app_service_environment_enabled ? {
         pl = {
           request_message        = "Please approve this private link connection"
           target_type            = "sites"

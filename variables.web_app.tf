@@ -35,6 +35,7 @@ variable "web_apps" {
       delegated_managed_identity_resource_id = optional(string, null)
       principal_type                         = optional(string, null)
     })), {})
+    deployment_slots = optional(any, {})
     tags             = optional(map(string), null)
     enable_telemetry = optional(bool, null)
   }))
@@ -48,6 +49,7 @@ A map of web apps to create on the App Service Plan. The map key is used as a un
 - `site_config` - (Optional) The site configuration block, passed through to the AVM web site module.
 - `public_network_access_enabled` - (Optional) Whether public network access is enabled. Defaults to false for security.
 - `managed_identities` - (Optional) Managed identity configuration for the web app.
+- `deployment_slots` - (Optional) A map of deployment slots to create for the web app. Passed through to the AVM web site module.
 - `diagnostic_settings` - (Optional) Diagnostic settings for the web app.
 - `lock` - (Optional) Lock configuration for the web app.
 - `role_assignments` - (Optional) Role assignments for the web app.

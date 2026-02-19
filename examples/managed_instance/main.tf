@@ -52,7 +52,7 @@ module "test" {
   name                                    = module.naming.app_service.name_unique
   resource_group_name                     = azurerm_resource_group.this.name
   app_service_plan_os_type                = "WindowsManagedInstance"
-  app_service_plan_sku_name               = "P1v3"
+  app_service_plan_sku_name               = "P1mv3"
   app_service_plan_worker_count           = 3
   app_service_plan_zone_balancing_enabled = true
   enable_telemetry                        = var.enable_telemetry
@@ -72,6 +72,41 @@ module "test" {
       }
       managed_identities = {
         system_assigned = true
+      }
+      deployment_slots = {
+        dev = {
+          name = "dev"
+          site_config = {
+            application_stack = {
+              dotnet = {
+                dotnet_version = "v10.0"
+                current_stack  = "dotnet"
+              }
+            }
+          }
+        }
+        stage = {
+          name = "stage"
+          site_config = {
+            application_stack = {
+              dotnet = {
+                dotnet_version = "v10.0"
+                current_stack  = "dotnet"
+              }
+            }
+          }
+        }
+        prod = {
+          name = "prod"
+          site_config = {
+            application_stack = {
+              dotnet = {
+                dotnet_version = "v10.0"
+                current_stack  = "dotnet"
+              }
+            }
+          }
+        }
       }
     }
   }

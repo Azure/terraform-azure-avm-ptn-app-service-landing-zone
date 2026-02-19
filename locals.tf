@@ -9,7 +9,10 @@ locals {
     ) : null
   )
   # App Service Plan ID
-  app_service_plan_id = var.app_service_plan_resource_id != null ? var.app_service_plan_resource_id : module.app_service_plan[0].resource_id
+  # When a BYO service plan ID is provided from azurerm_service_plan, the ID uses "serverFarms" (camelCase),
+  # but Azure API normalizes to "serverfarms" (lowercase). The azapi-based web app module is case-sensitive,
+  # causing an infinite plan diff. Normalize the casing to match Azure's convention.
+  app_service_plan_id = var.app_service_plan_resource_id != null ? replace(var.app_service_plan_resource_id, "Microsoft.Web/serverFarms", "Microsoft.Web/serverfarms") : module.app_service_plan[0].resource_id
   # Subnet IDs
   app_service_subnet_id = var.app_service_subnet_resource_id != null ? var.app_service_subnet_resource_id : (
     var.virtual_network_enabled && var.virtual_network_resource_id == null && !var.app_service_environment_enabled ? (
