@@ -23,15 +23,10 @@ The following requirements are needed by this module:
 
 The following resources are used by this module:
 
-- [azurerm_management_lock.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/management_lock) (resource)
-- [azurerm_private_endpoint.this_managed_dns_zone_groups](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_endpoint) (resource)
-- [azurerm_private_endpoint.this_unmanaged_dns_zone_groups](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_endpoint) (resource)
-- [azurerm_private_endpoint_application_security_group_association.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_endpoint_application_security_group_association) (resource)
-- [azurerm_resource_group.TODO](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/resource_group) (resource)
-- [azurerm_role_assignment.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment) (resource)
 - [modtm_telemetry.telemetry](https://registry.terraform.io/providers/azure/modtm/latest/docs/resources/telemetry) (resource)
 - [random_uuid.telemetry](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/uuid) (resource)
 - [azapi_client_config.telemetry](https://registry.terraform.io/providers/Azure/azapi/latest/docs/data-sources/client_config) (data source)
+- [azapi_client_config.this](https://registry.terraform.io/providers/Azure/azapi/latest/docs/data-sources/client_config) (data source)
 - [modtm_module_source.telemetry](https://registry.terraform.io/providers/azure/modtm/latest/docs/data-sources/module_source) (data source)
 
 <!-- markdownlint-disable MD013 -->
@@ -41,19 +36,19 @@ The following input variables are required:
 
 ### <a name="input_location"></a> [location](#input\_location)
 
-Description: Azure region where the resource should be deployed.
+Description: Azure region where the resources should be deployed.
 
 Type: `string`
 
 ### <a name="input_name"></a> [name](#input\_name)
 
-Description: The name of the this resource.
+Description: The base name used for naming resources in this module. Individual resource names can be overridden using their respective name variables (e.g., `virtual_network_name`, `app_service_plan_name`).
 
 Type: `string`
 
 ### <a name="input_resource_group_name"></a> [resource\_group\_name](#input\_resource\_group\_name)
 
-Description: The resource group where the resources will be deployed.
+Description: The name of the resource group where the resources will be deployed. The resource group must already exist.
 
 Type: `string`
 
@@ -61,63 +56,125 @@ Type: `string`
 
 The following input variables are optional (have default values):
 
-### <a name="input_customer_managed_key"></a> [customer\_managed\_key](#input\_customer\_managed\_key)
+### <a name="input_app_service_environment_enabled"></a> [app\_service\_environment\_enabled](#input\_app\_service\_environment\_enabled)
 
-Description: A map describing customer-managed keys to associate with the resource. This includes the following properties:
-- `key_vault_resource_id` - The resource ID of the Key Vault where the key is stored.
-- `key_name` - The name of the key.
-- `key_version` - (Optional) The version of the key. If not specified, the latest version is used.
-- `user_assigned_identity` - (Optional) An object representing a user-assigned identity with the following properties:
-  - `resource_id` - The resource ID of the user-assigned identity.
+Description: Whether to deploy an App Service Environment (ASE v3). Defaults to false, using an App Service Plan instead for a more cost-effective deployment. When enabled, the App Service Plan SKU is automatically set to Isolated tier if not already.
 
-Type:
+Type: `bool`
 
-```hcl
-object({
-    key_vault_resource_id = string
-    key_name              = string
-    key_version           = optional(string, null)
-    user_assigned_identity = optional(object({
-      resource_id = string
-    }), null)
-  })
-```
+Default: `false`
+
+### <a name="input_app_service_environment_internal_load_balancing_mode"></a> [app\_service\_environment\_internal\_load\_balancing\_mode](#input\_app\_service\_environment\_internal\_load\_balancing\_mode)
+
+Description: The internal load balancing mode for the ASE. Possible values are 'None', 'Web', 'Publishing', 'Web, Publishing'. Defaults to 'Web, Publishing' for internal-only access.
+
+Type: `string`
+
+Default: `"Web, Publishing"`
+
+### <a name="input_app_service_environment_name"></a> [app\_service\_environment\_name](#input\_app\_service\_environment\_name)
+
+Description: (Optional) The name of the App Service Environment. Defaults to 'ase-{name}'.
+
+Type: `string`
 
 Default: `null`
 
-### <a name="input_diagnostic_settings"></a> [diagnostic\_settings](#input\_diagnostic\_settings)
+### <a name="input_app_service_environment_resource_id"></a> [app\_service\_environment\_resource\_id](#input\_app\_service\_environment\_resource\_id)
 
-Description: A map of diagnostic settings to create on the Key Vault. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
+Description: (Optional) The resource ID of an existing App Service Environment. When set, the module will not create an ASE.
 
-- `name` - (Optional) The name of the diagnostic setting. One will be generated if not set, however this will not be unique if you want to create multiple diagnostic setting resources.
-- `log_categories` - (Optional) A set of log categories to send to the log analytics workspace. Defaults to `[]`.
-- `log_groups` - (Optional) A set of log groups to send to the log analytics workspace. Defaults to `["allLogs"]`.
-- `metric_categories` - (Optional) A set of metric categories to send to the log analytics workspace. Defaults to `["AllMetrics"]`.
-- `log_analytics_destination_type` - (Optional) The destination type for the diagnostic setting. Possible values are `Dedicated` and `AzureDiagnostics`. Defaults to `Dedicated`.
-- `workspace_resource_id` - (Optional) The resource ID of the log analytics workspace to send logs and metrics to.
-- `storage_account_resource_id` - (Optional) The resource ID of the storage account to send logs and metrics to.
-- `event_hub_authorization_rule_resource_id` - (Optional) The resource ID of the event hub authorization rule to send logs and metrics to.
-- `event_hub_name` - (Optional) The name of the event hub. If none is specified, the default event hub will be selected.
-- `marketplace_partner_resource_id` - (Optional) The full ARM resource ID of the Marketplace resource to which you would like to send Diagnostic LogsLogs.
+Type: `string`
 
-Type:
+Default: `null`
 
-```hcl
-map(object({
-    name                                     = optional(string, null)
-    log_categories                           = optional(set(string), [])
-    log_groups                               = optional(set(string), ["allLogs"])
-    metric_categories                        = optional(set(string), ["AllMetrics"])
-    log_analytics_destination_type           = optional(string, "Dedicated")
-    workspace_resource_id                    = optional(string, null)
-    storage_account_resource_id              = optional(string, null)
-    event_hub_authorization_rule_resource_id = optional(string, null)
-    event_hub_name                           = optional(string, null)
-    marketplace_partner_resource_id          = optional(string, null)
-  }))
-```
+### <a name="input_app_service_environment_subnet_address_prefix"></a> [app\_service\_environment\_subnet\_address\_prefix](#input\_app\_service\_environment\_subnet\_address\_prefix)
 
-Default: `{}`
+Description: The address prefix for the App Service Environment subnet. Only used when `app_service_environment_enabled` is true and creating a new virtual network.
+
+Type: `string`
+
+Default: `"10.0.2.0/24"`
+
+### <a name="input_app_service_environment_subnet_resource_id"></a> [app\_service\_environment\_subnet\_resource\_id](#input\_app\_service\_environment\_subnet\_resource\_id)
+
+Description: (Optional) The resource ID of an existing subnet for the App Service Environment. When set, the module will not create this subnet. The subnet must be delegated to Microsoft.Web/hostingEnvironments.
+
+Type: `string`
+
+Default: `null`
+
+### <a name="input_app_service_environment_zone_redundancy_enabled"></a> [app\_service\_environment\_zone\_redundancy\_enabled](#input\_app\_service\_environment\_zone\_redundancy\_enabled)
+
+Description: Whether zone redundancy is enabled for the App Service Environment.
+
+Type: `bool`
+
+Default: `true`
+
+### <a name="input_app_service_plan_name"></a> [app\_service\_plan\_name](#input\_app\_service\_plan\_name)
+
+Description: (Optional) The name of the App Service Plan. Defaults to 'asp-{name}'.
+
+Type: `string`
+
+Default: `null`
+
+### <a name="input_app_service_plan_os_type"></a> [app\_service\_plan\_os\_type](#input\_app\_service\_plan\_os\_type)
+
+Description: The OS type for the App Service Plan. Possible values are 'Linux', 'Windows', or 'WindowsManagedInstance'. Defaults to 'Linux'.
+
+Type: `string`
+
+Default: `"Linux"`
+
+### <a name="input_app_service_plan_resource_id"></a> [app\_service\_plan\_resource\_id](#input\_app\_service\_plan\_resource\_id)
+
+Description: (Optional) The resource ID of an existing App Service Plan. When set, the module will not create an App Service Plan.
+
+Type: `string`
+
+Default: `null`
+
+### <a name="input_app_service_plan_sku_name"></a> [app\_service\_plan\_sku\_name](#input\_app\_service\_plan\_sku\_name)
+
+Description: The SKU name for the App Service Plan. Defaults to 'P1v3' (Premium v3, 2 vCPUs, 8 GB RAM). Use Isolated SKUs ('I1v2', 'I2v2', 'I3v2', etc.) when deploying with an App Service Environment. The SKU is automatically adjusted to 'I1v2' when `app_service_environment_enabled` is true and a non-Isolated SKU is specified.
+
+Type: `string`
+
+Default: `"P1v3"`
+
+### <a name="input_app_service_plan_worker_count"></a> [app\_service\_plan\_worker\_count](#input\_app\_service\_plan\_worker\_count)
+
+Description: The number of workers (instances) for the App Service Plan. Defaults to 3 for zone redundancy support.
+
+Type: `number`
+
+Default: `3`
+
+### <a name="input_app_service_plan_zone_balancing_enabled"></a> [app\_service\_plan\_zone\_balancing\_enabled](#input\_app\_service\_plan\_zone\_balancing\_enabled)
+
+Description: Whether zone balancing (zone redundancy) is enabled for the App Service Plan. Defaults to true.
+
+Type: `bool`
+
+Default: `true`
+
+### <a name="input_app_service_subnet_address_prefix"></a> [app\_service\_subnet\_address\_prefix](#input\_app\_service\_subnet\_address\_prefix)
+
+Description: The address prefix for the App Service VNet integration subnet. Only used when creating a new virtual network and `app_service_environment_enabled` is false.
+
+Type: `string`
+
+Default: `"10.0.0.0/24"`
+
+### <a name="input_app_service_subnet_resource_id"></a> [app\_service\_subnet\_resource\_id](#input\_app\_service\_subnet\_resource\_id)
+
+Description: (Optional) The resource ID of an existing subnet for App Service VNet integration. When set, the module will not create this subnet. The subnet must be delegated to Microsoft.Web/serverFarms.
+
+Type: `string`
+
+Default: `null`
 
 ### <a name="input_enable_telemetry"></a> [enable\_telemetry](#input\_enable\_telemetry)
 
@@ -129,67 +186,185 @@ Type: `bool`
 
 Default: `true`
 
-### <a name="input_lock"></a> [lock](#input\_lock)
+### <a name="input_front_door_enabled"></a> [front\_door\_enabled](#input\_front\_door\_enabled)
 
-Description: Controls the Resource Lock configuration for this resource. The following properties can be specified:
+Description: Whether to create an Azure Front Door profile for ingress to the web apps. Defaults to true.
 
-- `kind` - (Required) The type of lock. Possible values are `\"CanNotDelete\"` and `\"ReadOnly\"`.
-- `name` - (Optional) The name of the lock. If not specified, a name will be generated based on the `kind` value. Changing this forces the creation of a new resource.
+Type: `bool`
 
-Type:
+Default: `true`
 
-```hcl
-object({
-    kind = string
-    name = optional(string, null)
-  })
-```
+### <a name="input_front_door_name"></a> [front\_door\_name](#input\_front\_door\_name)
+
+Description: (Optional) The name of the Azure Front Door profile. Defaults to 'afd-{name}'.
+
+Type: `string`
 
 Default: `null`
 
-### <a name="input_managed_identities"></a> [managed\_identities](#input\_managed\_identities)
+### <a name="input_front_door_resource_id"></a> [front\_door\_resource\_id](#input\_front\_door\_resource\_id)
 
-Description: Controls the Managed Identity configuration on this resource. The following properties can be specified:
+Description: (Optional) The resource ID of an existing Azure Front Door profile. When set, the module will not create a Front Door profile.
 
-- `system_assigned` - (Optional) Specifies if the System Assigned Managed Identity should be enabled.
-- `user_assigned_resource_ids` - (Optional) Specifies a list of User Assigned Managed Identity resource IDs to be assigned to this resource.
+Type: `string`
 
-Type:
+Default: `null`
 
-```hcl
-object({
-    system_assigned            = optional(bool, false)
-    user_assigned_resource_ids = optional(set(string), [])
-  })
+### <a name="input_front_door_sku"></a> [front\_door\_sku](#input\_front\_door\_sku)
+
+Description: The SKU of the Azure Front Door profile. 'Premium\_AzureFrontDoor' supports WAF managed rules and private link to origins. 'Standard\_AzureFrontDoor' is more cost-effective but does not support private link origins.
+
+Type: `string`
+
+Default: `"Premium_AzureFrontDoor"`
+
+### <a name="input_front_door_waf_enabled"></a> [front\_door\_waf\_enabled](#input\_front\_door\_waf\_enabled)
+
+Description: Whether to enable a Web Application Firewall (WAF) policy on the Azure Front Door with Microsoft managed rule sets. Defaults to true.
+
+Type: `bool`
+
+Default: `true`
+
+### <a name="input_hub_peering_enabled"></a> [hub\_peering\_enabled](#input\_hub\_peering\_enabled)
+
+Description: Whether to create a VNet peering to a hub virtual network. Requires `virtual_network_enabled` to be true or a virtual network to be created by this module.
+
+Type: `bool`
+
+Default: `false`
+
+### <a name="input_hub_virtual_network_resource_id"></a> [hub\_virtual\_network\_resource\_id](#input\_hub\_virtual\_network\_resource\_id)
+
+Description: (Optional) The resource ID of the hub virtual network to peer with. Required when `hub_peering_enabled` is true.
+
+Type: `string`
+
+Default: `null`
+
+### <a name="input_private_dns_zone_web_resource_id"></a> [private\_dns\_zone\_web\_resource\_id](#input\_private\_dns\_zone\_web\_resource\_id)
+
+Description: (Optional) The resource ID of an existing private DNS zone for 'privatelink.azurewebsites.net'. When set, the module will not create this DNS zone but will use it for web app private endpoint DNS resolution.
+
+Type: `string`
+
+Default: `null`
+
+### <a name="input_private_dns_zones_enabled"></a> [private\_dns\_zones\_enabled](#input\_private\_dns\_zones\_enabled)
+
+Description: Whether to create private DNS zones for private endpoint resolution. Defaults to true. Only effective when virtual networking is enabled.
+
+Type: `bool`
+
+Default: `true`
+
+### <a name="input_private_endpoint_subnet_address_prefix"></a> [private\_endpoint\_subnet\_address\_prefix](#input\_private\_endpoint\_subnet\_address\_prefix)
+
+Description: The address prefix for the private endpoint subnet. Only used when creating a new virtual network.
+
+Type: `string`
+
+Default: `"10.0.1.0/24"`
+
+### <a name="input_private_endpoint_subnet_resource_id"></a> [private\_endpoint\_subnet\_resource\_id](#input\_private\_endpoint\_subnet\_resource\_id)
+
+Description: (Optional) The resource ID of an existing subnet for private endpoints. When set, the module will not create this subnet.
+
+Type: `string`
+
+Default: `null`
+
+### <a name="input_tags"></a> [tags](#input\_tags)
+
+Description: (Optional) Tags to apply to all resources created by this module.
+
+Type: `map(string)`
+
+Default: `null`
+
+### <a name="input_virtual_network_address_space"></a> [virtual\_network\_address\_space](#input\_virtual\_network\_address\_space)
+
+Description: The address space for the virtual network. Only used when creating a new virtual network.
+
+Type: `set(string)`
+
+Default:
+
+```json
+[
+  "10.0.0.0/16"
+]
 ```
 
-Default: `{}`
+### <a name="input_virtual_network_enabled"></a> [virtual\_network\_enabled](#input\_virtual\_network\_enabled)
 
-### <a name="input_private_endpoints"></a> [private\_endpoints](#input\_private\_endpoints)
+Description: Whether to enable private networking for the App Service Landing Zone. When true, a virtual network is created (or an existing one is used via `virtual_network_resource_id`) with subnets for App Service integration and private endpoints.
 
-Description: A map of private endpoints to create on this resource. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
+Type: `bool`
 
-- `name` - (Optional) The name of the private endpoint. One will be generated if not set.
-- `role_assignments` - (Optional) A map of role assignments to create on the private endpoint. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time. See `var.role_assignments` for more information.
-- `lock` - (Optional) The lock level to apply to the private endpoint. Default is `None`. Possible values are `None`, `CanNotDelete`, and `ReadOnly`.
-- `tags` - (Optional) A mapping of tags to assign to the private endpoint.
-- `subnet_resource_id` - The resource ID of the subnet to deploy the private endpoint in.
-- `private_dns_zone_group_name` - (Optional) The name of the private DNS zone group. One will be generated if not set.
-- `private_dns_zone_resource_ids` - (Optional) A set of resource IDs of private DNS zones to associate with the private endpoint. If not set, no zone groups will be created and the private endpoint will not be associated with any private DNS zones. DNS records must be managed external to this module.
-- `application_security_group_resource_ids` - (Optional) A map of resource IDs of application security groups to associate with the private endpoint. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
-- `private_service_connection_name` - (Optional) The name of the private service connection. One will be generated if not set.
-- `network_interface_name` - (Optional) The name of the network interface. One will be generated if not set.
-- `location` - (Optional) The Azure location where the resources will be deployed. Defaults to the location of the resource group.
-- `resource_group_name` - (Optional) The resource group where the resources will be deployed. Defaults to the resource group of this resource.
-- `ip_configurations` - (Optional) A map of IP configurations to create on the private endpoint. If not specified the platform will create one. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
-  - `name` - The name of the IP configuration.
-  - `private_ip_address` - The private IP address of the IP configuration.
+Default: `true`
+
+### <a name="input_virtual_network_name"></a> [virtual\_network\_name](#input\_virtual\_network\_name)
+
+Description: (Optional) The name of the virtual network to create. Defaults to 'vnet-{name}'.
+
+Type: `string`
+
+Default: `null`
+
+### <a name="input_virtual_network_resource_id"></a> [virtual\_network\_resource\_id](#input\_virtual\_network\_resource\_id)
+
+Description: (Optional) The resource ID of an existing virtual network to use. When set, the module will not create a virtual network. You must also provide subnet resource IDs via `app_service_subnet_resource_id` and `private_endpoint_subnet_resource_id`.
+
+Type: `string`
+
+Default: `null`
+
+### <a name="input_web_apps"></a> [web\_apps](#input\_web\_apps)
+
+Description: A map of web apps to create on the App Service Plan. The map key is used as a unique identifier.
+
+- `name` - (Required) The name of the web app.
+- `kind` - (Optional) The kind of web app. Possible values are 'webapp' or 'functionapp'. Defaults to 'webapp'.
+- `os_type` - (Optional) The OS type for the web app. Defaults to the App Service Plan's OS type.
+- `site_config` - (Optional) The site configuration block, passed through to the AVM web site module.
+- `public_network_access_enabled` - (Optional) Whether public network access is enabled. Defaults to false for security.
+- `managed_identities` - (Optional) Managed identity configuration for the web app.
+- `diagnostic_settings` - (Optional) Diagnostic settings for the web app.
+- `lock` - (Optional) Lock configuration for the web app.
+- `role_assignments` - (Optional) Role assignments for the web app.
+- `tags` - (Optional) Additional tags for the web app, merged with module-level tags.
+- `enable_telemetry` - (Optional) Override the module-level telemetry setting for this web app.
 
 Type:
 
 ```hcl
 map(object({
-    name = optional(string, null)
+    name                          = string
+    kind                          = optional(string, "webapp")
+    os_type                       = optional(string, null)
+    site_config                   = optional(any, {})
+    public_network_access_enabled = optional(bool, false)
+    managed_identities = optional(object({
+      system_assigned            = optional(bool, false)
+      user_assigned_resource_ids = optional(set(string), [])
+    }), {})
+    diagnostic_settings = optional(map(object({
+      name                                     = optional(string, null)
+      log_categories                           = optional(set(string), [])
+      log_groups                               = optional(set(string), ["allLogs"])
+      metric_categories                        = optional(set(string), ["AllMetrics"])
+      log_analytics_destination_type           = optional(string, "Dedicated")
+      workspace_resource_id                    = optional(string, null)
+      storage_account_resource_id              = optional(string, null)
+      event_hub_authorization_rule_resource_id = optional(string, null)
+      event_hub_name                           = optional(string, null)
+      marketplace_partner_resource_id          = optional(string, null)
+    })), {})
+    lock = optional(object({
+      kind = string
+      name = optional(string, null)
+    }), null)
     role_assignments = optional(map(object({
       role_definition_id_or_name             = string
       principal_id                           = string
@@ -198,88 +373,94 @@ map(object({
       condition                              = optional(string, null)
       condition_version                      = optional(string, null)
       delegated_managed_identity_resource_id = optional(string, null)
+      principal_type                         = optional(string, null)
     })), {})
-    lock = optional(object({
-      kind = string
-      name = optional(string, null)
-    }), null)
-    tags                                    = optional(map(string), null)
-    subnet_resource_id                      = string
-    private_dns_zone_group_name             = optional(string, "default")
-    private_dns_zone_resource_ids           = optional(set(string), [])
-    application_security_group_associations = optional(map(string), {})
-    private_service_connection_name         = optional(string, null)
-    network_interface_name                  = optional(string, null)
-    location                                = optional(string, null)
-    resource_group_name                     = optional(string, null)
-    ip_configurations = optional(map(object({
-      name               = string
-      private_ip_address = string
-    })), {})
+    tags             = optional(map(string), null)
+    enable_telemetry = optional(bool, null)
   }))
 ```
 
 Default: `{}`
-
-### <a name="input_private_endpoints_manage_dns_zone_group"></a> [private\_endpoints\_manage\_dns\_zone\_group](#input\_private\_endpoints\_manage\_dns\_zone\_group)
-
-Description: Whether to manage private DNS zone groups with this module. If set to false, you must manage private DNS zone groups externally, e.g. using Azure Policy.
-
-Type: `bool`
-
-Default: `true`
-
-### <a name="input_role_assignments"></a> [role\_assignments](#input\_role\_assignments)
-
-Description: A map of role assignments to create on this resource. The map key is deliberately arbitrary to avoid issues where map keys maybe unknown at plan time.
-
-- `role_definition_id_or_name` - The ID or name of the role definition to assign to the principal.
-- `principal_id` - The ID of the principal to assign the role to.
-- `description` - The description of the role assignment.
-- `skip_service_principal_aad_check` - If set to true, skips the Azure Active Directory check for the service principal in the tenant. Defaults to false.
-- `condition` - The condition which will be used to scope the role assignment.
-- `condition_version` - The version of the condition syntax. Valid values are '2.0'.
-- `delegated_managed_identity_resource_id` - The delegated Azure Resource Id which contains a Managed Identity. Changing this forces a new resource to be created.
-- `principal_type` - The type of the principal\_id. Possible values are `User`, `Group` and `ServicePrincipal`. Changing this forces a new resource to be created. It is necessary to explicitly set this attribute when creating role assignments if the principal creating the assignment is constrained by ABAC rules that filters on the PrincipalType attribute.
-
-> Note: only set `skip_service_principal_aad_check` to true if you are assigning a role to a service principal.
-
-Type:
-
-```hcl
-map(object({
-    role_definition_id_or_name             = string
-    principal_id                           = string
-    description                            = optional(string, null)
-    skip_service_principal_aad_check       = optional(bool, false)
-    condition                              = optional(string, null)
-    condition_version                      = optional(string, null)
-    delegated_managed_identity_resource_id = optional(string, null)
-    principal_type                         = optional(string, null)
-  }))
-```
-
-Default: `{}`
-
-### <a name="input_tags"></a> [tags](#input\_tags)
-
-Description: (Optional) Tags of the resource.
-
-Type: `map(string)`
-
-Default: `null`
 
 ## Outputs
 
 The following outputs are exported:
 
-### <a name="output_private_endpoints"></a> [private\_endpoints](#output\_private\_endpoints)
+### <a name="output_app_service_environment"></a> [app\_service\_environment](#output\_app\_service\_environment)
 
-Description:   A map of the private endpoints created.
+Description: The App Service Environment resource output from the AVM module.
+
+### <a name="output_app_service_environment_id"></a> [app\_service\_environment\_id](#output\_app\_service\_environment\_id)
+
+Description: The resource ID of the App Service Environment (created or BYO).
+
+### <a name="output_app_service_plan"></a> [app\_service\_plan](#output\_app\_service\_plan)
+
+Description: The App Service Plan resource output from the AVM module.
+
+### <a name="output_app_service_plan_id"></a> [app\_service\_plan\_id](#output\_app\_service\_plan\_id)
+
+Description: The resource ID of the App Service Plan (created or BYO).
+
+### <a name="output_front_door"></a> [front\_door](#output\_front\_door)
+
+Description: The Azure Front Door resource output from the AVM module.
+
+### <a name="output_private_dns_zone_web"></a> [private\_dns\_zone\_web](#output\_private\_dns\_zone\_web)
+
+Description: The private DNS zone for web apps (privatelink.azurewebsites.net) resource output.
+
+### <a name="output_virtual_network"></a> [virtual\_network](#output\_virtual\_network)
+
+Description: The virtual network resource output from the AVM module.
+
+### <a name="output_virtual_network_id"></a> [virtual\_network\_id](#output\_virtual\_network\_id)
+
+Description: The resource ID of the virtual network (created or BYO).
+
+### <a name="output_web_apps"></a> [web\_apps](#output\_web\_apps)
+
+Description: A map of web app resource outputs from the AVM module, keyed by the web\_apps map key.
 
 ## Modules
 
-No modules.
+The following Modules are called:
+
+### <a name="module_app_service_environment"></a> [app\_service\_environment](#module\_app\_service\_environment)
+
+Source: Azure/avm-res-web-hostingenvironment/azurerm
+
+Version: 2.0.0
+
+### <a name="module_app_service_plan"></a> [app\_service\_plan](#module\_app\_service\_plan)
+
+Source: Azure/avm-res-web-serverfarm/azurerm
+
+Version: 2.0.1
+
+### <a name="module_front_door"></a> [front\_door](#module\_front\_door)
+
+Source: Azure/avm-res-cdn-profile/azurerm
+
+Version: 0.1.9
+
+### <a name="module_private_dns_zone_web"></a> [private\_dns\_zone\_web](#module\_private\_dns\_zone\_web)
+
+Source: Azure/avm-res-network-privatednszone/azurerm
+
+Version: 0.5.0
+
+### <a name="module_virtual_network"></a> [virtual\_network](#module\_virtual\_network)
+
+Source: Azure/avm-res-network-virtualnetwork/azurerm
+
+Version: 0.17.1
+
+### <a name="module_web_app"></a> [web\_app](#module\_web\_app)
+
+Source: Azure/avm-res-web-site/azurerm
+
+Version: 0.21.0
 
 <!-- markdownlint-disable-next-line MD041 -->
 ## Data Collection
