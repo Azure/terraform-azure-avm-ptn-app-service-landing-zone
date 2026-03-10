@@ -39,7 +39,7 @@ module "naming" {
 
 resource "azurerm_resource_group" "this" {
   location = local.azure_regions[random_integer.region_index.result]
-  name     = module.naming.resource_group.name_unique
+  name     = "${module.naming.resource_group.name_unique}-ase-windows"
 }
 
 # App Service Environment v3 - Windows with .NET 8

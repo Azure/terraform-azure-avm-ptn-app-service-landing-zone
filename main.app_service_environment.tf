@@ -7,7 +7,7 @@ module "app_service_environment" {
   name                                   = coalesce(var.app_service_environment_name, "ase-${var.name}")
   parent_id                              = local.resource_group_id
   subnet_id                              = local.app_service_environment_subnet_id
-  allow_new_private_endpoint_connections  = var.app_service_environment_allow_new_private_endpoint_connections
+  allow_new_private_endpoint_connections = var.app_service_environment_allow_new_private_endpoint_connections
   cluster_settings                       = var.app_service_environment_cluster_settings
   custom_dns_suffix_configuration        = var.app_service_environment_custom_dns_suffix_configuration
   dedicated_host_count                   = var.app_service_environment_dedicated_host_count

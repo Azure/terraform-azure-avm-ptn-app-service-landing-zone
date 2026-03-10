@@ -70,13 +70,48 @@ module "test" {
       site_config = {
         application_stack = {
           docker = {
-            docker_image_name   = "nginx:latest"
-            docker_registry_url = "https://index.docker.io"
+            docker_image_name   = "mcr.microsoft.com/dotnet/samples:aspnetapp"
+            docker_registry_url = "https://mcr.microsoft.com"
           }
         }
       }
       managed_identities = {
         system_assigned = true
+      }
+      deployment_slots = {
+        dev = {
+          name = "dev"
+          site_config = {
+            application_stack = {
+              docker = {
+                docker_image_name   = "mcr.microsoft.com/dotnet/samples:aspnetapp"
+                docker_registry_url = "https://mcr.microsoft.com"
+              }
+            }
+          }
+        }
+        stage = {
+          name = "stage"
+          site_config = {
+            application_stack = {
+              docker = {
+                docker_image_name   = "mcr.microsoft.com/dotnet/samples:aspnetapp"
+                docker_registry_url = "https://mcr.microsoft.com"
+              }
+            }
+          }
+        }
+        prod = {
+          name = "prod"
+          site_config = {
+            application_stack = {
+              docker = {
+                docker_image_name   = "mcr.microsoft.com/dotnet/samples:aspnetapp"
+                docker_registry_url = "https://mcr.microsoft.com"
+              }
+            }
+          }
+        }
       }
     }
   }

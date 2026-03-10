@@ -138,6 +138,41 @@ module "test" {
       managed_identities = {
         system_assigned = true
       }
+      deployment_slots = {
+        dev = {
+          name = "dev"
+          site_config = {
+            application_stack = {
+              dotnet = {
+                dotnet_version = "v10.0"
+                current_stack  = "dotnet"
+              }
+            }
+          }
+        }
+        stage = {
+          name = "stage"
+          site_config = {
+            application_stack = {
+              dotnet = {
+                dotnet_version = "v10.0"
+                current_stack  = "dotnet"
+              }
+            }
+          }
+        }
+        prod = {
+          name = "prod"
+          site_config = {
+            application_stack = {
+              dotnet = {
+                dotnet_version = "v10.0"
+                current_stack  = "dotnet"
+              }
+            }
+          }
+        }
+      }
     }
   }
 }

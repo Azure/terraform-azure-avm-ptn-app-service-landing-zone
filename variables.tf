@@ -32,6 +32,12 @@ DESCRIPTION
   nullable    = false
 }
 
+variable "log_analytics_workspace_resource_id" {
+  type        = string
+  default     = null
+  description = "(Optional) The resource ID of the Log Analytics workspace. When set, diagnostic settings on created resources will be configured to send logs and metrics to this workspace."
+}
+
 variable "tags" {
   type        = map(string)
   default     = null

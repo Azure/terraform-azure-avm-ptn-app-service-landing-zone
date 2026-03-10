@@ -56,6 +56,97 @@ Type: `string`
 
 The following input variables are optional (have default values):
 
+### <a name="input_app_service_environment_allow_new_private_endpoint_connections"></a> [app\_service\_environment\_allow\_new\_private\_endpoint\_connections](#input\_app\_service\_environment\_allow\_new\_private\_endpoint\_connections)
+
+Description: (Optional) Enable new private endpoint connection creation on the App Service Environment (ASE). Defaults to true.
+
+Type: `bool`
+
+Default: `true`
+
+### <a name="input_app_service_environment_cluster_settings"></a> [app\_service\_environment\_cluster\_settings](#input\_app\_service\_environment\_cluster\_settings)
+
+Description: (Optional) Custom settings for changing the behavior of the App Service Environment (ASE).
+
+- `name` - (Required) The name of the cluster setting.
+- `value` - (Required) The value of the cluster setting.
+
+Type:
+
+```hcl
+list(object({
+    name  = string
+    value = string
+  }))
+```
+
+Default: `[]`
+
+### <a name="input_app_service_environment_custom_dns_suffix_configuration"></a> [app\_service\_environment\_custom\_dns\_suffix\_configuration](#input\_app\_service\_environment\_custom\_dns\_suffix\_configuration)
+
+Description: (Optional) Custom domain suffix configuration for the App Service Environment (ASE).
+
+- `certificate_url` - (Required) The URL referencing the Azure Key Vault certificate secret.
+- `dns_suffix` - (Required) The default custom domain suffix to use for all sites deployed on the ASE.
+- `key_vault_reference_identity` - (Optional) The user-assigned identity to use for resolving the key vault certificate reference.
+
+Type:
+
+```hcl
+object({
+    certificate_url              = string
+    dns_suffix                   = string
+    key_vault_reference_identity = optional(string, null)
+  })
+```
+
+Default: `null`
+
+### <a name="input_app_service_environment_dedicated_host_count"></a> [app\_service\_environment\_dedicated\_host\_count](#input\_app\_service\_environment\_dedicated\_host\_count)
+
+Description: (Optional) Dedicated Host Count for the App Service Environment (ASE). Possible value is 2.
+
+Type: `number`
+
+Default: `null`
+
+### <a name="input_app_service_environment_diagnostic_settings"></a> [app\_service\_environment\_diagnostic\_settings](#input\_app\_service\_environment\_diagnostic\_settings)
+
+Description: (Optional) A map of diagnostic settings to create on the App Service Environment (ASE).
+
+Type:
+
+```hcl
+map(object({
+    name = optional(string, null)
+    logs = optional(set(object({
+      category       = optional(string, null)
+      category_group = optional(string, null)
+      enabled        = optional(bool, true)
+      retention_policy = optional(object({
+        days    = optional(number, 0)
+        enabled = optional(bool, false)
+      }), {})
+    })), [])
+    metrics = optional(set(object({
+      category = optional(string, null)
+      enabled  = optional(bool, true)
+      retention_policy = optional(object({
+        days    = optional(number, 0)
+        enabled = optional(bool, false)
+      }), {})
+    })), [])
+    log_analytics_destination_type           = optional(string, "Dedicated")
+    workspace_resource_id                    = optional(string, null)
+    storage_account_resource_id              = optional(string, null)
+    event_hub_authorization_rule_resource_id = optional(string, null)
+    event_hub_name                           = optional(string, null)
+    marketplace_partner_resource_id          = optional(string, null)
+  }))
+```
+
+Default: `{}`
+
 ### <a name="input_app_service_environment_enabled"></a> [app\_service\_environment\_enabled](#input\_app\_service\_environment\_enabled)
 
 Description: Whether to deploy an App Service Environment (ASE v3). Defaults to false, using an App Service Plan instead for a more cost-effective deployment. When enabled, the App Service Plan SKU is automatically set to Isolated tier if not already.
@@ -63,6 +154,46 @@ Description: Whether to deploy an App Service Environment (ASE v3). Defaults to 
 Type: `bool`
 
 Default: `false`
+
+### <a name="input_app_service_environment_fips_mode_enabled"></a> [app\_service\_environment\_fips\_mode\_enabled](#input\_app\_service\_environment\_fips\_mode\_enabled)
+
+Description: (Optional) Enable FIPS mode on the App Service Environment (ASE). Defaults to false.
+
+Type: `bool`
+
+Default: `false`
+
+### <a name="input_app_service_environment_front_end_tls_cipher_suite_order"></a> [app\_service\_environment\_front\_end\_tls\_cipher\_suite\_order](#input\_app\_service\_environment\_front\_end\_tls\_cipher\_suite\_order)
+
+Description: (Optional) The TLS cipher suite order to use on the App Service Environment (ASE).
+
+Type: `string`
+
+Default: `null`
+
+### <a name="input_app_service_environment_ftp_enabled"></a> [app\_service\_environment\_ftp\_enabled](#input\_app\_service\_environment\_ftp\_enabled)
+
+Description: (Optional) Enable FTP on the App Service Environment (ASE). Defaults to false.
+
+Type: `bool`
+
+Default: `false`
+
+### <a name="input_app_service_environment_inbound_ip_address_override"></a> [app\_service\_environment\_inbound\_ip\_address\_override](#input\_app\_service\_environment\_inbound\_ip\_address\_override)
+
+Description: (Optional) Customer provided Inbound IP Address. Only able to be set on ASE create.
+
+Type: `string`
+
+Default: `null`
+
+### <a name="input_app_service_environment_internal_encryption_enabled"></a> [app\_service\_environment\_internal\_encryption\_enabled](#input\_app\_service\_environment\_internal\_encryption\_enabled)
+
+Description: (Optional) Enable internal encryption on the App Service Environment (ASE). Defaults to true.
+
+Type: `bool`
+
+Default: `true`
 
 ### <a name="input_app_service_environment_internal_load_balancing_mode"></a> [app\_service\_environment\_internal\_load\_balancing\_mode](#input\_app\_service\_environment\_internal\_load\_balancing\_mode)
 
@@ -72,11 +203,55 @@ Type: `string`
 
 Default: `"Web, Publishing"`
 
+### <a name="input_app_service_environment_lock"></a> [app\_service\_environment\_lock](#input\_app\_service\_environment\_lock)
+
+Description: (Optional) Controls the Resource Lock configuration for the App Service Environment.
+
+- `kind` - (Required) The type of lock. Possible values are `CanNotDelete` and `ReadOnly`.
+- `name` - (Optional) The name of the lock.
+
+Type:
+
+```hcl
+object({
+    kind = string
+    name = optional(string, null)
+  })
+```
+
+Default: `null`
+
+### <a name="input_app_service_environment_managed_identities"></a> [app\_service\_environment\_managed\_identities](#input\_app\_service\_environment\_managed\_identities)
+
+Description: (Optional) Controls the Managed Identity configuration on the App Service Environment.
+
+- `system_assigned` - (Optional) Specifies if the System Assigned Managed Identity should be enabled. Defaults to false.
+- `user_assigned_resource_ids` - (Optional) Specifies a set of User Assigned Managed Identity resource IDs.
+
+Type:
+
+```hcl
+object({
+    system_assigned            = optional(bool, false)
+    user_assigned_resource_ids = optional(set(string), [])
+  })
+```
+
+Default: `{}`
+
 ### <a name="input_app_service_environment_name"></a> [app\_service\_environment\_name](#input\_app\_service\_environment\_name)
 
 Description: (Optional) The name of the App Service Environment. Defaults to 'ase-{name}'.
 
 Type: `string`
+
+Default: `null`
+
+### <a name="input_app_service_environment_remote_debug_enabled"></a> [app\_service\_environment\_remote\_debug\_enabled](#input\_app\_service\_environment\_remote\_debug\_enabled)
+
+Description: (Optional) Enable Remote Debug on the App Service Environment (ASE).
+
+Type: `bool`
 
 Default: `null`
 
@@ -87,6 +262,43 @@ Description: (Optional) The resource ID of an existing App Service Environment. 
 Type: `string`
 
 Default: `null`
+
+### <a name="input_app_service_environment_retry"></a> [app\_service\_environment\_retry](#input\_app\_service\_environment\_retry)
+
+Description: (Optional) Retry configuration for transient errors on the App Service Environment.
+
+Type:
+
+```hcl
+object({
+    error_message_regex  = optional(list(string), ["ScopeLocked"])
+    interval_seconds     = optional(number, null)
+    max_interval_seconds = optional(number, null)
+  })
+```
+
+Default: `null`
+
+### <a name="input_app_service_environment_role_assignments"></a> [app\_service\_environment\_role\_assignments](#input\_app\_service\_environment\_role\_assignments)
+
+Description: (Optional) A map of role assignments to create on the App Service Environment.
+
+Type:
+
+```hcl
+map(object({
+    role_definition_id_or_name             = string
+    principal_id                           = string
+    description                            = optional(string, null)
+    skip_service_principal_aad_check       = optional(bool, false)
+    condition                              = optional(string, null)
+    condition_version                      = optional(string, null)
+    delegated_managed_identity_resource_id = optional(string, null)
+    principal_type                         = optional(string, null)
+  }))
+```
+
+Default: `{}`
 
 ### <a name="input_app_service_environment_subnet_address_prefix"></a> [app\_service\_environment\_subnet\_address\_prefix](#input\_app\_service\_environment\_subnet\_address\_prefix)
 
@@ -104,6 +316,39 @@ Type: `string`
 
 Default: `null`
 
+### <a name="input_app_service_environment_timeouts"></a> [app\_service\_environment\_timeouts](#input\_app\_service\_environment\_timeouts)
+
+Description: (Optional) Timeouts for App Service Environment resource operations. ASE operations can take a long time (defaults: 6h for create/delete/update).
+
+Type:
+
+```hcl
+object({
+    create = optional(string, "6h")
+    delete = optional(string, "6h")
+    read   = optional(string, "5m")
+    update = optional(string, "6h")
+  })
+```
+
+Default: `null`
+
+### <a name="input_app_service_environment_tls_1_enabled"></a> [app\_service\_environment\_tls\_1\_enabled](#input\_app\_service\_environment\_tls\_1\_enabled)
+
+Description: (Optional) Enable TLS 1.0 on the App Service Environment (ASE). Defaults to false.
+
+Type: `bool`
+
+Default: `false`
+
+### <a name="input_app_service_environment_upgrade_preference"></a> [app\_service\_environment\_upgrade\_preference](#input\_app\_service\_environment\_upgrade\_preference)
+
+Description: (Optional) Upgrade Preference. Possible values are 'None', 'Early', 'Late', or 'Manual'. Defaults to 'None'.
+
+Type: `string`
+
+Default: `"None"`
+
 ### <a name="input_app_service_environment_zone_redundancy_enabled"></a> [app\_service\_environment\_zone\_redundancy\_enabled](#input\_app\_service\_environment\_zone\_redundancy\_enabled)
 
 Description: Whether zone redundancy is enabled for the App Service Environment.
@@ -111,6 +356,105 @@ Description: Whether zone redundancy is enabled for the App Service Environment.
 Type: `bool`
 
 Default: `true`
+
+### <a name="input_app_service_plan_diagnostic_settings"></a> [app\_service\_plan\_diagnostic\_settings](#input\_app\_service\_plan\_diagnostic\_settings)
+
+Description: (Optional) A map of diagnostic settings to create on the App Service Plan.
+
+Type:
+
+```hcl
+map(object({
+    name = optional(string, null)
+    logs = optional(set(object({
+      category       = optional(string, null)
+      category_group = optional(string, null)
+      enabled        = optional(bool, true)
+      retention_policy = optional(object({
+        days    = optional(number, 0)
+        enabled = optional(bool, false)
+      }), {})
+    })), [])
+    metrics = optional(set(object({
+      category = optional(string, null)
+      enabled  = optional(bool, true)
+      retention_policy = optional(object({
+        days    = optional(number, 0)
+        enabled = optional(bool, false)
+      }), {})
+    })), [])
+    log_analytics_destination_type           = optional(string, "Dedicated")
+    workspace_resource_id                    = optional(string, null)
+    storage_account_resource_id              = optional(string, null)
+    event_hub_authorization_rule_resource_id = optional(string, null)
+    event_hub_name                           = optional(string, null)
+    marketplace_partner_resource_id          = optional(string, null)
+  }))
+```
+
+Default: `{}`
+
+### <a name="input_app_service_plan_install_scripts"></a> [app\_service\_plan\_install\_scripts](#input\_app\_service\_plan\_install\_scripts)
+
+Description: (Optional) A list of install scripts to run on the Managed Instance App Service Plan. Only applicable when os\_type is WindowsManagedInstance.
+
+Type:
+
+```hcl
+list(object({
+    name = string
+    source = object({
+      type       = optional(string, "RemoteAzureBlob")
+      source_uri = string
+    })
+  }))
+```
+
+Default: `null`
+
+### <a name="input_app_service_plan_lock"></a> [app\_service\_plan\_lock](#input\_app\_service\_plan\_lock)
+
+Description: (Optional) Controls the Resource Lock configuration for the App Service Plan.
+
+- `kind` - (Required) The type of lock. Possible values are `CanNotDelete` and `ReadOnly`.
+- `name` - (Optional) The name of the lock.
+
+Type:
+
+```hcl
+object({
+    kind = string
+    name = optional(string, null)
+  })
+```
+
+Default: `null`
+
+### <a name="input_app_service_plan_managed_identities"></a> [app\_service\_plan\_managed\_identities](#input\_app\_service\_plan\_managed\_identities)
+
+Description: (Optional) Controls the Managed Identity configuration on the App Service Plan.
+
+- `system_assigned` - (Optional) Specifies if the System Assigned Managed Identity should be enabled. Defaults to false.
+- `user_assigned_resource_ids` - (Optional) Specifies a set of User Assigned Managed Identity resource IDs.
+
+Type:
+
+```hcl
+object({
+    system_assigned            = optional(bool, false)
+    user_assigned_resource_ids = optional(set(string), [])
+  })
+```
+
+Default: `{}`
+
+### <a name="input_app_service_plan_maximum_elastic_worker_count"></a> [app\_service\_plan\_maximum\_elastic\_worker\_count](#input\_app\_service\_plan\_maximum\_elastic\_worker\_count)
+
+Description: (Optional) The maximum number of total workers allowed for this ElasticScaleEnabled App Service Plan.
+
+Type: `number`
+
+Default: `3`
 
 ### <a name="input_app_service_plan_name"></a> [app\_service\_plan\_name](#input\_app\_service\_plan\_name)
 
@@ -128,6 +472,71 @@ Type: `string`
 
 Default: `"Linux"`
 
+### <a name="input_app_service_plan_per_site_scaling_enabled"></a> [app\_service\_plan\_per\_site\_scaling\_enabled](#input\_app\_service\_plan\_per\_site\_scaling\_enabled)
+
+Description: (Optional) Should per site scaling be enabled for this App Service Plan. Defaults to false.
+
+Type: `bool`
+
+Default: `false`
+
+### <a name="input_app_service_plan_plan_default_identity"></a> [app\_service\_plan\_plan\_default\_identity](#input\_app\_service\_plan\_plan\_default\_identity)
+
+Description: (Optional) The default identity configuration for the Managed Instance App Service Plan. Only applicable when os\_type is WindowsManagedInstance.
+
+- `identity_type` - (Optional) The type of the identity. Defaults to "UserAssigned".
+- `user_assigned_identity_resource_id` - (Required) The resource ID of the user-assigned managed identity.
+
+Type:
+
+```hcl
+object({
+    identity_type                      = optional(string, "UserAssigned")
+    user_assigned_identity_resource_id = string
+  })
+```
+
+Default: `null`
+
+### <a name="input_app_service_plan_premium_plan_auto_scale_enabled"></a> [app\_service\_plan\_premium\_plan\_auto\_scale\_enabled](#input\_app\_service\_plan\_premium\_plan\_auto\_scale\_enabled)
+
+Description: (Optional) Should elastic scale be enabled for this App Service Plan. Only set to true if deploying a Premium or Elastic Premium SKU. Defaults to false.
+
+Type: `bool`
+
+Default: `false`
+
+### <a name="input_app_service_plan_rdp_enabled"></a> [app\_service\_plan\_rdp\_enabled](#input\_app\_service\_plan\_rdp\_enabled)
+
+Description: (Optional) Whether RDP is enabled for the Managed Instance App Service Plan. Only applicable when os\_type is WindowsManagedInstance.
+
+Type: `bool`
+
+Default: `null`
+
+### <a name="input_app_service_plan_registry_adapters"></a> [app\_service\_plan\_registry\_adapters](#input\_app\_service\_plan\_registry\_adapters)
+
+Description: (Optional) A list of registry adapters associated with this App Service Plan. Only applicable when os\_type is WindowsManagedInstance.
+
+- `registry_key` - (Required) Registry key for the adapter.
+- `type` - (Required) Type of the registry adapter. Possible values are "DWORD" or "String".
+- `key_vault_secret_reference` - (Required) Key vault reference to the value.
+  - `secret_uri` - (Required) The URI of the Key Vault secret.
+
+Type:
+
+```hcl
+list(object({
+    registry_key = string
+    type         = string
+    key_vault_secret_reference = object({
+      secret_uri = string
+    })
+  }))
+```
+
+Default: `null`
+
 ### <a name="input_app_service_plan_resource_id"></a> [app\_service\_plan\_resource\_id](#input\_app\_service\_plan\_resource\_id)
 
 Description: (Optional) The resource ID of an existing App Service Plan. When set, the module will not create an App Service Plan.
@@ -136,6 +545,43 @@ Type: `string`
 
 Default: `null`
 
+### <a name="input_app_service_plan_retry"></a> [app\_service\_plan\_retry](#input\_app\_service\_plan\_retry)
+
+Description: (Optional) Retry configuration for transient errors on the App Service Plan.
+
+Type:
+
+```hcl
+object({
+    error_message_regex  = optional(list(string), ["ScopeLocked"])
+    interval_seconds     = optional(number, null)
+    max_interval_seconds = optional(number, null)
+  })
+```
+
+Default: `null`
+
+### <a name="input_app_service_plan_role_assignments"></a> [app\_service\_plan\_role\_assignments](#input\_app\_service\_plan\_role\_assignments)
+
+Description: (Optional) A map of role assignments to create on the App Service Plan.
+
+Type:
+
+```hcl
+map(object({
+    role_definition_id_or_name             = string
+    principal_id                           = string
+    description                            = optional(string, null)
+    skip_service_principal_aad_check       = optional(bool, false)
+    condition                              = optional(string, null)
+    condition_version                      = optional(string, null)
+    delegated_managed_identity_resource_id = optional(string, null)
+    principal_type                         = optional(string, null)
+  }))
+```
+
+Default: `{}`
+
 ### <a name="input_app_service_plan_sku_name"></a> [app\_service\_plan\_sku\_name](#input\_app\_service\_plan\_sku\_name)
 
 Description: The SKU name for the App Service Plan. Defaults to 'P1v3' (Premium v3, 2 vCPUs, 8 GB RAM). Use Isolated SKUs ('I1v2', 'I2v2', 'I3v2', etc.) when deploying with an App Service Environment. The SKU is automatically adjusted to 'I1v2' when `app_service_environment_enabled` is true and a non-Isolated SKU is specified.
@@ -143,6 +589,51 @@ Description: The SKU name for the App Service Plan. Defaults to 'P1v3' (Premium 
 Type: `string`
 
 Default: `"P1v3"`
+
+### <a name="input_app_service_plan_storage_mounts"></a> [app\_service\_plan\_storage\_mounts](#input\_app\_service\_plan\_storage\_mounts)
+
+Description: (Optional) A list of storage mounts to configure on the App Service Plan. Only applicable when os\_type is WindowsManagedInstance.
+
+Type:
+
+```hcl
+list(object({
+    name             = string
+    type             = optional(string, "LocalStorage")
+    source           = optional(string, "")
+    destination_path = string
+    credentials_key_vault_reference = optional(object({
+      secret_uri = optional(string)
+    }), {})
+  }))
+```
+
+Default: `null`
+
+### <a name="input_app_service_plan_timeouts"></a> [app\_service\_plan\_timeouts](#input\_app\_service\_plan\_timeouts)
+
+Description: (Optional) Timeouts for App Service Plan resource operations.
+
+Type:
+
+```hcl
+object({
+    create = optional(string, null)
+    delete = optional(string, null)
+    read   = optional(string, null)
+    update = optional(string, null)
+  })
+```
+
+Default: `null`
+
+### <a name="input_app_service_plan_virtual_network_subnet_id"></a> [app\_service\_plan\_virtual\_network\_subnet\_id](#input\_app\_service\_plan\_virtual\_network\_subnet\_id)
+
+Description: (Optional) The resource ID of the subnet to integrate the App Service Plan with. This enables VNet integration for the plan.
+
+Type: `string`
+
+Default: `null`
 
 ### <a name="input_app_service_plan_worker_count"></a> [app\_service\_plan\_worker\_count](#input\_app\_service\_plan\_worker\_count)
 
@@ -176,6 +667,784 @@ Type: `string`
 
 Default: `null`
 
+### <a name="input_application_gateway_autoscale_configuration"></a> [application\_gateway\_autoscale\_configuration](#input\_application\_gateway\_autoscale\_configuration)
+
+Description: (Optional) Autoscale configuration for the Application Gateway.
+
+Type:
+
+```hcl
+object({
+    min_capacity = optional(number, 1)
+    max_capacity = optional(number, 2)
+  })
+```
+
+Default: `null`
+
+### <a name="input_application_gateway_backend_address_pools"></a> [application\_gateway\_backend\_address\_pools](#input\_application\_gateway\_backend\_address\_pools)
+
+Description: (Optional) Backend address pools for the Application Gateway. If not set, auto-generated from web apps.
+
+Type:
+
+```hcl
+map(object({
+    name         = string
+    fqdns        = optional(set(string))
+    ip_addresses = optional(set(string))
+  }))
+```
+
+Default: `null`
+
+### <a name="input_application_gateway_backend_http_settings"></a> [application\_gateway\_backend\_http\_settings](#input\_application\_gateway\_backend\_http\_settings)
+
+Description: (Optional) Backend HTTP settings for the Application Gateway. If not set, auto-generated.
+
+Type:
+
+```hcl
+map(object({
+    cookie_based_affinity                = optional(string, "Disabled")
+    dedicated_backend_connection_enabled = optional(bool, false)
+    name                                 = string
+    port                                 = number
+    protocol                             = string
+    affinity_cookie_name                 = optional(string)
+    host_name                            = optional(string)
+    path                                 = optional(string)
+    pick_host_name_from_backend_address  = optional(bool)
+    probe_name                           = optional(string)
+    request_timeout                      = optional(number)
+    trusted_root_certificate_names       = optional(list(string))
+    authentication_certificate = optional(list(object({
+      name = string
+    })))
+    connection_draining = optional(object({
+      drain_timeout_sec          = number
+      enable_connection_draining = bool
+    }))
+  }))
+```
+
+Default: `null`
+
+### <a name="input_application_gateway_diagnostic_settings"></a> [application\_gateway\_diagnostic\_settings](#input\_application\_gateway\_diagnostic\_settings)
+
+Description: (Optional) Diagnostic settings for the Application Gateway.
+
+Type:
+
+```hcl
+map(object({
+    name                                     = optional(string, null)
+    log_categories                           = optional(set(string), [])
+    log_groups                               = optional(set(string), ["allLogs"])
+    metric_categories                        = optional(set(string), ["AllMetrics"])
+    log_analytics_destination_type           = optional(string, "Dedicated")
+    workspace_resource_id                    = optional(string, null)
+    storage_account_resource_id              = optional(string, null)
+    event_hub_authorization_rule_resource_id = optional(string, null)
+    event_hub_name                           = optional(string, null)
+    marketplace_partner_resource_id          = optional(string, null)
+  }))
+```
+
+Default: `{}`
+
+### <a name="input_application_gateway_enabled"></a> [application\_gateway\_enabled](#input\_application\_gateway\_enabled)
+
+Description: (Optional) Whether to create an Application Gateway for ingress. Defaults to false. Mutually exclusive with Front Door as the ingress option.
+
+Type: `bool`
+
+Default: `false`
+
+### <a name="input_application_gateway_frontend_ports"></a> [application\_gateway\_frontend\_ports](#input\_application\_gateway\_frontend\_ports)
+
+Description: (Optional) Frontend ports for the Application Gateway. If not set, defaults to HTTP (80) and HTTPS (443).
+
+Type:
+
+```hcl
+map(object({
+    name = string
+    port = number
+  }))
+```
+
+Default: `null`
+
+### <a name="input_application_gateway_http2_enabled"></a> [application\_gateway\_http2\_enabled](#input\_application\_gateway\_http2\_enabled)
+
+Description: (Optional) Whether HTTP/2 is enabled on the Application Gateway. Defaults to true.
+
+Type: `bool`
+
+Default: `true`
+
+### <a name="input_application_gateway_http_listeners"></a> [application\_gateway\_http\_listeners](#input\_application\_gateway\_http\_listeners)
+
+Description: (Optional) HTTP listeners for the Application Gateway. If not set, auto-generated.
+
+Type:
+
+```hcl
+map(object({
+    name                           = string
+    frontend_port_name             = string
+    frontend_ip_configuration_name = optional(string)
+    firewall_policy_id             = optional(string)
+    require_sni                    = optional(bool)
+    host_name                      = optional(string)
+    host_names                     = optional(list(string))
+    ssl_certificate_name           = optional(string)
+    ssl_profile_name               = optional(string)
+    custom_error_configuration = optional(list(object({
+      status_code           = string
+      custom_error_page_url = string
+    })))
+  }))
+```
+
+Default: `null`
+
+### <a name="input_application_gateway_lock"></a> [application\_gateway\_lock](#input\_application\_gateway\_lock)
+
+Description: (Optional) Controls the resource lock configuration for the Application Gateway.
+
+Type:
+
+```hcl
+object({
+    kind = string
+    name = optional(string, null)
+  })
+```
+
+Default: `null`
+
+### <a name="input_application_gateway_managed_identities"></a> [application\_gateway\_managed\_identities](#input\_application\_gateway\_managed\_identities)
+
+Description: (Optional) Managed identities for the Application Gateway (e.g., for Key Vault-referenced SSL certificates).
+
+Type:
+
+```hcl
+object({
+    system_assigned            = optional(bool, false)
+    user_assigned_resource_ids = optional(set(string), [])
+  })
+```
+
+Default: `{}`
+
+### <a name="input_application_gateway_name"></a> [application\_gateway\_name](#input\_application\_gateway\_name)
+
+Description: (Optional) The name of the Application Gateway. If not set, defaults to 'agw-{name}'.
+
+Type: `string`
+
+Default: `null`
+
+### <a name="input_application_gateway_probe_configurations"></a> [application\_gateway\_probe\_configurations](#input\_application\_gateway\_probe\_configurations)
+
+Description: (Optional) Health probe configurations for the Application Gateway. If not set, auto-generated.
+
+Type:
+
+```hcl
+map(object({
+    name                                      = string
+    host                                      = optional(string)
+    interval                                  = number
+    timeout                                   = number
+    unhealthy_threshold                       = number
+    protocol                                  = string
+    port                                      = optional(number)
+    path                                      = string
+    pick_host_name_from_backend_http_settings = optional(bool)
+    minimum_servers                           = optional(number)
+    match = optional(object({
+      body        = optional(string)
+      status_code = optional(list(string))
+    }))
+  }))
+```
+
+Default: `null`
+
+### <a name="input_application_gateway_public_ip_name"></a> [application\_gateway\_public\_ip\_name](#input\_application\_gateway\_public\_ip\_name)
+
+Description: (Optional) The name of the public IP for the Application Gateway. If not set, defaults to 'pip-agw-{name}'.
+
+Type: `string`
+
+Default: `null`
+
+### <a name="input_application_gateway_redirect_configurations"></a> [application\_gateway\_redirect\_configurations](#input\_application\_gateway\_redirect\_configurations)
+
+Description: (Optional) Redirect configurations for the Application Gateway.
+
+Type:
+
+```hcl
+map(object({
+    include_path         = optional(bool)
+    include_query_string = optional(bool)
+    name                 = string
+    redirect_type        = string
+    target_listener_name = optional(string)
+    target_url           = optional(string)
+  }))
+```
+
+Default: `null`
+
+### <a name="input_application_gateway_request_routing_rules"></a> [application\_gateway\_request\_routing\_rules](#input\_application\_gateway\_request\_routing\_rules)
+
+Description: (Optional) Request routing rules for the Application Gateway. If not set, auto-generated.
+
+Type:
+
+```hcl
+map(object({
+    name                        = string
+    rule_type                   = string
+    http_listener_name          = string
+    backend_address_pool_name   = string
+    priority                    = number
+    url_path_map_name           = optional(string)
+    backend_http_settings_name  = string
+    redirect_configuration_name = optional(string)
+    rewrite_rule_set_name       = optional(string)
+  }))
+```
+
+Default: `null`
+
+### <a name="input_application_gateway_rewrite_rule_sets"></a> [application\_gateway\_rewrite\_rule\_sets](#input\_application\_gateway\_rewrite\_rule\_sets)
+
+Description: (Optional) Rewrite rule sets for the Application Gateway.
+
+Type:
+
+```hcl
+map(object({
+    name = string
+    rewrite_rules = optional(map(object({
+      name          = string
+      rule_sequence = number
+      conditions = optional(map(object({
+        ignore_case = optional(bool)
+        negate      = optional(bool)
+        pattern     = string
+        variable    = string
+      })))
+      request_header_configurations = optional(map(object({
+        header_name  = string
+        header_value = string
+      })))
+      response_header_configurations = optional(map(object({
+        header_name  = string
+        header_value = string
+      })))
+      url = optional(object({
+        components   = optional(string)
+        path         = optional(string)
+        query_string = optional(string)
+        reroute      = optional(bool)
+      }))
+    })))
+  }))
+```
+
+Default: `null`
+
+### <a name="input_application_gateway_role_assignments"></a> [application\_gateway\_role\_assignments](#input\_application\_gateway\_role\_assignments)
+
+Description: (Optional) A map of role assignments to create on the Application Gateway.
+
+Type:
+
+```hcl
+map(object({
+    role_definition_id_or_name             = string
+    principal_id                           = string
+    description                            = optional(string, null)
+    skip_service_principal_aad_check       = optional(bool, false)
+    condition                              = optional(string, null)
+    condition_version                      = optional(string, null)
+    delegated_managed_identity_resource_id = optional(string, null)
+    principal_type                         = optional(string, null)
+  }))
+```
+
+Default: `{}`
+
+### <a name="input_application_gateway_sku"></a> [application\_gateway\_sku](#input\_application\_gateway\_sku)
+
+Description: (Optional) The SKU configuration for the Application Gateway. Defaults to WAF\_v2 with capacity 2.
+
+Type:
+
+```hcl
+object({
+    name     = string
+    tier     = string
+    capacity = optional(number, 2)
+  })
+```
+
+Default:
+
+```json
+{
+  "capacity": 2,
+  "name": "WAF_v2",
+  "tier": "WAF_v2"
+}
+```
+
+### <a name="input_application_gateway_ssl_certificates"></a> [application\_gateway\_ssl\_certificates](#input\_application\_gateway\_ssl\_certificates)
+
+Description: (Optional) SSL certificates for HTTPS termination on the Application Gateway.
+
+Type:
+
+```hcl
+map(object({
+    name                = string
+    data                = optional(string)
+    password            = optional(string)
+    key_vault_secret_id = optional(string)
+  }))
+```
+
+Default: `null`
+
+### <a name="input_application_gateway_ssl_policy"></a> [application\_gateway\_ssl\_policy](#input\_application\_gateway\_ssl\_policy)
+
+Description: (Optional) SSL policy for the Application Gateway.
+
+Type:
+
+```hcl
+object({
+    cipher_suites        = optional(list(string))
+    disabled_protocols   = optional(list(string))
+    min_protocol_version = optional(string, "TLSv1_2")
+    policy_name          = optional(string)
+    policy_type          = optional(string)
+  })
+```
+
+Default: `null`
+
+### <a name="input_application_gateway_subnet_address_prefix"></a> [application\_gateway\_subnet\_address\_prefix](#input\_application\_gateway\_subnet\_address\_prefix)
+
+Description: (Optional) The address prefix for the Application Gateway subnet. Defaults to '10.0.4.0/24'.
+
+Type: `string`
+
+Default: `"10.0.4.0/24"`
+
+### <a name="input_application_gateway_subnet_resource_id"></a> [application\_gateway\_subnet\_resource\_id](#input\_application\_gateway\_subnet\_resource\_id)
+
+Description: (Optional) The resource ID of an existing subnet for the Application Gateway. When set, a new subnet will not be created.
+
+Type: `string`
+
+Default: `null`
+
+### <a name="input_application_gateway_tags"></a> [application\_gateway\_tags](#input\_application\_gateway\_tags)
+
+Description: (Optional) Tags to apply to the Application Gateway. If null, the module-level tags are used.
+
+Type: `map(string)`
+
+Default: `null`
+
+### <a name="input_application_gateway_trusted_root_certificates"></a> [application\_gateway\_trusted\_root\_certificates](#input\_application\_gateway\_trusted\_root\_certificates)
+
+Description: (Optional) Trusted root certificates for end-to-end SSL on the Application Gateway.
+
+Type:
+
+```hcl
+map(object({
+    data                = optional(string)
+    key_vault_secret_id = optional(string)
+    name                = string
+  }))
+```
+
+Default: `null`
+
+### <a name="input_application_gateway_url_path_maps"></a> [application\_gateway\_url\_path\_maps](#input\_application\_gateway\_url\_path\_maps)
+
+Description: (Optional) URL path maps for path-based routing on the Application Gateway.
+
+Type:
+
+```hcl
+map(object({
+    name                                = string
+    default_redirect_configuration_name = optional(string)
+    default_rewrite_rule_set_name       = optional(string)
+    default_backend_http_settings_name  = optional(string)
+    default_backend_address_pool_name   = optional(string)
+    path_rules = map(object({
+      name                        = string
+      paths                       = list(string)
+      backend_address_pool_name   = optional(string)
+      backend_http_settings_name  = optional(string)
+      redirect_configuration_name = optional(string)
+      rewrite_rule_set_name       = optional(string)
+      firewall_policy_id          = optional(string)
+    }))
+  }))
+```
+
+Default: `null`
+
+### <a name="input_application_gateway_waf_configuration"></a> [application\_gateway\_waf\_configuration](#input\_application\_gateway\_waf\_configuration)
+
+Description: (Optional) WAF configuration for the Application Gateway. Defaults to Prevention mode with OWASP 3.2.
+
+Type:
+
+```hcl
+object({
+    enabled                  = bool
+    file_upload_limit_mb     = optional(number)
+    firewall_mode            = string
+    max_request_body_size_kb = optional(number)
+    request_body_check       = optional(bool)
+    rule_set_type            = optional(string)
+    rule_set_version         = string
+    disabled_rule_group = optional(list(object({
+      rule_group_name = string
+      rules           = optional(list(number))
+    })))
+    exclusion = optional(list(object({
+      match_variable          = string
+      selector                = optional(string)
+      selector_match_operator = optional(string)
+    })))
+  })
+```
+
+Default:
+
+```json
+{
+  "enabled": true,
+  "firewall_mode": "Prevention",
+  "rule_set_type": "OWASP",
+  "rule_set_version": "3.2"
+}
+```
+
+### <a name="input_application_gateway_zones"></a> [application\_gateway\_zones](#input\_application\_gateway\_zones)
+
+Description: (Optional) Availability zones for the Application Gateway. Defaults to all three zones.
+
+Type: `set(string)`
+
+Default:
+
+```json
+[
+  "1",
+  "2",
+  "3"
+]
+```
+
+### <a name="input_application_insights_application_type"></a> [application\_insights\_application\_type](#input\_application\_insights\_application\_type)
+
+Description: (Optional) The type of Application Insights to create. Possible values are 'web', 'ios', 'java', 'phone', 'MobileCenter', 'other', 'store'. Defaults to 'web'.
+
+Type: `string`
+
+Default: `"web"`
+
+### <a name="input_application_insights_daily_data_cap_in_gb"></a> [application\_insights\_daily\_data\_cap\_in\_gb](#input\_application\_insights\_daily\_data\_cap\_in\_gb)
+
+Description: (Optional) The daily data volume cap in GB. Defaults to 100.
+
+Type: `number`
+
+Default: `100`
+
+### <a name="input_application_insights_daily_data_cap_notifications_disabled"></a> [application\_insights\_daily\_data\_cap\_notifications\_disabled](#input\_application\_insights\_daily\_data\_cap\_notifications\_disabled)
+
+Description: (Optional) Whether to disable notifications when the daily data cap is reached. Defaults to false.
+
+Type: `bool`
+
+Default: `false`
+
+### <a name="input_application_insights_disable_ip_masking"></a> [application\_insights\_disable\_ip\_masking](#input\_application\_insights\_disable\_ip\_masking)
+
+Description: (Optional) Whether to disable IP masking. Defaults to false (IPs are masked for privacy).
+
+Type: `bool`
+
+Default: `false`
+
+### <a name="input_application_insights_enabled"></a> [application\_insights\_enabled](#input\_application\_insights\_enabled)
+
+Description: (Optional) Whether to create an Application Insights resource. Defaults to false.
+
+Type: `bool`
+
+Default: `false`
+
+### <a name="input_application_insights_force_customer_storage_for_profiler"></a> [application\_insights\_force\_customer\_storage\_for\_profiler](#input\_application\_insights\_force\_customer\_storage\_for\_profiler)
+
+Description: (Optional) Whether to force customer storage for profiler. Defaults to false.
+
+Type: `bool`
+
+Default: `false`
+
+### <a name="input_application_insights_internet_ingestion_enabled"></a> [application\_insights\_internet\_ingestion\_enabled](#input\_application\_insights\_internet\_ingestion\_enabled)
+
+Description: (Optional) Whether internet ingestion is enabled. Defaults to true.
+
+Type: `bool`
+
+Default: `true`
+
+### <a name="input_application_insights_internet_query_enabled"></a> [application\_insights\_internet\_query\_enabled](#input\_application\_insights\_internet\_query\_enabled)
+
+Description: (Optional) Whether internet query is enabled. Defaults to true.
+
+Type: `bool`
+
+Default: `true`
+
+### <a name="input_application_insights_linked_storage_account"></a> [application\_insights\_linked\_storage\_account](#input\_application\_insights\_linked\_storage\_account)
+
+Description: (Optional) Linked storage account configuration for the Application Insights profiler.
+
+Type:
+
+```hcl
+map(object({
+    resource_id = optional(string, null)
+  }))
+```
+
+Default: `{}`
+
+### <a name="input_application_insights_local_authentication_disabled"></a> [application\_insights\_local\_authentication\_disabled](#input\_application\_insights\_local\_authentication\_disabled)
+
+Description: (Optional) Whether to disable non-AAD based authentication. Defaults to false.
+
+Type: `bool`
+
+Default: `false`
+
+### <a name="input_application_insights_lock"></a> [application\_insights\_lock](#input\_application\_insights\_lock)
+
+Description: (Optional) Controls the resource lock configuration for the Application Insights resource.
+
+Type:
+
+```hcl
+object({
+    kind = string
+    name = optional(string, null)
+  })
+```
+
+Default: `null`
+
+### <a name="input_application_insights_name"></a> [application\_insights\_name](#input\_application\_insights\_name)
+
+Description: (Optional) The name of the Application Insights resource. If not set, defaults to 'ai-{name}'.
+
+Type: `string`
+
+Default: `null`
+
+### <a name="input_application_insights_resource_id"></a> [application\_insights\_resource\_id](#input\_application\_insights\_resource\_id)
+
+Description: (Optional) The resource ID of an existing Application Insights resource. When set, the module will not create an Application Insights resource.
+
+Type: `string`
+
+Default: `null`
+
+### <a name="input_application_insights_retention_in_days"></a> [application\_insights\_retention\_in\_days](#input\_application\_insights\_retention\_in\_days)
+
+Description: (Optional) The retention period in days. Defaults to 90.
+
+Type: `number`
+
+Default: `90`
+
+### <a name="input_application_insights_role_assignments"></a> [application\_insights\_role\_assignments](#input\_application\_insights\_role\_assignments)
+
+Description: (Optional) A map of role assignments to create on the Application Insights resource.
+
+Type:
+
+```hcl
+map(object({
+    role_definition_id_or_name             = string
+    principal_id                           = string
+    description                            = optional(string, null)
+    skip_service_principal_aad_check       = optional(bool, false)
+    condition                              = optional(string, null)
+    condition_version                      = optional(string, null)
+    delegated_managed_identity_resource_id = optional(string, null)
+    principal_type                         = optional(string, null)
+  }))
+```
+
+Default: `{}`
+
+### <a name="input_application_insights_sampling_percentage"></a> [application\_insights\_sampling\_percentage](#input\_application\_insights\_sampling\_percentage)
+
+Description: (Optional) The sampling percentage (1-100). 100 means all data is collected. Defaults to 100.
+
+Type: `number`
+
+Default: `100`
+
+### <a name="input_application_insights_tags"></a> [application\_insights\_tags](#input\_application\_insights\_tags)
+
+Description: (Optional) Tags to apply to the Application Insights resource. If null, the module-level tags are used.
+
+Type: `map(string)`
+
+Default: `null`
+
+### <a name="input_bastion_host_copy_paste_enabled"></a> [bastion\_host\_copy\_paste\_enabled](#input\_bastion\_host\_copy\_paste\_enabled)
+
+Description: (Optional) Specifies whether copy-paste functionality is enabled for the Azure Bastion Host. Defaults to true.
+
+Type: `bool`
+
+Default: `true`
+
+### <a name="input_bastion_host_enabled"></a> [bastion\_host\_enabled](#input\_bastion\_host\_enabled)
+
+Description: (Optional) Whether to create an Azure Bastion Host. When null (default), bastion is automatically enabled for WindowsManagedInstance plans and disabled otherwise. Set explicitly to true or false to override this behavior.
+
+Type: `bool`
+
+Default: `null`
+
+### <a name="input_bastion_host_file_copy_enabled"></a> [bastion\_host\_file\_copy\_enabled](#input\_bastion\_host\_file\_copy\_enabled)
+
+Description: (Optional) Specifies whether file copy functionality is enabled for the Azure Bastion Host. Requires Standard or Premium SKU. Defaults to false.
+
+Type: `bool`
+
+Default: `false`
+
+### <a name="input_bastion_host_ip_connect_enabled"></a> [bastion\_host\_ip\_connect\_enabled](#input\_bastion\_host\_ip\_connect\_enabled)
+
+Description: (Optional) Specifies whether IP connect functionality is enabled for the Azure Bastion Host. Requires Standard or Premium SKU. Defaults to false.
+
+Type: `bool`
+
+Default: `false`
+
+### <a name="input_bastion_host_name"></a> [bastion\_host\_name](#input\_bastion\_host\_name)
+
+Description: (Optional) The name of the Azure Bastion Host. Defaults to 'bas-{name}'.
+
+Type: `string`
+
+Default: `null`
+
+### <a name="input_bastion_host_resource_id"></a> [bastion\_host\_resource\_id](#input\_bastion\_host\_resource\_id)
+
+Description: (Optional) The resource ID of an existing Azure Bastion Host. When set, the module will not create a Bastion Host.
+
+Type: `string`
+
+Default: `null`
+
+### <a name="input_bastion_host_scale_units"></a> [bastion\_host\_scale\_units](#input\_bastion\_host\_scale\_units)
+
+Description: (Optional) The number of scale units for the Azure Bastion Host. Defaults to 2.
+
+Type: `number`
+
+Default: `2`
+
+### <a name="input_bastion_host_sku"></a> [bastion\_host\_sku](#input\_bastion\_host\_sku)
+
+Description: (Optional) The SKU of the Azure Bastion Host. Possible values are 'Basic', 'Standard', 'Developer', or 'Premium'. Defaults to 'Standard'.
+
+Type: `string`
+
+Default: `"Standard"`
+
+### <a name="input_bastion_host_subnet_address_prefix"></a> [bastion\_host\_subnet\_address\_prefix](#input\_bastion\_host\_subnet\_address\_prefix)
+
+Description: The address prefix for the AzureBastionSubnet. Must be at least /26. Only used when creating a new virtual network and bastion is enabled.
+
+Type: `string`
+
+Default: `"10.0.3.0/26"`
+
+### <a name="input_bastion_host_subnet_resource_id"></a> [bastion\_host\_subnet\_resource\_id](#input\_bastion\_host\_subnet\_resource\_id)
+
+Description: (Optional) The resource ID of an existing AzureBastionSubnet. When set, the module will not create the bastion subnet.
+
+Type: `string`
+
+Default: `null`
+
+### <a name="input_bastion_host_tags"></a> [bastion\_host\_tags](#input\_bastion\_host\_tags)
+
+Description: (Optional) Tags to apply to the Azure Bastion Host. If null, the module-level tags are used.
+
+Type: `map(string)`
+
+Default: `null`
+
+### <a name="input_bastion_host_tunneling_enabled"></a> [bastion\_host\_tunneling\_enabled](#input\_bastion\_host\_tunneling\_enabled)
+
+Description: (Optional) Specifies whether tunneling functionality (native client support) is enabled for the Azure Bastion Host. Requires Standard or Premium SKU. Defaults to false.
+
+Type: `bool`
+
+Default: `false`
+
+### <a name="input_bastion_host_zones"></a> [bastion\_host\_zones](#input\_bastion\_host\_zones)
+
+Description: (Optional) The availability zones where the Azure Bastion Host is deployed. Defaults to all three zones.
+
+Type: `set(string)`
+
+Default:
+
+```json
+[
+  "1",
+  "2",
+  "3"
+]
+```
+
+### <a name="input_egress_lockdown_enabled"></a> [egress\_lockdown\_enabled](#input\_egress\_lockdown\_enabled)
+
+Description: (Optional) Whether to create a route table for egress lockdown through a firewall. Defaults to false.
+
+Type: `bool`
+
+Default: `false`
+
 ### <a name="input_enable_telemetry"></a> [enable\_telemetry](#input\_enable\_telemetry)
 
 Description: This variable controls whether or not telemetry is enabled for the module.  
@@ -186,6 +1455,479 @@ Type: `bool`
 
 Default: `true`
 
+### <a name="input_firewall_private_ip"></a> [firewall\_private\_ip](#input\_firewall\_private\_ip)
+
+Description: (Optional) The private IP address of the Azure Firewall in the hub network. Required when egress\_lockdown\_enabled is true. A default route (0.0.0.0/0) will be created pointing to this IP.
+
+Type: `string`
+
+Default: `null`
+
+### <a name="input_front_door_additional_endpoints"></a> [front\_door\_additional\_endpoints](#input\_front\_door\_additional\_endpoints)
+
+Description: (Optional) Additional Front Door endpoints to create, merged with the auto-generated endpoints from web\_apps.
+
+Type:
+
+```hcl
+map(object({
+    name    = string
+    enabled = optional(bool, true)
+    tags    = optional(map(string))
+  }))
+```
+
+Default: `{}`
+
+### <a name="input_front_door_additional_firewall_policies"></a> [front\_door\_additional\_firewall\_policies](#input\_front\_door\_additional\_firewall\_policies)
+
+Description: (Optional) Additional Front Door firewall policies, merged with the auto-generated WAF policy.
+
+Type:
+
+```hcl
+map(object({
+    name                              = string
+    resource_group_name               = string
+    sku_name                          = string
+    enabled                           = optional(bool, true)
+    mode                              = string
+    request_body_check_enabled        = optional(bool, true)
+    redirect_url                      = optional(string)
+    custom_block_response_status_code = optional(number)
+    custom_block_response_body        = optional(string)
+    custom_rules = optional(map(object({
+      name                           = string
+      enabled                        = optional(bool, true)
+      priority                       = optional(number, 1)
+      rate_limit_duration_in_minutes = optional(number, 1)
+      rate_limit_threshold           = optional(number, 10)
+      type                           = string
+      action                         = string
+      match_conditions = map(object({
+        match_variable     = string
+        operator           = string
+        negation_condition = optional(bool)
+        match_values       = list(string)
+        selector           = optional(string)
+        transforms         = optional(list(string))
+      }))
+    })), {})
+    managed_rules = optional(map(object({
+      type    = string
+      version = string
+      action  = string
+      exclusions = optional(map(object({
+        match_variable = string
+        operator       = string
+        selector       = optional(string)
+      })), {})
+      overrides = optional(map(object({
+        rule_group_name = string
+        exclusions = optional(map(object({
+          match_variable = string
+          operator       = string
+          selector       = optional(string)
+        })), {})
+        rules = optional(map(object({
+          rule_id = string
+          action  = string
+          enabled = optional(bool, false)
+          exclusions = optional(map(object({
+            match_variable = string
+            operator       = string
+            selector       = optional(string)
+          })), {})
+        })), {})
+      })), {})
+    })), {})
+    tags = optional(map(string))
+  }))
+```
+
+Default: `{}`
+
+### <a name="input_front_door_additional_origin_groups"></a> [front\_door\_additional\_origin\_groups](#input\_front\_door\_additional\_origin\_groups)
+
+Description: (Optional) Additional Front Door origin groups, merged with the auto-generated origin groups from web\_apps.
+
+Type:
+
+```hcl
+map(object({
+    name = string
+    health_probe = optional(map(object({
+      interval_in_seconds = number
+      path                = optional(string, "/")
+      protocol            = string
+      request_type        = optional(string, "HEAD")
+    })), {})
+    load_balancing = map(object({
+      additional_latency_in_milliseconds = optional(number, 50)
+      sample_size                        = optional(number, 4)
+      successful_samples_required        = optional(number, 3)
+    }))
+  }))
+```
+
+Default: `{}`
+
+### <a name="input_front_door_additional_origins"></a> [front\_door\_additional\_origins](#input\_front\_door\_additional\_origins)
+
+Description: (Optional) Additional Front Door origins, merged with the auto-generated origins from web\_apps.
+
+Type:
+
+```hcl
+map(object({
+    name                           = string
+    origin_group_key               = string
+    host_name                      = string
+    certificate_name_check_enabled = string
+    enabled                        = optional(bool, true)
+    http_port                      = optional(number, 80)
+    https_port                     = optional(number, 443)
+    host_header                    = optional(string, null)
+    priority                       = optional(number, 1)
+    weight                         = optional(number, 500)
+    private_link = optional(map(object({
+      request_message        = string
+      target_type            = optional(string, null)
+      location               = string
+      private_link_target_id = string
+    })), null)
+  }))
+```
+
+Default: `{}`
+
+### <a name="input_front_door_additional_routes"></a> [front\_door\_additional\_routes](#input\_front\_door\_additional\_routes)
+
+Description: (Optional) Additional Front Door routes, merged with the auto-generated routes from web\_apps.
+
+Type:
+
+```hcl
+map(object({
+    name                      = string
+    origin_group_key          = string
+    origin_keys               = list(string)
+    endpoint_key              = string
+    forwarding_protocol       = optional(string, "HttpsOnly")
+    supported_protocols       = list(string)
+    patterns_to_match         = list(string)
+    link_to_default_domain    = optional(bool, true)
+    https_redirect_enabled    = optional(bool, true)
+    custom_domain_keys        = optional(list(string), [])
+    enabled                   = optional(bool, true)
+    rule_set_names            = optional(list(string))
+    cdn_frontdoor_origin_path = optional(string, null)
+    cache = optional(map(object({
+      query_string_caching_behavior = optional(string, "IgnoreQueryString")
+      query_strings                 = optional(list(string))
+      compression_enabled           = optional(bool, false)
+      content_types_to_compress     = optional(list(string))
+    })), {})
+  }))
+```
+
+Default: `{}`
+
+### <a name="input_front_door_additional_security_policies"></a> [front\_door\_additional\_security\_policies](#input\_front\_door\_additional\_security\_policies)
+
+Description: (Optional) Additional Front Door security policies, merged with the auto-generated security policies.
+
+Type:
+
+```hcl
+map(object({
+    name = string
+    firewall = object({
+      front_door_firewall_policy_key = string
+      association = object({
+        domain_keys       = optional(list(string), [])
+        endpoint_keys     = optional(list(string), [])
+        patterns_to_match = list(string)
+      })
+    })
+  }))
+```
+
+Default: `{}`
+
+### <a name="input_front_door_cdn_endpoint_custom_domains"></a> [front\_door\_cdn\_endpoint\_custom\_domains](#input\_front\_door\_cdn\_endpoint\_custom\_domains)
+
+Description: (Optional) A map of CDN Endpoint Custom Domains to create.
+
+Type:
+
+```hcl
+map(object({
+    cdn_endpoint_key = string
+    name             = string
+    dns_zone = optional(object({
+      is_azure_dns_zone                  = bool
+      name                               = string
+      cname_record_name                  = string
+      ttl                                = number
+      tags                               = optional(map(string))
+      azure_dns_zone_resource_group_name = optional(string, null)
+    }))
+    cdn_managed_https = optional(object({
+      certificate_type = string
+      protocol_type    = string
+      tls_version      = optional(string, "TLS12")
+    }))
+    user_managed_https = optional(object({
+      key_vault_certificate_id = optional(string)
+      key_vault_secret_id      = optional(string)
+      tls_version              = optional(string)
+    }))
+  }))
+```
+
+Default: `{}`
+
+### <a name="input_front_door_cdn_endpoints"></a> [front\_door\_cdn\_endpoints](#input\_front\_door\_cdn\_endpoints)
+
+Description: (Optional) A map of CDN Endpoints to create on the profile.
+
+Type:
+
+```hcl
+map(object({
+    name                      = string
+    tags                      = optional(map(string))
+    is_http_allowed           = optional(bool, false)
+    is_https_allowed          = optional(bool, true)
+    content_types_to_compress = optional(list(string), [])
+    geo_filters = optional(map(object({
+      relative_path = string
+      action        = string
+      country_codes = list(string)
+    })), {})
+    is_compression_enabled        = optional(bool)
+    querystring_caching_behaviour = optional(string, "IgnoreQueryString")
+    optimization_type             = optional(string)
+    origins = map(object({
+      name       = string
+      host_name  = string
+      http_port  = optional(number, 80)
+      https_port = optional(number, 443)
+    }))
+    origin_host_header = optional(string)
+    origin_path        = optional(string)
+    probe_path         = optional(string)
+    global_delivery_rule = optional(object({
+      cache_expiration_action = optional(list(object({
+        behavior = string
+        duration = optional(string)
+      })), [])
+      cache_key_query_string_action = optional(list(object({
+        behavior   = string
+        parameters = optional(string)
+      })), [])
+      modify_request_header_action = optional(list(object({
+        action = string
+        name   = string
+        value  = optional(string)
+      })), [])
+      modify_response_header_action = optional(list(object({
+        action = string
+        name   = string
+        value  = optional(string)
+      })), [])
+      url_redirect_action = optional(list(object({
+        redirect_type = string
+        protocol      = optional(string, "Https")
+        hostname      = optional(string)
+        path          = optional(string)
+        fragment      = optional(string)
+        query_string  = optional(string)
+      })), [])
+      url_rewrite_action = optional(list(object({
+        source_pattern          = string
+        destination             = string
+        preserve_unmatched_path = optional(bool, true)
+      })), [])
+    }), {})
+    delivery_rules = optional(list(object({
+      name  = string
+      order = number
+      cache_expiration_action = optional(object({
+        behavior = string
+        duration = optional(string)
+      }))
+      cache_key_query_string_action = optional(object({
+        behavior   = string
+        parameters = optional(string)
+      }))
+      cookies_condition = optional(object({
+        selector         = string
+        operator         = string
+        negate_condition = optional(bool, false)
+        match_values     = optional(list(string))
+        transforms       = optional(list(string))
+      }))
+      device_condition = optional(object({
+        operator         = optional(string, "Equal")
+        negate_condition = optional(bool, false)
+        match_values     = list(string)
+      }))
+      http_version_condition = optional(object({
+        operator         = optional(string, "Equal")
+        negate_condition = optional(bool, false)
+        match_values     = list(string)
+      }))
+      modify_request_header_action = optional(object({
+        action = string
+        name   = string
+        value  = optional(string)
+      }))
+      modify_response_header_action = optional(object({
+        action = string
+        name   = string
+        value  = optional(string)
+      }))
+      post_arg_condition = optional(object({
+        selector         = string
+        operator         = string
+        negate_condition = optional(bool, false)
+        match_values     = optional(list(string))
+        transforms       = optional(list(string))
+      }))
+      query_string_condition = optional(object({
+        operator         = string
+        negate_condition = optional(bool, false)
+        match_values     = optional(list(string))
+        transforms       = optional(list(string))
+      }))
+      remote_address_condition = optional(object({
+        operator         = string
+        negate_condition = optional(bool, false)
+        match_values     = optional(list(string))
+      }))
+      request_body_condition = optional(object({
+        operator         = string
+        negate_condition = optional(bool, false)
+        match_values     = optional(list(string))
+        transforms       = optional(list(string))
+      }))
+      request_header_condition = optional(object({
+        selector         = string
+        operator         = string
+        negate_condition = optional(bool, false)
+        match_values     = optional(list(string))
+        transforms       = optional(list(string))
+      }))
+      request_method_condition = optional(object({
+        operator         = optional(string, "Equal")
+        negate_condition = optional(bool, false)
+        match_values     = list(string)
+      }))
+      request_scheme_condition = optional(object({
+        operator         = optional(string, "Equal")
+        negate_condition = optional(bool, false)
+        match_values     = list(string)
+      }))
+      request_uri_condition = optional(object({
+        operator         = string
+        negate_condition = optional(bool, false)
+        match_values     = optional(list(string))
+        transforms       = optional(list(string))
+      }))
+      url_file_extension_condition = optional(object({
+        operator         = string
+        negate_condition = optional(bool, false)
+        match_values     = optional(list(string))
+        transforms       = optional(list(string))
+      }))
+      url_file_name_condition = optional(object({
+        operator         = string
+        negate_condition = optional(bool, false)
+        match_values     = optional(list(string))
+        transforms       = optional(list(string))
+      }))
+      url_path_condition = optional(object({
+        operator         = string
+        negate_condition = optional(bool, false)
+        match_values     = optional(list(string))
+        transforms       = optional(list(string))
+      }))
+      url_redirect_action = optional(object({
+        redirect_type = string
+        protocol      = optional(string, "MatchRequest")
+        hostname      = optional(string)
+        path          = optional(string)
+        fragment      = optional(string)
+        query_string  = optional(string)
+      }))
+      url_rewrite_action = optional(object({
+        source_pattern          = string
+        destination             = string
+        preserve_unmatched_path = optional(bool, true)
+      }))
+    })))
+    diagnostic_setting = optional(object({
+      name                                     = optional(string, null)
+      log_categories                           = optional(set(string), [])
+      log_groups                               = optional(set(string), [])
+      metric_categories                        = optional(set(string), [])
+      log_analytics_destination_type           = optional(string, "Dedicated")
+      workspace_resource_id                    = optional(string, null)
+      storage_account_resource_id              = optional(string, null)
+      event_hub_authorization_rule_resource_id = optional(string, null)
+      event_hub_name                           = optional(string, null)
+      marketplace_partner_resource_id          = optional(string, null)
+    }), null)
+  }))
+```
+
+Default: `{}`
+
+### <a name="input_front_door_custom_domains"></a> [front\_door\_custom\_domains](#input\_front\_door\_custom\_domains)
+
+Description: (Optional) A map of Front Door Custom Domains to create.
+
+Type:
+
+```hcl
+map(object({
+    name        = string
+    dns_zone_id = optional(string, null)
+    host_name   = string
+    tls = object({
+      certificate_type         = optional(string, "ManagedCertificate")
+      cdn_frontdoor_secret_key = optional(string, null)
+    })
+  }))
+```
+
+Default: `{}`
+
+### <a name="input_front_door_diagnostic_settings"></a> [front\_door\_diagnostic\_settings](#input\_front\_door\_diagnostic\_settings)
+
+Description: (Optional) A map of diagnostic settings for the Front Door profile.
+
+Type:
+
+```hcl
+map(object({
+    name                                     = optional(string, null)
+    log_categories                           = optional(set(string), [])
+    log_groups                               = optional(set(string), ["allLogs"])
+    metric_categories                        = optional(set(string), ["AllMetrics"])
+    log_analytics_destination_type           = optional(string, "Dedicated")
+    workspace_resource_id                    = optional(string, null)
+    storage_account_resource_id              = optional(string, null)
+    event_hub_authorization_rule_resource_id = optional(string, null)
+    event_hub_name                           = optional(string, null)
+    marketplace_partner_resource_id          = optional(string, null)
+  }))
+```
+
+Default: `{}`
+
 ### <a name="input_front_door_enabled"></a> [front\_door\_enabled](#input\_front\_door\_enabled)
 
 Description: Whether to create an Azure Front Door profile for ingress to the web apps. Defaults to true.
@@ -193,6 +1935,97 @@ Description: Whether to create an Azure Front Door profile for ingress to the we
 Type: `bool`
 
 Default: `true`
+
+### <a name="input_front_door_lock"></a> [front\_door\_lock](#input\_front\_door\_lock)
+
+Description: (Optional) The lock configuration for the Front Door profile resource.
+
+Type:
+
+```hcl
+object({
+    kind = string
+    name = optional(string, null)
+  })
+```
+
+Default: `null`
+
+### <a name="input_front_door_managed_identities"></a> [front\_door\_managed\_identities](#input\_front\_door\_managed\_identities)
+
+Description: (Optional) Managed identity configuration for the Front Door profile.
+
+Type:
+
+```hcl
+object({
+    system_assigned            = optional(bool, false)
+    user_assigned_resource_ids = optional(set(string), [])
+  })
+```
+
+Default: `{}`
+
+### <a name="input_front_door_metric_alerts"></a> [front\_door\_metric\_alerts](#input\_front\_door\_metric\_alerts)
+
+Description: (Optional) A map of metric alerts to create on the Front Door profile.
+
+Type:
+
+```hcl
+map(object({
+    name = string
+    criterias = optional(list(object({
+      metric_namespace       = string
+      metric_name            = string
+      aggregation            = string
+      operator               = string
+      threshold              = number
+      skip_metric_validation = optional(bool, false)
+      dimensions = optional(list(object({
+        name     = string
+        operator = string
+        values   = list(string)
+      })))
+    })), [])
+    actions = optional(list(object({
+      action_group_id    = string
+      webhook_properties = optional(map(string))
+    })), [])
+    dynamic_criterias = optional(list(object({
+      alert_sensitivity        = string
+      aggregation              = string
+      operator                 = string
+      metric_namespace         = string
+      metric_name              = string
+      skip_metric_validation   = optional(bool, false)
+      evaluation_failure_count = optional(number, 4)
+      evaluation_total_count   = optional(number, 4)
+      ignore_data_before       = optional(string)
+      dimension = optional(list(object({
+        name     = string
+        operator = string
+        values   = list(string)
+      })), [])
+    })), [])
+    application_insights_web_test_location_availability_criterias = optional(list(object({
+      component_id          = string
+      failed_location_count = number
+      web_test_id           = string
+    })), [])
+    auto_mitigate            = optional(bool, true)
+    description              = optional(string)
+    enabled                  = optional(bool, true)
+    frequency                = optional(string, "PT1M")
+    severity                 = optional(number, 3)
+    target_resource_type     = optional(string)
+    target_resource_location = optional(string)
+    window_size              = optional(string, "PT5M")
+    tags                     = optional(map(string))
+  }))
+```
+
+Default: `{}`
 
 ### <a name="input_front_door_name"></a> [front\_door\_name](#input\_front\_door\_name)
 
@@ -209,6 +2042,220 @@ Description: (Optional) The resource ID of an existing Azure Front Door profile.
 Type: `string`
 
 Default: `null`
+
+### <a name="input_front_door_response_timeout_seconds"></a> [front\_door\_response\_timeout\_seconds](#input\_front\_door\_response\_timeout\_seconds)
+
+Description: (Optional) The maximum response timeout in seconds for the Front Door profile. Values between 16 and 240. Defaults to 120.
+
+Type: `number`
+
+Default: `120`
+
+### <a name="input_front_door_role_assignments"></a> [front\_door\_role\_assignments](#input\_front\_door\_role\_assignments)
+
+Description: (Optional) A map of role assignments for the Front Door profile.
+
+Type:
+
+```hcl
+map(object({
+    role_definition_id_or_name             = string
+    principal_id                           = string
+    description                            = optional(string, null)
+    skip_service_principal_aad_check       = optional(bool, false)
+    condition                              = optional(string, null)
+    condition_version                      = optional(string, null)
+    delegated_managed_identity_resource_id = optional(string, null)
+    principal_type                         = optional(string, null)
+  }))
+```
+
+Default: `{}`
+
+### <a name="input_front_door_rule_sets"></a> [front\_door\_rule\_sets](#input\_front\_door\_rule\_sets)
+
+Description: (Optional) A set of Front Door Rule Set names to create.
+
+Type: `set(string)`
+
+Default: `[]`
+
+### <a name="input_front_door_rules"></a> [front\_door\_rules](#input\_front\_door\_rules)
+
+Description: (Optional) A map of Front Door rules to create.
+
+Type:
+
+```hcl
+map(object({
+    name              = string
+    order             = number
+    origin_group_key  = string
+    rule_set_name     = string
+    behavior_on_match = optional(string, "Continue")
+    actions = object({
+      url_rewrite_actions = optional(list(object({
+        source_pattern          = string
+        destination             = string
+        preserve_unmatched_path = optional(bool, false)
+      })), [])
+      url_redirect_actions = optional(list(object({
+        redirect_type        = string
+        destination_hostname = string
+        redirect_protocol    = optional(string, "Https")
+        destination_path     = optional(string, "")
+        query_string         = optional(string, "")
+        destination_fragment = optional(string, "")
+      })), [])
+      route_configuration_override_actions = optional(list(object({
+        set_origin_groupid            = bool
+        cache_duration                = optional(string)
+        forwarding_protocol           = optional(string, "HttpsOnly")
+        query_string_caching_behavior = optional(string)
+        query_string_parameters       = optional(list(string))
+        compression_enabled           = optional(bool, false)
+        cache_behavior                = optional(string)
+      })), [])
+      request_header_actions = optional(list(object({
+        header_action = string
+        header_name   = string
+        value         = optional(string)
+      })), [])
+      response_header_actions = optional(list(object({
+        header_action = string
+        header_name   = string
+        value         = optional(string)
+      })), [])
+    })
+    conditions = optional(object({
+      remote_address_conditions = optional(list(object({
+        operator         = optional(string, "IPMatch")
+        negate_condition = optional(bool, false)
+        match_values     = optional(list(string))
+      })), [])
+      request_method_conditions = optional(list(object({
+        match_values     = list(string)
+        operator         = optional(string, "Equal")
+        negate_condition = optional(bool, false)
+      })), [])
+      query_string_conditions = optional(list(object({
+        operator         = string
+        negate_condition = optional(bool, false)
+        match_values     = optional(list(string))
+        transforms       = optional(list(string))
+      })), [])
+      post_args_conditions = optional(list(object({
+        post_args_name   = string
+        operator         = string
+        negate_condition = optional(bool, false)
+        match_values     = optional(list(string))
+        transforms       = optional(list(string))
+      })), [])
+      request_uri_conditions = optional(list(object({
+        operator         = string
+        negate_condition = optional(bool)
+        match_values     = optional(list(string))
+        transforms       = optional(list(string))
+      })), [])
+      request_header_conditions = optional(list(object({
+        header_name      = string
+        operator         = string
+        negate_condition = optional(bool, false)
+        match_values     = optional(list(string))
+        transforms       = optional(list(string))
+      })), [])
+      request_body_conditions = optional(list(object({
+        operator         = string
+        match_values     = list(string)
+        negate_condition = optional(bool, false)
+        transforms       = optional(list(string))
+      })), [])
+      request_scheme_conditions = optional(list(object({
+        operator         = optional(string, "Equal")
+        negate_condition = optional(bool, false)
+        match_values     = optional(list(string))
+      })), [])
+      url_path_conditions = optional(list(object({
+        operator         = string
+        negate_condition = optional(bool, false)
+        match_values     = optional(list(string))
+        transforms       = optional(list(string))
+      })), [])
+      url_file_extension_conditions = optional(list(object({
+        operator         = string
+        negate_condition = optional(bool, false)
+        match_values     = list(string)
+        transforms       = optional(list(string))
+      })), [])
+      url_filename_conditions = optional(list(object({
+        operator         = string
+        match_values     = optional(list(string))
+        negate_condition = optional(bool, false)
+        transforms       = optional(list(string))
+      })), [])
+      http_version_conditions = optional(list(object({
+        operator         = optional(string, "Equal")
+        match_values     = list(string)
+        negate_condition = optional(bool, false)
+      })), [])
+      cookies_conditions = optional(list(object({
+        cookie_name      = string
+        operator         = string
+        negate_condition = optional(bool, false)
+        match_values     = optional(list(string))
+        transforms       = optional(list(string))
+      })), [])
+      is_device_conditions = optional(list(object({
+        operator         = optional(string)
+        negate_condition = optional(bool, false)
+        match_values     = optional(list(string))
+      })), [])
+      socket_address_conditions = optional(list(object({
+        operator         = optional(string, "IPMatch")
+        negate_condition = optional(bool, false)
+        match_values     = optional(list(string))
+      })), [])
+      client_port_conditions = optional(list(object({
+        operator         = string
+        negate_condition = optional(bool, false)
+        match_values     = optional(list(number))
+      })), [])
+      server_port_conditions = optional(list(object({
+        operator         = string
+        negate_condition = optional(bool, false)
+        match_values     = list(number)
+      })), [])
+      host_name_conditions = optional(list(object({
+        operator         = string
+        match_values     = optional(list(string))
+        transforms       = optional(list(string))
+        negate_condition = optional(bool, false)
+      })), [])
+      ssl_protocol_conditions = optional(list(object({
+        match_values     = list(string)
+        operator         = optional(string, "Equal")
+        negate_condition = optional(bool, false)
+      })), [])
+    }))
+  }))
+```
+
+Default: `{}`
+
+### <a name="input_front_door_secrets"></a> [front\_door\_secrets](#input\_front\_door\_secrets)
+
+Description: (Optional) A map of Front Door Secrets to create.
+
+Type:
+
+```hcl
+map(object({
+    name                     = string
+    key_vault_certificate_id = string
+  }))
+```
+
+Default: `{}`
 
 ### <a name="input_front_door_sku"></a> [front\_door\_sku](#input\_front\_door\_sku)
 
@@ -242,6 +2289,472 @@ Type: `string`
 
 Default: `null`
 
+### <a name="input_key_vault_diagnostic_settings"></a> [key\_vault\_diagnostic\_settings](#input\_key\_vault\_diagnostic\_settings)
+
+Description: (Optional) Diagnostic settings for the Key Vault.
+
+Type:
+
+```hcl
+map(object({
+    name                                     = optional(string, null)
+    log_categories                           = optional(set(string), [])
+    log_groups                               = optional(set(string), ["allLogs"])
+    metric_categories                        = optional(set(string), ["AllMetrics"])
+    log_analytics_destination_type           = optional(string, "Dedicated")
+    workspace_resource_id                    = optional(string, null)
+    storage_account_resource_id              = optional(string, null)
+    event_hub_authorization_rule_resource_id = optional(string, null)
+    event_hub_name                           = optional(string, null)
+    marketplace_partner_resource_id          = optional(string, null)
+  }))
+```
+
+Default: `{}`
+
+### <a name="input_key_vault_enable_rbac_authorization"></a> [key\_vault\_enable\_rbac\_authorization](#input\_key\_vault\_enable\_rbac\_authorization)
+
+Description: (Optional) Whether to enable RBAC authorization for the Key Vault. Defaults to true.
+
+Type: `bool`
+
+Default: `true`
+
+### <a name="input_key_vault_enabled"></a> [key\_vault\_enabled](#input\_key\_vault\_enabled)
+
+Description: (Optional) Whether to create an Azure Key Vault. Defaults to false.
+
+Type: `bool`
+
+Default: `false`
+
+### <a name="input_key_vault_lock"></a> [key\_vault\_lock](#input\_key\_vault\_lock)
+
+Description: (Optional) Controls the resource lock configuration for the Key Vault.
+
+Type:
+
+```hcl
+object({
+    kind = string
+    name = optional(string, null)
+  })
+```
+
+Default: `null`
+
+### <a name="input_key_vault_name"></a> [key\_vault\_name](#input\_key\_vault\_name)
+
+Description: (Optional) The name of the Key Vault. Must be globally unique, 3-24 characters.
+
+Type: `string`
+
+Default: `null`
+
+### <a name="input_key_vault_network_acls"></a> [key\_vault\_network\_acls](#input\_key\_vault\_network\_acls)
+
+Description: (Optional) Network ACL configuration for the Key Vault. Defaults to denying all public access.
+
+Type:
+
+```hcl
+object({
+    bypass                     = optional(string, "None")
+    default_action             = optional(string, "Deny")
+    ip_rules                   = optional(list(string), [])
+    virtual_network_subnet_ids = optional(list(string), [])
+  })
+```
+
+Default: `{}`
+
+### <a name="input_key_vault_public_network_access_enabled"></a> [key\_vault\_public\_network\_access\_enabled](#input\_key\_vault\_public\_network\_access\_enabled)
+
+Description: (Optional) Whether public network access is enabled for the Key Vault. Defaults to false.
+
+Type: `bool`
+
+Default: `false`
+
+### <a name="input_key_vault_purge_protection_enabled"></a> [key\_vault\_purge\_protection\_enabled](#input\_key\_vault\_purge\_protection\_enabled)
+
+Description: (Optional) Specifies whether protection against purge is enabled for this Key Vault. Defaults to true.
+
+Type: `bool`
+
+Default: `true`
+
+### <a name="input_key_vault_resource_id"></a> [key\_vault\_resource\_id](#input\_key\_vault\_resource\_id)
+
+Description: (Optional) The resource ID of an existing Key Vault. When set, the module will not create a Key Vault.
+
+Type: `string`
+
+Default: `null`
+
+### <a name="input_key_vault_role_assignments"></a> [key\_vault\_role\_assignments](#input\_key\_vault\_role\_assignments)
+
+Description: (Optional) A map of role assignments to create on the Key Vault.
+
+Type:
+
+```hcl
+map(object({
+    role_definition_id_or_name             = string
+    principal_id                           = string
+    description                            = optional(string, null)
+    skip_service_principal_aad_check       = optional(bool, false)
+    condition                              = optional(string, null)
+    condition_version                      = optional(string, null)
+    delegated_managed_identity_resource_id = optional(string, null)
+    principal_type                         = optional(string, null)
+  }))
+```
+
+Default: `{}`
+
+### <a name="input_key_vault_secrets"></a> [key\_vault\_secrets](#input\_key\_vault\_secrets)
+
+Description: (Optional) A map of secrets to create in the Key Vault.
+
+Type:
+
+```hcl
+map(object({
+    name            = string
+    content_type    = optional(string, null)
+    tags            = optional(map(any), null)
+    not_before_date = optional(string, null)
+    expiration_date = optional(string, null)
+    role_assignments = optional(map(object({
+      role_definition_id_or_name             = string
+      principal_id                           = string
+      description                            = optional(string, null)
+      skip_service_principal_aad_check       = optional(bool, false)
+      condition                              = optional(string, null)
+      condition_version                      = optional(string, null)
+      delegated_managed_identity_resource_id = optional(string, null)
+      principal_type                         = optional(string, null)
+    })), {})
+  }))
+```
+
+Default: `{}`
+
+### <a name="input_key_vault_secrets_value"></a> [key\_vault\_secrets\_value](#input\_key\_vault\_secrets\_value)
+
+Description: (Optional) A map of secret keys to their values. The map key must match the key used in `key_vault_secrets`.
+
+Type: `map(string)`
+
+Default: `null`
+
+### <a name="input_key_vault_sku_name"></a> [key\_vault\_sku\_name](#input\_key\_vault\_sku\_name)
+
+Description: (Optional) The SKU name of the Key Vault. Possible values are 'standard' and 'premium'. Defaults to 'premium'.
+
+Type: `string`
+
+Default: `"premium"`
+
+### <a name="input_key_vault_soft_delete_retention_days"></a> [key\_vault\_soft\_delete\_retention\_days](#input\_key\_vault\_soft\_delete\_retention\_days)
+
+Description: (Optional) The number of days to retain soft-deleted keys, secrets, and certificates. Defaults to 90.
+
+Type: `number`
+
+Default: `90`
+
+### <a name="input_key_vault_tags"></a> [key\_vault\_tags](#input\_key\_vault\_tags)
+
+Description: (Optional) Tags to apply to the Key Vault. If null, the module-level tags are used.
+
+Type: `map(string)`
+
+Default: `null`
+
+### <a name="input_log_analytics_workspace_resource_id"></a> [log\_analytics\_workspace\_resource\_id](#input\_log\_analytics\_workspace\_resource\_id)
+
+Description: (Optional) The resource ID of the Log Analytics workspace. When set, diagnostic settings on created resources will be configured to send logs and metrics to this workspace.
+
+Type: `string`
+
+Default: `null`
+
+### <a name="input_private_dns_zone_a_records"></a> [private\_dns\_zone\_a\_records](#input\_private\_dns\_zone\_a\_records)
+
+Description: (Optional) A map of A records to create in the private DNS zone.
+
+Type:
+
+```hcl
+map(object({
+    name         = string
+    ttl          = number
+    records      = optional(list(string))
+    ip_addresses = optional(set(string), null)
+  }))
+```
+
+Default: `{}`
+
+### <a name="input_private_dns_zone_aaaa_records"></a> [private\_dns\_zone\_aaaa\_records](#input\_private\_dns\_zone\_aaaa\_records)
+
+Description: (Optional) A map of AAAA records to create in the private DNS zone.
+
+Type:
+
+```hcl
+map(object({
+    name         = string
+    ttl          = number
+    records      = optional(list(string))
+    ip_addresses = optional(set(string), null)
+  }))
+```
+
+Default: `{}`
+
+### <a name="input_private_dns_zone_additional_virtual_network_links"></a> [private\_dns\_zone\_additional\_virtual\_network\_links](#input\_private\_dns\_zone\_additional\_virtual\_network\_links)
+
+Description: (Optional) A map of additional virtual network links to create in the private DNS zone. These are merged with the auto-generated virtual network link for the deployed virtual network.
+
+Type:
+
+```hcl
+map(object({
+    vnetlinkname                           = optional(string, null)
+    name                                   = optional(string, null)
+    vnetid                                 = optional(string, null)
+    virtual_network_id                     = optional(string, null)
+    autoregistration                       = optional(bool, false)
+    registration_enabled                   = optional(bool, null)
+    private_dns_zone_supports_private_link = optional(bool, false)
+    resolution_policy                      = optional(string, "Default")
+    tags                                   = optional(map(string), null)
+  }))
+```
+
+Default: `{}`
+
+### <a name="input_private_dns_zone_cname_records"></a> [private\_dns\_zone\_cname\_records](#input\_private\_dns\_zone\_cname\_records)
+
+Description: (Optional) A map of CNAME records to create in the private DNS zone.
+
+Type:
+
+```hcl
+map(object({
+    name   = string
+    ttl    = number
+    record = optional(string, null)
+    cname  = optional(string, null)
+  }))
+```
+
+Default: `{}`
+
+### <a name="input_private_dns_zone_key_vault_resource_id"></a> [private\_dns\_zone\_key\_vault\_resource\_id](#input\_private\_dns\_zone\_key\_vault\_resource\_id)
+
+Description: (Optional) The resource ID of an existing private DNS zone for 'privatelink.vaultcore.azure.net'. When set, the module will not create this DNS zone for Key Vault private endpoints.
+
+Type: `string`
+
+Default: `null`
+
+### <a name="input_private_dns_zone_lock"></a> [private\_dns\_zone\_lock](#input\_private\_dns\_zone\_lock)
+
+Description: (Optional) Controls the Resource Lock configuration for the private DNS zone. The following properties can be specified:
+
+- `kind` - (Required) The type of lock. Possible values are `"CanNotDelete"` and `"ReadOnly"`.
+- `name` - (Optional) The name of the lock. If not specified, a name will be generated based on the `kind` value.
+
+Type:
+
+```hcl
+object({
+    kind = string
+    name = optional(string, null)
+  })
+```
+
+Default: `null`
+
+### <a name="input_private_dns_zone_mx_records"></a> [private\_dns\_zone\_mx\_records](#input\_private\_dns\_zone\_mx\_records)
+
+Description: (Optional) A map of MX records to create in the private DNS zone.
+
+Type:
+
+```hcl
+map(object({
+    name = optional(string, "@")
+    ttl  = number
+    records = map(object({
+      preference = number
+      exchange   = string
+    }))
+  }))
+```
+
+Default: `{}`
+
+### <a name="input_private_dns_zone_ptr_records"></a> [private\_dns\_zone\_ptr\_records](#input\_private\_dns\_zone\_ptr\_records)
+
+Description: (Optional) A map of PTR records to create in the private DNS zone.
+
+Type:
+
+```hcl
+map(object({
+    name         = string
+    ttl          = number
+    records      = optional(list(string), null)
+    domain_names = optional(set(string), null)
+  }))
+```
+
+Default: `{}`
+
+### <a name="input_private_dns_zone_retry"></a> [private\_dns\_zone\_retry](#input\_private\_dns\_zone\_retry)
+
+Description: (Optional) Retry configuration for the private DNS zone resource operations.
+
+Type:
+
+```hcl
+object({
+    error_message_regex  = optional(list(string), ["ReferencedResourceNotProvisioned", "CannotDeleteResource"])
+    interval_seconds     = optional(number, 10)
+    max_interval_seconds = optional(number, 180)
+    multiplier           = optional(number, 1.5)
+    randomization_factor = optional(number, 0.5)
+  })
+```
+
+Default: `{}`
+
+### <a name="input_private_dns_zone_role_assignment_name_use_random_uuid"></a> [private\_dns\_zone\_role\_assignment\_name\_use\_random\_uuid](#input\_private\_dns\_zone\_role\_assignment\_name\_use\_random\_uuid)
+
+Description: (Optional) A control to use a random UUID for role assignment names. If set to false, the name will be a deterministic UUID based on the principal ID and role definition resource ID. Defaults to true.
+
+Type: `bool`
+
+Default: `true`
+
+### <a name="input_private_dns_zone_role_assignments"></a> [private\_dns\_zone\_role\_assignments](#input\_private\_dns\_zone\_role\_assignments)
+
+Description: (Optional) A map of role assignments to create on the private DNS zone.
+
+Type:
+
+```hcl
+map(object({
+    role_definition_id_or_name             = string
+    principal_id                           = string
+    description                            = optional(string, null)
+    skip_service_principal_aad_check       = optional(bool, false)
+    condition                              = optional(string, null)
+    condition_version                      = optional(string, null)
+    delegated_managed_identity_resource_id = optional(string, null)
+    principal_type                         = optional(string, null)
+  }))
+```
+
+Default: `{}`
+
+### <a name="input_private_dns_zone_soa_record"></a> [private\_dns\_zone\_soa\_record](#input\_private\_dns\_zone\_soa\_record)
+
+Description: (Optional) SOA record configuration for the private DNS zone. If included, only email is required. Email must use username.corp.com format, not username@corp.com.
+
+Type:
+
+```hcl
+object({
+    email        = string
+    name         = optional(string, "@")
+    expire_time  = optional(number, 2419200)
+    minimum_ttl  = optional(number, 10)
+    refresh_time = optional(number, 3600)
+    retry_time   = optional(number, 300)
+    ttl          = optional(number, 3600)
+  })
+```
+
+Default: `null`
+
+### <a name="input_private_dns_zone_srv_records"></a> [private\_dns\_zone\_srv\_records](#input\_private\_dns\_zone\_srv\_records)
+
+Description: (Optional) A map of SRV records to create in the private DNS zone.
+
+Type:
+
+```hcl
+map(object({
+    name = string
+    ttl  = number
+    records = map(object({
+      priority = number
+      weight   = number
+      port     = number
+      target   = string
+    }))
+  }))
+```
+
+Default: `{}`
+
+### <a name="input_private_dns_zone_storage_blob_resource_id"></a> [private\_dns\_zone\_storage\_blob\_resource\_id](#input\_private\_dns\_zone\_storage\_blob\_resource\_id)
+
+Description: (Optional) The resource ID of an existing private DNS zone for 'privatelink.blob.core.windows.net'. When set, the module will not create this DNS zone for Storage Account private endpoints.
+
+Type: `string`
+
+Default: `null`
+
+### <a name="input_private_dns_zone_timeouts"></a> [private\_dns\_zone\_timeouts](#input\_private\_dns\_zone\_timeouts)
+
+Description: (Optional) Timeouts for the private DNS zone and virtual network link resources.
+
+Type:
+
+```hcl
+object({
+    dns_zones = optional(object({
+      create = optional(string, "30m")
+      delete = optional(string, "30m")
+      update = optional(string, "30m")
+      read   = optional(string, "5m")
+    }), {})
+    vnet_links = optional(object({
+      create = optional(string, "30m")
+      delete = optional(string, "30m")
+      update = optional(string, "30m")
+      read   = optional(string, "5m")
+    }), {})
+  })
+```
+
+Default: `{}`
+
+### <a name="input_private_dns_zone_txt_records"></a> [private\_dns\_zone\_txt\_records](#input\_private\_dns\_zone\_txt\_records)
+
+Description: (Optional) A map of TXT records to create in the private DNS zone.
+
+Type:
+
+```hcl
+map(object({
+    name = string
+    ttl  = number
+    records = map(object({
+      value = list(string)
+    }))
+  }))
+```
+
+Default: `{}`
+
 ### <a name="input_private_dns_zone_web_resource_id"></a> [private\_dns\_zone\_web\_resource\_id](#input\_private\_dns\_zone\_web\_resource\_id)
 
 Description: (Optional) The resource ID of an existing private DNS zone for 'privatelink.azurewebsites.net'. When set, the module will not create this DNS zone but will use it for web app private endpoint DNS resolution.
@@ -274,6 +2787,178 @@ Type: `string`
 
 Default: `null`
 
+### <a name="input_route_table_bgp_route_propagation_enabled"></a> [route\_table\_bgp\_route\_propagation\_enabled](#input\_route\_table\_bgp\_route\_propagation\_enabled)
+
+Description: (Optional) Whether BGP route propagation is enabled on the route table. Defaults to false (propagation disabled).
+
+Type: `bool`
+
+Default: `false`
+
+### <a name="input_route_table_name"></a> [route\_table\_name](#input\_route\_table\_name)
+
+Description: (Optional) The name of the route table. If not set, defaults to 'rt-{name}'.
+
+Type: `string`
+
+Default: `null`
+
+### <a name="input_storage_account_access_tier"></a> [storage\_account\_access\_tier](#input\_storage\_account\_access\_tier)
+
+Description: (Optional) Defines the access tier for the storage account. Valid options are Hot, Cool, Cold, and Premium. Defaults to Hot.
+
+Type: `string`
+
+Default: `"Hot"`
+
+### <a name="input_storage_account_account_replication_type"></a> [storage\_account\_account\_replication\_type](#input\_storage\_account\_account\_replication\_type)
+
+Description: (Optional) Defines the type of replication to use for the storage account. Valid options are LRS, GRS, RAGRS, ZRS, GZRS, and RAGZRS. Defaults to ZRS.
+
+Type: `string`
+
+Default: `"ZRS"`
+
+### <a name="input_storage_account_account_tier"></a> [storage\_account\_account\_tier](#input\_storage\_account\_account\_tier)
+
+Description: (Optional) Defines the tier to use for this storage account. Valid options are Standard and Premium. Defaults to Standard.
+
+Type: `string`
+
+Default: `"Standard"`
+
+### <a name="input_storage_account_containers"></a> [storage\_account\_containers](#input\_storage\_account\_containers)
+
+Description: (Optional) A map of blob containers to create in the storage account.
+
+Type:
+
+```hcl
+map(object({
+    public_access = optional(string, "None")
+    metadata      = optional(map(string))
+    name          = string
+    role_assignments = optional(map(object({
+      role_definition_id_or_name             = string
+      principal_id                           = string
+      principal_type                         = optional(string, null)
+      description                            = optional(string, null)
+      skip_service_principal_aad_check       = optional(bool, false)
+      condition                              = optional(string, null)
+      condition_version                      = optional(string, null)
+      delegated_managed_identity_resource_id = optional(string, null)
+    })), {})
+  }))
+```
+
+Default: `{}`
+
+### <a name="input_storage_account_enabled"></a> [storage\_account\_enabled](#input\_storage\_account\_enabled)
+
+Description: (Optional) Whether to create a storage account. Defaults to false.
+
+Type: `bool`
+
+Default: `false`
+
+### <a name="input_storage_account_name"></a> [storage\_account\_name](#input\_storage\_account\_name)
+
+Description: (Optional) The name of the storage account. Must be globally unique, 3-24 characters, lowercase letters and numbers only.
+
+Type: `string`
+
+Default: `null`
+
+### <a name="input_storage_account_network_rules"></a> [storage\_account\_network\_rules](#input\_storage\_account\_network\_rules)
+
+Description: (Optional) Network rules for the storage account. Defaults to denying all public access with AzureServices bypass.
+
+Type:
+
+```hcl
+object({
+    bypass                     = optional(set(string), ["AzureServices"])
+    default_action             = optional(string, "Deny")
+    ip_rules                   = optional(set(string), [])
+    virtual_network_subnet_ids = optional(set(string), [])
+  })
+```
+
+Default: `{}`
+
+### <a name="input_storage_account_resource_id"></a> [storage\_account\_resource\_id](#input\_storage\_account\_resource\_id)
+
+Description: (Optional) The resource ID of an existing storage account. When set, the module will not create a storage account.
+
+Type: `string`
+
+Default: `null`
+
+### <a name="input_storage_account_role_assignments"></a> [storage\_account\_role\_assignments](#input\_storage\_account\_role\_assignments)
+
+Description: (Optional) A map of role assignments to create on the storage account.
+
+Type:
+
+```hcl
+map(object({
+    role_definition_id_or_name             = string
+    principal_id                           = string
+    description                            = optional(string, null)
+    skip_service_principal_aad_check       = optional(bool, false)
+    condition                              = optional(string, null)
+    condition_version                      = optional(string, null)
+    delegated_managed_identity_resource_id = optional(string, null)
+    principal_type                         = optional(string, null)
+  }))
+```
+
+Default: `{}`
+
+### <a name="input_storage_account_shared_access_key_enabled"></a> [storage\_account\_shared\_access\_key\_enabled](#input\_storage\_account\_shared\_access\_key\_enabled)
+
+Description: (Optional) Indicates whether the storage account permits requests to be authorized with the account access key. Defaults to false (Azure AD only).
+
+Type: `bool`
+
+Default: `false`
+
+### <a name="input_storage_account_shares"></a> [storage\_account\_shares](#input\_storage\_account\_shares)
+
+Description: (Optional) A map of file shares to create in the storage account.
+
+Type:
+
+```hcl
+map(object({
+    access_tier      = optional(string)
+    enabled_protocol = optional(string)
+    metadata         = optional(map(string))
+    name             = string
+    quota            = number
+    role_assignments = optional(map(object({
+      role_definition_id_or_name             = string
+      principal_id                           = string
+      principal_type                         = optional(string, null)
+      description                            = optional(string, null)
+      skip_service_principal_aad_check       = optional(bool, false)
+      condition                              = optional(string, null)
+      condition_version                      = optional(string, null)
+      delegated_managed_identity_resource_id = optional(string, null)
+    })), {})
+  }))
+```
+
+Default: `{}`
+
+### <a name="input_storage_account_tags"></a> [storage\_account\_tags](#input\_storage\_account\_tags)
+
+Description: (Optional) Tags to apply to the storage account. If null, the module-level tags are used.
+
+Type: `map(string)`
+
+Default: `null`
+
 ### <a name="input_tags"></a> [tags](#input\_tags)
 
 Description: (Optional) Tags to apply to all resources created by this module.
@@ -296,6 +2981,79 @@ Default:
 ]
 ```
 
+### <a name="input_virtual_network_bgp_community"></a> [virtual\_network\_bgp\_community](#input\_virtual\_network\_bgp\_community)
+
+Description: (Optional) The BGP community to send to the virtual network gateway.
+
+Type: `string`
+
+Default: `null`
+
+### <a name="input_virtual_network_ddos_protection_plan"></a> [virtual\_network\_ddos\_protection\_plan](#input\_virtual\_network\_ddos\_protection\_plan)
+
+Description: (Optional) Specifies an Azure Network DDoS Protection Plan.
+
+- `id` - (Required) The ID of the DDoS Protection Plan.
+- `enable` - (Required) Enables or disables the DDoS Protection Plan on the Virtual Network.
+
+Type:
+
+```hcl
+object({
+    id     = string
+    enable = bool
+  })
+```
+
+Default: `null`
+
+### <a name="input_virtual_network_diagnostic_settings"></a> [virtual\_network\_diagnostic\_settings](#input\_virtual\_network\_diagnostic\_settings)
+
+Description: (Optional) A map of diagnostic settings to create on the virtual network.
+
+Type:
+
+```hcl
+map(object({
+    name                                     = optional(string, null)
+    log_categories                           = optional(set(string), [])
+    log_groups                               = optional(set(string), ["allLogs"])
+    metric_categories                        = optional(set(string), ["AllMetrics"])
+    log_analytics_destination_type           = optional(string, "Dedicated")
+    workspace_resource_id                    = optional(string, null)
+    storage_account_resource_id              = optional(string, null)
+    event_hub_authorization_rule_resource_id = optional(string, null)
+    event_hub_name                           = optional(string, null)
+    marketplace_partner_resource_id          = optional(string, null)
+  }))
+```
+
+Default: `{}`
+
+### <a name="input_virtual_network_dns_servers"></a> [virtual\_network\_dns\_servers](#input\_virtual\_network\_dns\_servers)
+
+Description: (Optional) Specifies a list of IP addresses representing DNS servers.
+
+- `dns_servers` - List of IP addresses of DNS servers.
+
+Type:
+
+```hcl
+object({
+    dns_servers = list(string)
+  })
+```
+
+Default: `null`
+
+### <a name="input_virtual_network_enable_vm_protection"></a> [virtual\_network\_enable\_vm\_protection](#input\_virtual\_network\_enable\_vm\_protection)
+
+Description: (Optional) Enable VM Protection for the virtual network. Defaults to false.
+
+Type: `bool`
+
+Default: `false`
+
 ### <a name="input_virtual_network_enabled"></a> [virtual\_network\_enabled](#input\_virtual\_network\_enabled)
 
 Description: Whether to enable private networking for the App Service Landing Zone. When true, a virtual network is created (or an existing one is used via `virtual_network_resource_id`) with subnets for App Service integration and private endpoints.
@@ -303,6 +3061,86 @@ Description: Whether to enable private networking for the App Service Landing Zo
 Type: `bool`
 
 Default: `true`
+
+### <a name="input_virtual_network_encryption"></a> [virtual\_network\_encryption](#input\_virtual\_network\_encryption)
+
+Description: (Optional) Specifies the encryption settings for the virtual network.
+
+- `enabled` - Specifies whether encryption is enabled for the virtual network.
+- `enforcement` - Specifies the enforcement mode. Possible values are `AllowUnencrypted` and `DropUnencrypted`.
+
+Type:
+
+```hcl
+object({
+    enabled     = bool
+    enforcement = string
+  })
+```
+
+Default: `null`
+
+### <a name="input_virtual_network_extended_location"></a> [virtual\_network\_extended\_location](#input\_virtual\_network\_extended\_location)
+
+Description: (Optional) Specifies the extended location of the virtual network.
+
+- `name` - The name of the extended location.
+- `type` - The type of the extended location.
+
+Type:
+
+```hcl
+object({
+    name = string
+    type = string
+  })
+```
+
+Default: `null`
+
+### <a name="input_virtual_network_flow_timeout_in_minutes"></a> [virtual\_network\_flow\_timeout\_in\_minutes](#input\_virtual\_network\_flow\_timeout\_in\_minutes)
+
+Description: (Optional) The flow timeout in minutes for the virtual network.
+
+Type: `number`
+
+Default: `null`
+
+### <a name="input_virtual_network_ipam_pools"></a> [virtual\_network\_ipam\_pools](#input\_virtual\_network\_ipam\_pools)
+
+Description: (Optional) Specifies the IPAM settings for requesting an address\_space from an IP Pool.
+
+- `id` - The ID of the IPAM pool.
+- `prefix_length` - The length of the CIDR range to request.
+
+Type:
+
+```hcl
+list(object({
+    id            = string
+    prefix_length = number
+  }))
+```
+
+Default: `null`
+
+### <a name="input_virtual_network_lock"></a> [virtual\_network\_lock](#input\_virtual\_network\_lock)
+
+Description: (Optional) Controls the Resource Lock configuration for the virtual network.
+
+- `kind` - (Required) The type of lock. Possible values are `CanNotDelete` and `ReadOnly`.
+- `name` - (Optional) The name of the lock.
+
+Type:
+
+```hcl
+object({
+    kind = string
+    name = optional(string, null)
+  })
+```
+
+Default: `null`
 
 ### <a name="input_virtual_network_name"></a> [virtual\_network\_name](#input\_virtual\_network\_name)
 
@@ -320,35 +3158,774 @@ Type: `string`
 
 Default: `null`
 
-### <a name="input_web_apps"></a> [web\_apps](#input\_web\_apps)
+### <a name="input_virtual_network_retry"></a> [virtual\_network\_retry](#input\_virtual\_network\_retry)
 
-Description: A map of web apps to create on the App Service Plan. The map key is used as a unique identifier.
+Description: (Optional) Retry configuration for the virtual network resource operations.
 
-- `name` - (Required) The name of the web app.
-- `kind` - (Optional) The kind of web app. Possible values are 'webapp' or 'functionapp'. Defaults to 'webapp'.
-- `os_type` - (Optional) The OS type for the web app. Defaults to the App Service Plan's OS type.
-- `site_config` - (Optional) The site configuration block, passed through to the AVM web site module.
-- `public_network_access_enabled` - (Optional) Whether public network access is enabled. Defaults to false for security.
-- `managed_identities` - (Optional) Managed identity configuration for the web app.
-- `diagnostic_settings` - (Optional) Diagnostic settings for the web app.
-- `lock` - (Optional) Lock configuration for the web app.
-- `role_assignments` - (Optional) Role assignments for the web app.
-- `tags` - (Optional) Additional tags for the web app, merged with module-level tags.
-- `enable_telemetry` - (Optional) Override the module-level telemetry setting for this web app.
+Type:
+
+```hcl
+object({
+    error_message_regex  = optional(list(string), ["ReferencedResourceNotProvisioned"])
+    interval_seconds     = optional(number, 10)
+    max_interval_seconds = optional(number, 180)
+  })
+```
+
+Default: `null`
+
+### <a name="input_virtual_network_role_assignments"></a> [virtual\_network\_role\_assignments](#input\_virtual\_network\_role\_assignments)
+
+Description: (Optional) A map of role assignments to create on the virtual network.
 
 Type:
 
 ```hcl
 map(object({
-    name                          = string
-    kind                          = optional(string, "webapp")
-    os_type                       = optional(string, null)
-    site_config                   = optional(any, {})
-    public_network_access_enabled = optional(bool, false)
-    managed_identities = optional(object({
-      system_assigned            = optional(bool, false)
-      user_assigned_resource_ids = optional(set(string), [])
-    }), {})
+    role_definition_id_or_name             = string
+    principal_id                           = string
+    description                            = optional(string, null)
+    skip_service_principal_aad_check       = optional(bool, false)
+    condition                              = optional(string, null)
+    condition_version                      = optional(string, null)
+    delegated_managed_identity_resource_id = optional(string, null)
+    principal_type                         = optional(string, null)
+  }))
+```
+
+Default: `{}`
+
+### <a name="input_virtual_network_timeouts"></a> [virtual\_network\_timeouts](#input\_virtual\_network\_timeouts)
+
+Description: (Optional) Timeouts for the virtual network resource operations.
+
+Type:
+
+```hcl
+object({
+    create = optional(string, "30m")
+    read   = optional(string, "5m")
+    update = optional(string, "30m")
+    delete = optional(string, "30m")
+  })
+```
+
+Default: `null`
+
+### <a name="input_web_app_slot_sensitive_app_settings"></a> [web\_app\_slot\_sensitive\_app\_settings](#input\_web\_app\_slot\_sensitive\_app\_settings)
+
+Description: A map of sensitive app settings for deployment slots, keyed by web app key then slot key.  
+The structure is: { web\_app\_key = { slot\_key = { setting\_name = setting\_value } } }
+
+Type: `map(map(map(string)))`
+
+Default: `{}`
+
+### <a name="input_web_app_slots_storage_shares_to_mount_sensitive_values"></a> [web\_app\_slots\_storage\_shares\_to\_mount\_sensitive\_values](#input\_web\_app\_slots\_storage\_shares\_to\_mount\_sensitive\_values)
+
+Description: A map of sensitive storage access keys for slot storage shares, keyed by web app key.  
+The structure is: { web\_app\_key = { storage\_mount\_key = access\_key\_value } }
+
+Type: `map(map(string))`
+
+Default: `{}`
+
+### <a name="input_web_apps"></a> [web\_apps](#input\_web\_apps)
+
+Description: A map of web apps to create on the App Service Plan. The map key is used as a unique identifier.
+
+- `name` - (Required) The name of the web app.
+- `kind` - (Optional) The kind of web app. Possible values are 'webapp', 'functionapp', or 'logicapp'. Defaults to 'webapp'.
+- `os_type` - (Optional) The OS type for the web app. Defaults to the App Service Plan's OS type.
+- `all_child_resources_inherit_tags` - (Optional) Should child resources inherit tags? Defaults to true.
+- `always_ready` - (Optional) A map of always-ready instances for Flex Consumption Function Apps.
+- `app_service_active_slot` - (Optional) Object that sets the active slot for the App Service.
+- `app_settings` - (Optional) A map of app settings key-value pairs.
+- `application_insights_connection_string` - (Optional) The Application Insights connection string.
+- `application_insights_key` - (Optional) The Application Insights instrumentation key.
+- `auth_settings` - (Optional) Authentication settings for the web app.
+- `auth_settings_v2` - (Optional) Authentication settings V2 for the web app.
+- `auto_generated_domain_name_label_scope` - (Optional) Scope of the auto-generated domain name label.
+- `backup` - (Optional) Backup configuration for the web app.
+- `builtin_logging_enabled` - (Optional) Should builtin logging be enabled? Defaults to true.
+- `bundle_version` - (Optional) The extension bundle version (Logic App). Defaults to '[1.*, 2.0.0)'.
+- `client_affinity_enabled` - (Optional) Should client affinity be enabled? Defaults to false.
+- `client_affinity_partitioning_enabled` - (Optional) Should client affinity partitioning be enabled?
+- `client_affinity_proxy_enabled` - (Optional) Should client affinity proxy be enabled?
+- `client_certificate_enabled` - (Optional) Should client certificates be enabled? Defaults to false.
+- `client_certificate_exclusion_paths` - (Optional) Client certificate exclusion paths.
+- `client_certificate_mode` - (Optional) Client certificate mode. Defaults to 'Required'.
+- `connection_strings` - (Optional) A map of connection strings.
+- `container_size` - (Optional) The function container size in MB.
+- `content_share_force_disabled` - (Optional) Should content share be force disabled? Defaults to false.
+- `custom_domains` - (Optional) A map of custom domains.
+- `daily_memory_time_quota` - (Optional) Daily memory time quota in GB-seconds. Defaults to 0.
+- `dapr_config` - (Optional) Dapr configuration for Container Apps environments.
+- `deployment_slots` - (Optional) A map of deployment slots.
+- `deployment_slots_inherit_lock` - (Optional) Should slots inherit the parent lock? Defaults to true.
+- `diagnostic_settings` - (Optional) Diagnostic settings for the web app.
+- `dns_configuration` - (Optional) DNS configuration for the web app.
+- `enabled` - (Optional) Is the web app enabled? Defaults to true.
+- `enable_telemetry` - (Optional) Override the module-level telemetry setting.
+- `end_to_end_encryption_enabled` - (Optional) Should end-to-end encryption be enabled?
+- `fc1_runtime_name` - (Optional) The Flex Consumption runtime name.
+- `fc1_runtime_version` - (Optional) The Flex Consumption runtime version.
+- `ftp_publish_basic_authentication_enabled` - (Optional) Should FTP basic auth be enabled? Defaults to false.
+- `function_app_uses_fc1` - (Optional) Should this use Flex Consumption? Defaults to false.
+- `functions_extension_version` - (Optional) The Azure Functions runtime version. Defaults to '~4'.
+- `host_names_disabled` - (Optional) Should public hostnames be disabled?
+- `hosting_environment_id` - (Optional) The App Service Environment resource ID.
+- `https_only` - (Optional) Should the app only be accessible over HTTPS? Defaults to true.
+- `hyper_v` - (Optional) Should the app run in Hyper-V isolation?
+- `instance_memory_in_mb` - (Optional) Memory for Flex Consumption instances. Defaults to 2048.
+- `ip_mode` - (Optional) The IP mode (IPv4, IPv4AndIPv6, IPv6).
+- `key_vault_reference_identity` - (Optional) The identity for Key Vault references.
+- `lock` - (Optional) Lock configuration for the web app.
+- `logic_app_runtime_version` - (Optional) The Logic App runtime version. Defaults to '~4'.
+- `logs` - (Optional) Logs configuration for the web app.
+- `managed_environment_id` - (Optional) The Container Apps managed environment ID.
+- `managed_identities` - (Optional) Managed identity configuration.
+- `maximum_instance_count` - (Optional) Maximum scale-out instance count.
+- `private_endpoints` - (Optional) A map of private endpoints. Defaults to null (uses computed value).
+- `private_endpoints_inherit_lock` - (Optional) Should private endpoints inherit lock? Defaults to true.
+- `private_endpoints_manage_dns_zone_group` - (Optional) Should this module manage DNS zone groups? Defaults to true.
+- `public_network_access_enabled` - (Optional) Should public network access be enabled? Defaults to false.
+- `redundancy_mode` - (Optional) The site redundancy mode.
+- `resource_config` - (Optional) Resource config for Container App environments.
+- `role_assignments` - (Optional) Role assignments for the web app.
+- `scm_publish_basic_authentication_enabled` - (Optional) Should SCM basic auth be enabled? Defaults to true.
+- `scm_site_also_stopped` - (Optional) Should SCM site also be stopped?
+- `site_config` - (Optional) The site configuration block with explicit type definition.
+- `ssh_enabled` - (Optional) Should SSH be enabled?
+- `sticky_settings` - (Optional) Sticky settings for slot swaps.
+- `storage_account_access_key` - (Optional) The Storage Account access key (Function App).
+- `storage_account_name` - (Optional) The Storage Account name (Function App).
+- `storage_account_required` - (Optional) Should a storage account be required?
+- `storage_account_share_name` - (Optional) The storage account file share name (Logic App).
+- `storage_authentication_type` - (Optional) The storage authentication type.
+- `storage_container_endpoint` - (Optional) The storage container endpoint (Flex Consumption).
+- `storage_container_type` - (Optional) The storage container type.
+- `storage_shares_to_mount` - (Optional) A map of storage shares to mount.
+- `storage_user_assigned_identity_id` - (Optional) The user-assigned identity ID for storage.
+- `storage_uses_managed_identity` - (Optional) Should storage use managed identity? Defaults to false.
+- `tags` - (Optional) Additional tags, merged with module-level tags.
+- `timeouts` - (Optional) Timeout configuration for CRUD operations.
+- `use_extension_bundle` - (Optional) Should the extension bundle be used? Defaults to true.
+- `virtual_network_backup_restore_enabled` - (Optional) Should backup/restore use VNet? Defaults to false.
+- `virtual_network_subnet_id` - (Optional) The subnet ID for VNet integration. Defaults to null (uses computed value).
+- `vnet_application_traffic_enabled` - (Optional) Should app traffic use VNet? Defaults to false.
+- `vnet_content_share_enabled` - (Optional) Should content share use VNet? Defaults to null (uses computed value).
+- `vnet_image_pull_enabled` - (Optional) Should image pull use VNet? Defaults to null (uses computed value).
+- `vnet_route_all_traffic` - (Optional) Should all outbound traffic use VNet? Defaults to false.
+- `workload_profile_name` - (Optional) The workload profile name for Container Apps.
+- `zip_deploy_file` - (Optional) The path to the zip file to deploy.
+
+Type:
+
+```hcl
+map(object({
+    name    = string
+    kind    = optional(string, "webapp")
+    os_type = optional(string, null)
+
+    all_child_resources_inherit_tags = optional(bool, true)
+    always_ready = optional(map(object({
+      name           = optional(string)
+      instance_count = optional(number, 0)
+    })), {})
+    app_service_active_slot = optional(object({
+      slot_key                 = optional(string)
+      overwrite_network_config = optional(bool, true)
+    }), null)
+    app_settings                           = optional(map(string), {})
+    application_insights_connection_string = optional(string, null)
+    application_insights_key               = optional(string, null)
+    auth_settings = optional(object({
+      additional_login_parameters    = optional(map(string))
+      allowed_external_redirect_urls = optional(list(string))
+      default_provider               = optional(string)
+      enabled                        = optional(bool, false)
+      issuer                         = optional(string)
+      runtime_version                = optional(string)
+      token_refresh_extension_hours  = optional(number, 72)
+      token_store_enabled            = optional(bool, false)
+      unauthenticated_client_action  = optional(string)
+      active_directory = optional(object({
+        client_id                  = optional(string)
+        allowed_audiences          = optional(list(string))
+        client_secret              = optional(string)
+        client_secret_setting_name = optional(string)
+      }))
+      facebook = optional(object({
+        app_id                  = optional(string)
+        app_secret              = optional(string)
+        app_secret_setting_name = optional(string)
+        oauth_scopes            = optional(list(string))
+      }))
+      github = optional(object({
+        client_id                  = optional(string)
+        client_secret              = optional(string)
+        client_secret_setting_name = optional(string)
+        oauth_scopes               = optional(list(string))
+      }))
+      google = optional(object({
+        client_id                  = optional(string)
+        client_secret              = optional(string)
+        client_secret_setting_name = optional(string)
+        oauth_scopes               = optional(list(string))
+      }))
+      microsoft = optional(object({
+        client_id                  = optional(string)
+        client_secret              = optional(string)
+        client_secret_setting_name = optional(string)
+        oauth_scopes               = optional(list(string))
+      }))
+      twitter = optional(object({
+        consumer_key                 = optional(string)
+        consumer_secret              = optional(string)
+        consumer_secret_setting_name = optional(string)
+      }))
+    }), null)
+    auth_settings_v2 = optional(object({
+      auth_enabled                           = optional(bool, false)
+      config_file_path                       = optional(string)
+      excluded_paths                         = optional(list(string))
+      forward_proxy_convention               = optional(string, "NoProxy")
+      forward_proxy_custom_host_header_name  = optional(string)
+      forward_proxy_custom_proto_header_name = optional(string)
+      http_route_api_prefix                  = optional(string, "/.auth")
+      redirect_to_provider                   = optional(string)
+      require_authentication                 = optional(bool, false)
+      require_https                          = optional(bool, true)
+      runtime_version                        = optional(string, "~1")
+      unauthenticated_client_action          = optional(string, "RedirectToLoginPage")
+      identity_providers = optional(object({
+        apple = optional(object({
+          enabled = optional(bool)
+          login = optional(object({
+            scopes = optional(list(string))
+          }))
+          registration = optional(object({
+            client_id                  = optional(string)
+            client_secret_setting_name = optional(string)
+          }))
+        }))
+        azure_active_directory = optional(object({
+          enabled             = optional(bool)
+          is_auto_provisioned = optional(bool)
+          login = optional(object({
+            disable_www_authenticate = optional(bool)
+            login_parameters         = optional(list(string))
+          }))
+          registration = optional(object({
+            client_id                                          = optional(string)
+            client_secret_certificate_issuer                   = optional(string)
+            client_secret_certificate_subject_alternative_name = optional(string)
+            client_secret_certificate_thumbprint               = optional(string)
+            client_secret_setting_name                         = optional(string)
+            open_id_issuer                                     = optional(string)
+          }))
+          validation = optional(object({
+            allowed_audiences = optional(list(string))
+            default_authorization_policy = optional(object({
+              allowed_applications = optional(list(string))
+              allowed_principals = optional(object({
+                groups     = optional(list(string))
+                identities = optional(list(string))
+              }))
+            }))
+            jwt_claim_checks = optional(object({
+              allowed_client_applications = optional(list(string))
+              allowed_groups              = optional(list(string))
+            }))
+          }))
+        }))
+        azure_static_web_apps = optional(object({
+          enabled = optional(bool)
+          registration = optional(object({
+            client_id = optional(string)
+          }))
+        }))
+        custom_open_id_connect_providers = optional(map(object({
+          enabled = optional(bool)
+          login = optional(object({
+            name_claim_type = optional(string)
+            scopes          = optional(list(string))
+          }))
+          registration = optional(object({
+            client_id = optional(string)
+            client_credential = optional(object({
+              method                     = optional(string)
+              client_secret_setting_name = optional(string)
+            }))
+            open_id_connect_configuration = optional(object({
+              authorization_endpoint           = optional(string)
+              certification_uri                = optional(string)
+              issuer                           = optional(string)
+              token_endpoint                   = optional(string)
+              well_known_open_id_configuration = optional(string)
+            }))
+          }))
+        })))
+        facebook = optional(object({
+          enabled           = optional(bool)
+          graph_api_version = optional(string)
+          login = optional(object({
+            scopes = optional(list(string))
+          }))
+          registration = optional(object({
+            app_id                  = optional(string)
+            app_secret_setting_name = optional(string)
+          }))
+        }))
+        github = optional(object({
+          enabled = optional(bool)
+          login = optional(object({
+            scopes = optional(list(string))
+          }))
+          registration = optional(object({
+            client_id                  = optional(string)
+            client_secret_setting_name = optional(string)
+          }))
+        }))
+        google = optional(object({
+          enabled = optional(bool)
+          login = optional(object({
+            scopes = optional(list(string))
+          }))
+          registration = optional(object({
+            client_id                  = optional(string)
+            client_secret_setting_name = optional(string)
+          }))
+          validation = optional(object({
+            allowed_audiences = optional(list(string))
+          }))
+        }))
+        legacy_microsoft_account = optional(object({
+          enabled = optional(bool)
+          login = optional(object({
+            scopes = optional(list(string))
+          }))
+          registration = optional(object({
+            client_id                  = optional(string)
+            client_secret_setting_name = optional(string)
+          }))
+          validation = optional(object({
+            allowed_audiences = optional(list(string))
+          }))
+        }))
+        twitter = optional(object({
+          enabled = optional(bool)
+          registration = optional(object({
+            consumer_key                 = optional(string)
+            consumer_secret_setting_name = optional(string)
+          }))
+        }))
+      }))
+      login = optional(object({
+        allowed_external_redirect_urls = optional(list(string))
+        cookie_expiration = optional(object({
+          convention         = optional(string, "FixedTime")
+          time_to_expiration = optional(string, "08:00:00")
+        }))
+        nonce = optional(object({
+          nonce_expiration_interval = optional(string, "00:05:00")
+          validate_nonce            = optional(bool, true)
+        }))
+        preserve_url_fragments_for_logins = optional(bool, false)
+        routes = optional(object({
+          logout_endpoint = optional(string)
+        }))
+        token_store = optional(object({
+          azure_blob_storage = optional(object({
+            sas_url_setting_name = optional(string)
+          }))
+          enabled = optional(bool, false)
+          file_system = optional(object({
+            directory = optional(string)
+          }))
+          token_refresh_extension_hours = optional(number, 72)
+        }))
+      }))
+    }), null)
+    auto_generated_domain_name_label_scope = optional(string, null)
+    backup = optional(map(object({
+      enabled             = optional(bool, true)
+      name                = optional(string)
+      storage_account_url = optional(string)
+      schedule = optional(map(object({
+        frequency_interval       = optional(number)
+        frequency_unit           = optional(string)
+        keep_at_least_one_backup = optional(bool)
+        retention_period_days    = optional(number)
+        start_time               = optional(string)
+      })))
+    })), {})
+    builtin_logging_enabled              = optional(bool, true)
+    bundle_version                       = optional(string, "[1.*, 2.0.0)")
+    client_affinity_enabled              = optional(bool, false)
+    client_affinity_partitioning_enabled = optional(bool, null)
+    client_affinity_proxy_enabled        = optional(bool, null)
+    client_certificate_enabled           = optional(bool, false)
+    client_certificate_exclusion_paths   = optional(string, null)
+    client_certificate_mode              = optional(string, "Required")
+    connection_strings = optional(map(object({
+      name  = optional(string)
+      type  = optional(string)
+      value = optional(string)
+    })), {})
+    container_size               = optional(number, null)
+    content_share_force_disabled = optional(bool, false)
+    custom_domains = optional(map(object({
+      slot_as_target               = optional(bool, false)
+      app_service_slot_key         = optional(string)
+      create_certificate           = optional(bool, false)
+      certificate_name             = optional(string)
+      certificate_location         = optional(string)
+      pfx_blob                     = optional(string)
+      pfx_password                 = optional(string)
+      hostname                     = optional(string)
+      app_service_name             = optional(string)
+      app_service_plan_resource_id = optional(string)
+      key_vault_secret_id          = optional(string)
+      key_vault_id                 = optional(string)
+      zone_resource_group_name     = optional(string)
+      resource_group_name          = optional(string)
+      ssl_state                    = optional(string)
+      inherit_tags                 = optional(bool, true)
+      tags                         = optional(map(string), {})
+      thumbprint                   = optional(string)
+      thumbprint_key               = optional(string)
+      ttl                          = optional(number, 300)
+      validation_type              = optional(string, "cname-delegation")
+      create_cname_records         = optional(bool, false)
+      cname_name                   = optional(string)
+      cname_zone_name              = optional(string)
+      cname_record                 = optional(string)
+      cname_target_resource_id     = optional(string)
+      create_txt_records           = optional(bool, false)
+      txt_name                     = optional(string)
+      txt_zone_name                = optional(string)
+      txt_records                  = optional(map(object({ value = string })))
+    })), {})
+    daily_memory_time_quota = optional(number, 0)
+    dapr_config = optional(object({
+      app_id                = optional(string)
+      app_port              = optional(number)
+      enable_api_logging    = optional(bool)
+      enabled               = optional(bool)
+      http_max_request_size = optional(number)
+      http_read_buffer_size = optional(number)
+      log_level             = optional(string)
+    }), null)
+    deployment_slots = optional(map(object({
+      name                                   = optional(string)
+      auto_generated_domain_name_label_scope = optional(string)
+      client_affinity_enabled                = optional(bool, false)
+      client_affinity_partitioning_enabled   = optional(bool)
+      client_affinity_proxy_enabled          = optional(bool)
+      client_certificate_enabled             = optional(bool, false)
+      client_certificate_exclusion_paths     = optional(string, null)
+      client_certificate_mode                = optional(string, "Required")
+      container_size                         = optional(number)
+      dapr_config = optional(object({
+        app_id                = optional(string)
+        app_port              = optional(number)
+        enable_api_logging    = optional(bool)
+        enabled               = optional(bool)
+        http_max_request_size = optional(number)
+        http_read_buffer_size = optional(number)
+        log_level             = optional(string)
+      }))
+      dns_configuration = optional(object({
+        dns_alt_server            = optional(string)
+        dns_max_cache_timeout     = optional(number)
+        dns_retry_attempt_count   = optional(number)
+        dns_retry_attempt_timeout = optional(number)
+        dns_servers               = optional(list(string))
+      }))
+      enabled                                  = optional(bool, true)
+      end_to_end_encryption_enabled            = optional(bool)
+      ftp_publish_basic_authentication_enabled = optional(bool, false)
+      hosting_environment_id                   = optional(string)
+      host_names_disabled                      = optional(bool)
+      https_only                               = optional(bool, true)
+      hyper_v                                  = optional(bool)
+      ip_mode                                  = optional(string)
+      key_vault_reference_identity             = optional(string, null)
+      managed_environment_id                   = optional(string)
+      public_network_access_enabled            = optional(bool, false)
+      redundancy_mode                          = optional(string)
+      resource_config = optional(object({
+        cpu    = optional(number)
+        memory = optional(string)
+      }))
+      scm_site_also_stopped                          = optional(bool)
+      server_farm_id                                 = optional(string, null)
+      ssh_enabled                                    = optional(bool)
+      storage_account_required                       = optional(bool)
+      tags                                           = optional(map(string))
+      virtual_network_subnet_id                      = optional(string, null)
+      vnet_route_all_traffic                         = optional(bool, false)
+      vnet_application_traffic_enabled               = optional(bool, false)
+      vnet_backup_restore_enabled                    = optional(bool, false)
+      vnet_content_share_enabled                     = optional(bool, false)
+      vnet_image_pull_enabled                        = optional(bool, false)
+      webdeploy_publish_basic_authentication_enabled = optional(bool, false)
+      workload_profile_name                          = optional(string)
+      app_settings                                   = optional(map(string), {})
+      site_config = optional(object({
+        always_on             = optional(bool, true)
+        api_definition_url    = optional(string)
+        api_management_api_id = optional(string)
+        app_command_line      = optional(string)
+        app_scale_limit       = optional(number)
+        auto_heal_enabled     = optional(bool)
+        auto_heal_rules = optional(object({
+          actions = optional(object({
+            action_type = string
+            custom_action = optional(object({
+              exe        = string
+              parameters = optional(string)
+            }))
+            min_process_execution_time = optional(string, "00:00:00")
+          }))
+          triggers = optional(object({
+            private_bytes_in_kb = optional(number)
+            requests = optional(object({
+              count         = number
+              time_interval = string
+            }))
+            slow_requests = optional(object({
+              count         = number
+              time_interval = string
+              time_taken    = string
+              path          = optional(string)
+            }))
+            slow_requests_with_path = optional(list(object({
+              count         = number
+              time_interval = string
+              time_taken    = string
+              path          = optional(string)
+            })), [])
+            status_codes = optional(list(object({
+              count         = number
+              time_interval = string
+              status        = number
+              path          = optional(string)
+              sub_status    = optional(number)
+              win32_status  = optional(number)
+            })), [])
+            status_codes_range = optional(list(object({
+              count         = number
+              time_interval = string
+              status_codes  = string
+              path          = optional(string)
+            })), [])
+          }))
+        }))
+        auto_swap_slot_name                           = optional(string)
+        container_registry_managed_identity_client_id = optional(string)
+        container_registry_use_managed_identity       = optional(bool)
+        cors = optional(object({
+          allowed_origins     = optional(list(string))
+          support_credentials = optional(bool, false)
+        }))
+        default_documents              = optional(list(string))
+        detailed_error_logging_enabled = optional(bool)
+        document_root                  = optional(string)
+        dotnet_framework_version       = optional(string, "v4.0")
+        elastic_instance_minimum       = optional(number)
+        elastic_web_app_scale_limit    = optional(number)
+        experiments = optional(object({
+          ramp_up_rules = optional(list(object({
+            action_host_name             = optional(string)
+            change_decision_callback_url = optional(string)
+            change_interval_in_minutes   = optional(number)
+            change_step                  = optional(number)
+            max_reroute_percentage       = optional(number)
+            min_reroute_percentage       = optional(number)
+            name                         = optional(string)
+            reroute_percentage           = optional(number)
+          })), [])
+        }))
+        ftps_state = optional(string, "FtpsOnly")
+        handler_mappings = optional(list(object({
+          arguments        = optional(string)
+          extension        = optional(string)
+          script_processor = optional(string)
+        })))
+        health_check_path    = optional(string)
+        http2_enabled        = optional(bool, false)
+        http20_proxy_flag    = optional(number)
+        http_logging_enabled = optional(bool)
+        ip_restriction = optional(list(object({
+          action                    = optional(string, "Allow")
+          ip_address                = optional(string)
+          name                      = optional(string)
+          priority                  = optional(number, 65000)
+          service_tag               = optional(string)
+          virtual_network_subnet_id = optional(string)
+          headers = optional(object({
+            x_azure_fdid      = optional(list(string))
+            x_fd_health_probe = optional(list(string))
+            x_forwarded_for   = optional(list(string))
+            x_forwarded_host  = optional(list(string))
+          }))
+        })), [])
+        ip_restriction_default_action = optional(string, "Allow")
+        java_container                = optional(string)
+        java_container_version        = optional(string)
+        java_version                  = optional(string)
+        limits = optional(object({
+          max_disk_size_in_mb = optional(number)
+          max_memory_in_mb    = optional(number)
+          max_percentage_cpu  = optional(number)
+        }))
+        linux_fx_version                 = optional(string)
+        load_balancing_mode              = optional(string, "LeastRequests")
+        local_mysql_enabled              = optional(bool, false)
+        logs_directory_size_limit        = optional(number)
+        managed_pipeline_mode            = optional(string, "Integrated")
+        min_tls_cipher_suite             = optional(string)
+        minimum_tls_version              = optional(string, "1.3")
+        node_version                     = optional(string)
+        php_version                      = optional(string)
+        powershell_version               = optional(string)
+        pre_warmed_instance_count        = optional(number)
+        python_version                   = optional(string)
+        remote_debugging_enabled         = optional(bool, false)
+        remote_debugging_version         = optional(string)
+        request_tracing_enabled          = optional(bool)
+        request_tracing_expiration_time  = optional(string)
+        runtime_scale_monitoring_enabled = optional(bool)
+        scm_ip_restriction = optional(list(object({
+          action                    = optional(string, "Allow")
+          ip_address                = optional(string)
+          name                      = optional(string)
+          priority                  = optional(number, 65000)
+          service_tag               = optional(string)
+          virtual_network_subnet_id = optional(string)
+          headers = optional(object({
+            x_azure_fdid      = optional(list(string))
+            x_fd_health_probe = optional(list(string))
+            x_forwarded_for   = optional(list(string))
+            x_forwarded_host  = optional(list(string))
+          }))
+        })), [])
+        scm_ip_restriction_default_action      = optional(string, "Allow")
+        scm_minimum_tls_version                = optional(string, "1.2")
+        scm_type                               = optional(string, "None")
+        scm_use_main_ip_restriction            = optional(bool, false)
+        tracing_options                        = optional(string)
+        use_32_bit_worker                      = optional(bool, false)
+        vnet_private_ports_count               = optional(number)
+        vnet_route_all_enabled                 = optional(bool, false)
+        website_time_zone                      = optional(string)
+        websockets_enabled                     = optional(bool, false)
+        windows_fx_version                     = optional(string)
+        worker_count                           = optional(number)
+        application_insights_connection_string = optional(string)
+        application_insights_key               = optional(string)
+        application_stack = optional(object({
+          docker = optional(object({
+            docker_image_name   = optional(string)
+            docker_registry_url = optional(string)
+            docker_image_tag    = optional(string, "latest")
+          }))
+          dotnet = optional(object({
+            dotnet_version              = optional(string)
+            current_stack               = optional(string)
+            use_custom_runtime          = optional(bool, false)
+            use_dotnet_isolated_runtime = optional(bool, false)
+          }))
+          java = optional(object({
+            java_version           = optional(string)
+            java_container         = optional(string)
+            java_container_version = optional(string)
+          }))
+          node = optional(object({
+            node_version = optional(string)
+          }))
+          php = optional(object({
+            php_version = optional(string)
+          }))
+          python = optional(object({
+            python_version = optional(string)
+          }))
+          powershell = optional(object({
+            powershell_version = optional(string)
+          }))
+        }))
+        virtual_application = optional(list(object({
+          physical_path   = optional(string, "site\\wwwroot")
+          preload_enabled = optional(bool, false)
+          virtual_path    = optional(string, "/")
+          virtual_directory = optional(list(object({
+            physical_path = optional(string)
+            virtual_path  = optional(string)
+          })), [])
+        })), [])
+      }), {})
+      lock = optional(object({
+        kind = string
+        name = optional(string, null)
+      }), null)
+      private_endpoints = optional(map(object({
+        name = optional(string, null)
+        role_assignments = optional(map(object({
+          role_definition_id_or_name             = string
+          principal_id                           = string
+          description                            = optional(string, null)
+          skip_service_principal_aad_check       = optional(bool, false)
+          condition                              = optional(string, null)
+          condition_version                      = optional(string, null)
+          delegated_managed_identity_resource_id = optional(string, null)
+          principal_type                         = optional(string, null)
+        })), {})
+        lock = optional(object({
+          kind = string
+          name = optional(string, null)
+        }), null)
+        tags                                    = optional(map(string), null)
+        subnet_resource_id                      = string
+        private_dns_zone_group_name             = optional(string, "default")
+        private_dns_zone_resource_ids           = optional(set(string), [])
+        application_security_group_associations = optional(map(string), {})
+        private_service_connection_name         = optional(string, null)
+        network_interface_name                  = optional(string, null)
+        location                                = optional(string, null)
+        resource_group_name                     = optional(string, null)
+        ip_configurations = optional(map(object({
+          name               = string
+          private_ip_address = string
+          member_name        = optional(string, null)
+        })), {})
+      })), {})
+      role_assignments = optional(map(object({
+        role_definition_id_or_name             = string
+        principal_id                           = string
+        description                            = optional(string, null)
+        skip_service_principal_aad_check       = optional(bool, false)
+        condition                              = optional(string, null)
+        condition_version                      = optional(string, null)
+        delegated_managed_identity_resource_id = optional(string, null)
+        principal_type                         = optional(string, null)
+      })), {})
+      storage_shares_to_mount = optional(map(object({
+        account_name = string
+        mount_path   = string
+        name         = string
+        share_name   = string
+        type         = optional(string, "AzureFiles")
+      })), {})
+      connection_strings = optional(map(object({
+        name  = optional(string)
+        type  = optional(string)
+        value = optional(string)
+      })), {})
+    })), {})
+    deployment_slots_inherit_lock = optional(bool, true)
     diagnostic_settings = optional(map(object({
       name                                     = optional(string, null)
       log_categories                           = optional(set(string), [])
@@ -361,9 +3938,101 @@ map(object({
       event_hub_name                           = optional(string, null)
       marketplace_partner_resource_id          = optional(string, null)
     })), {})
+    dns_configuration = optional(object({
+      dns_alt_server            = optional(string)
+      dns_max_cache_timeout     = optional(number)
+      dns_retry_attempt_count   = optional(number)
+      dns_retry_attempt_timeout = optional(number)
+      dns_servers               = optional(list(string))
+    }), null)
+    enabled                                  = optional(bool, true)
+    enable_telemetry                         = optional(bool, null)
+    end_to_end_encryption_enabled            = optional(bool, null)
+    fc1_runtime_name                         = optional(string, null)
+    fc1_runtime_version                      = optional(string, null)
+    ftp_publish_basic_authentication_enabled = optional(bool, false)
+    function_app_uses_fc1                    = optional(bool, false)
+    functions_extension_version              = optional(string, "~4")
+    host_names_disabled                      = optional(bool, null)
+    hosting_environment_id                   = optional(string, null)
+    https_only                               = optional(bool, true)
+    hyper_v                                  = optional(bool, null)
+    instance_memory_in_mb                    = optional(number, 2048)
+    ip_mode                                  = optional(string, null)
+    key_vault_reference_identity             = optional(string, null)
     lock = optional(object({
       kind = string
       name = optional(string, null)
+    }), null)
+    logic_app_runtime_version = optional(string, "~4")
+    logs = optional(map(object({
+      application_logs = optional(map(object({
+        azure_blob_storage = optional(object({
+          level             = optional(string, "Off")
+          retention_in_days = optional(number, 0)
+          sas_url           = string
+        }))
+        file_system = optional(object({
+          level = optional(string, "Off")
+        }), {})
+      })), {})
+      detailed_error_messages = optional(bool, false)
+      failed_requests_tracing = optional(bool, false)
+      http_logs = optional(map(object({
+        azure_blob_storage = optional(object({
+          retention_in_days = optional(number, 0)
+          sas_url           = string
+        }))
+        file_system = optional(object({
+          retention_in_days = optional(number, 0)
+          retention_in_mb   = number
+        }))
+      })), {})
+    })), {})
+    managed_environment_id = optional(string, null)
+    managed_identities = optional(object({
+      system_assigned            = optional(bool, false)
+      user_assigned_resource_ids = optional(set(string), [])
+    }), {})
+    maximum_instance_count = optional(number, null)
+    private_endpoints = optional(map(object({
+      name = optional(string, null)
+      role_assignments = optional(map(object({
+        role_definition_id_or_name             = string
+        principal_id                           = string
+        description                            = optional(string, null)
+        skip_service_principal_aad_check       = optional(bool, false)
+        condition                              = optional(string, null)
+        condition_version                      = optional(string, null)
+        delegated_managed_identity_resource_id = optional(string, null)
+        principal_type                         = optional(string, null)
+      })), {})
+      lock = optional(object({
+        kind = string
+        name = optional(string, null)
+      }), null)
+      tags                                    = optional(map(string), null)
+      subnet_resource_id                      = string
+      private_dns_zone_group_name             = optional(string, "default")
+      private_dns_zone_resource_ids           = optional(set(string), [])
+      application_security_group_associations = optional(map(string), {})
+      private_service_connection_name         = optional(string, null)
+      network_interface_name                  = optional(string, null)
+      location                                = optional(string, null)
+      resource_group_name                     = optional(string, null)
+      ip_configurations = optional(map(object({
+        name               = string
+        private_ip_address = string
+        member_name        = optional(string, null)
+      })), {})
+    })), null)
+    private_endpoints_inherit_lock          = optional(bool, true)
+    private_endpoints_manage_dns_zone_group = optional(bool, true)
+    public_network_access_enabled           = optional(bool, false)
+    redundancy_mode                         = optional(string, null)
+    resource_config = optional(object({
+      cpu    = optional(number)
+      memory = optional(string)
     }), null)
     role_assignments = optional(map(object({
       role_definition_id_or_name             = string
@@ -375,8 +4044,239 @@ map(object({
       delegated_managed_identity_resource_id = optional(string, null)
       principal_type                         = optional(string, null)
     })), {})
-    tags             = optional(map(string), null)
-    enable_telemetry = optional(bool, null)
+    scm_publish_basic_authentication_enabled = optional(bool, true)
+    scm_site_also_stopped                    = optional(bool, null)
+    site_config = optional(object({
+      always_on             = optional(bool, true)
+      api_definition_url    = optional(string)
+      api_management_api_id = optional(string)
+      app_command_line      = optional(string)
+      app_scale_limit       = optional(number)
+      auto_heal_enabled     = optional(bool)
+      auto_heal_rules = optional(object({
+        actions = optional(object({
+          action_type = string
+          custom_action = optional(object({
+            exe        = string
+            parameters = optional(string)
+          }))
+          min_process_execution_time = optional(string, "00:00:00")
+        }))
+        triggers = optional(object({
+          private_bytes_in_kb = optional(number)
+          requests = optional(object({
+            count         = number
+            time_interval = string
+          }))
+          slow_requests = optional(object({
+            count         = number
+            time_interval = string
+            time_taken    = string
+            path          = optional(string)
+          }))
+          slow_requests_with_path = optional(list(object({
+            count         = number
+            time_interval = string
+            time_taken    = string
+            path          = optional(string)
+          })), [])
+          status_codes = optional(list(object({
+            count         = number
+            time_interval = string
+            status        = number
+            path          = optional(string)
+            sub_status    = optional(number)
+            win32_status  = optional(number)
+          })), [])
+          status_codes_range = optional(list(object({
+            count         = number
+            time_interval = string
+            status_codes  = string
+            path          = optional(string)
+          })), [])
+        }))
+      }))
+      auto_swap_slot_name                           = optional(string)
+      container_registry_managed_identity_client_id = optional(string)
+      container_registry_use_managed_identity       = optional(bool)
+      cors = optional(object({
+        allowed_origins     = optional(list(string))
+        support_credentials = optional(bool, false)
+      }))
+      default_documents              = optional(list(string))
+      detailed_error_logging_enabled = optional(bool)
+      document_root                  = optional(string)
+      dotnet_framework_version       = optional(string, "v4.0")
+      elastic_instance_minimum       = optional(number)
+      elastic_web_app_scale_limit    = optional(number)
+      experiments = optional(object({
+        ramp_up_rules = optional(list(object({
+          action_host_name             = optional(string)
+          change_decision_callback_url = optional(string)
+          change_interval_in_minutes   = optional(number)
+          change_step                  = optional(number)
+          max_reroute_percentage       = optional(number)
+          min_reroute_percentage       = optional(number)
+          name                         = optional(string)
+          reroute_percentage           = optional(number)
+        })), [])
+      }))
+      ftps_state = optional(string, "FtpsOnly")
+      handler_mappings = optional(list(object({
+        arguments        = optional(string)
+        extension        = optional(string)
+        script_processor = optional(string)
+      })))
+      health_check_path    = optional(string)
+      http2_enabled        = optional(bool, false)
+      http20_proxy_flag    = optional(number)
+      http_logging_enabled = optional(bool)
+      ip_restriction = optional(list(object({
+        action                    = optional(string, "Allow")
+        ip_address                = optional(string)
+        name                      = optional(string)
+        priority                  = optional(number, 65000)
+        service_tag               = optional(string)
+        virtual_network_subnet_id = optional(string)
+        headers = optional(object({
+          x_azure_fdid      = optional(list(string))
+          x_fd_health_probe = optional(list(string))
+          x_forwarded_for   = optional(list(string))
+          x_forwarded_host  = optional(list(string))
+        }))
+      })), [])
+      ip_restriction_default_action = optional(string, "Allow")
+      java_container                = optional(string)
+      java_container_version        = optional(string)
+      java_version                  = optional(string)
+      limits = optional(object({
+        max_disk_size_in_mb = optional(number)
+        max_memory_in_mb    = optional(number)
+        max_percentage_cpu  = optional(number)
+      }))
+      linux_fx_version                 = optional(string)
+      load_balancing_mode              = optional(string, "LeastRequests")
+      local_mysql_enabled              = optional(bool, false)
+      logs_directory_size_limit        = optional(number)
+      managed_pipeline_mode            = optional(string, "Integrated")
+      min_tls_cipher_suite             = optional(string)
+      minimum_tls_version              = optional(string, "1.3")
+      node_version                     = optional(string)
+      php_version                      = optional(string)
+      powershell_version               = optional(string)
+      pre_warmed_instance_count        = optional(number)
+      python_version                   = optional(string)
+      remote_debugging_enabled         = optional(bool, false)
+      remote_debugging_version         = optional(string)
+      request_tracing_enabled          = optional(bool)
+      request_tracing_expiration_time  = optional(string)
+      runtime_scale_monitoring_enabled = optional(bool)
+      scm_ip_restriction = optional(list(object({
+        action                    = optional(string, "Allow")
+        ip_address                = optional(string)
+        name                      = optional(string)
+        priority                  = optional(number, 65000)
+        service_tag               = optional(string)
+        virtual_network_subnet_id = optional(string)
+        headers = optional(object({
+          x_azure_fdid      = optional(list(string))
+          x_fd_health_probe = optional(list(string))
+          x_forwarded_for   = optional(list(string))
+          x_forwarded_host  = optional(list(string))
+        }))
+      })), [])
+      scm_ip_restriction_default_action      = optional(string, "Allow")
+      scm_minimum_tls_version                = optional(string, "1.2")
+      scm_type                               = optional(string, "None")
+      scm_use_main_ip_restriction            = optional(bool, false)
+      tracing_options                        = optional(string)
+      use_32_bit_worker                      = optional(bool, false)
+      vnet_private_ports_count               = optional(number)
+      vnet_route_all_enabled                 = optional(bool, false)
+      website_time_zone                      = optional(string)
+      websockets_enabled                     = optional(bool, false)
+      windows_fx_version                     = optional(string)
+      worker_count                           = optional(number)
+      application_insights_connection_string = optional(string)
+      application_insights_key               = optional(string)
+      application_stack = optional(object({
+        docker = optional(object({
+          docker_image_name   = optional(string)
+          docker_registry_url = optional(string)
+          docker_image_tag    = optional(string, "latest")
+        }))
+        dotnet = optional(object({
+          dotnet_version              = optional(string)
+          current_stack               = optional(string)
+          use_custom_runtime          = optional(bool, false)
+          use_dotnet_isolated_runtime = optional(bool, false)
+        }))
+        java = optional(object({
+          java_version           = optional(string)
+          java_container         = optional(string)
+          java_container_version = optional(string)
+        }))
+        node = optional(object({
+          node_version = optional(string)
+        }))
+        php = optional(object({
+          php_version = optional(string)
+        }))
+        python = optional(object({
+          python_version = optional(string)
+        }))
+        powershell = optional(object({
+          powershell_version = optional(string)
+        }))
+      }))
+      virtual_application = optional(list(object({
+        physical_path   = optional(string, "site\\wwwroot")
+        preload_enabled = optional(bool, false)
+        virtual_path    = optional(string, "/")
+        virtual_directory = optional(list(object({
+          physical_path = optional(string)
+          virtual_path  = optional(string)
+        })), [])
+      })), [])
+    }), {})
+    ssh_enabled = optional(bool, null)
+    sticky_settings = optional(map(object({
+      app_setting_names       = optional(list(string))
+      connection_string_names = optional(list(string))
+    })), {})
+    storage_account_access_key  = optional(string, null)
+    storage_account_name        = optional(string, null)
+    storage_account_required    = optional(bool, null)
+    storage_account_share_name  = optional(string, null)
+    storage_authentication_type = optional(string, null)
+    storage_container_endpoint  = optional(string, null)
+    storage_container_type      = optional(string, null)
+    storage_shares_to_mount = optional(map(object({
+      access_key   = string
+      account_name = string
+      mount_path   = string
+      name         = string
+      share_name   = string
+      type         = optional(string, "AzureFiles")
+    })), {})
+    storage_user_assigned_identity_id = optional(string, null)
+    storage_uses_managed_identity     = optional(bool, false)
+    tags                              = optional(map(string), null)
+    timeouts = optional(object({
+      create = optional(string)
+      delete = optional(string)
+      read   = optional(string)
+      update = optional(string)
+    }), null)
+    use_extension_bundle                   = optional(bool, true)
+    virtual_network_backup_restore_enabled = optional(bool, false)
+    virtual_network_subnet_id              = optional(string, null)
+    vnet_application_traffic_enabled       = optional(bool, false)
+    vnet_content_share_enabled             = optional(bool, null)
+    vnet_image_pull_enabled                = optional(bool, null)
+    vnet_route_all_traffic                 = optional(bool, false)
+    workload_profile_name                  = optional(string, null)
+    zip_deploy_file                        = optional(string, null)
   }))
 ```
 
@@ -394,6 +4294,10 @@ Description: The App Service Environment resource output from the AVM module.
 
 Description: The resource ID of the App Service Environment (created or BYO).
 
+### <a name="output_app_service_environment_name"></a> [app\_service\_environment\_name](#output\_app\_service\_environment\_name)
+
+Description: The name of the App Service Environment.
+
 ### <a name="output_app_service_plan"></a> [app\_service\_plan](#output\_app\_service\_plan)
 
 Description: The App Service Plan resource output from the AVM module.
@@ -402,13 +4306,65 @@ Description: The App Service Plan resource output from the AVM module.
 
 Description: The resource ID of the App Service Plan (created or BYO).
 
+### <a name="output_application_gateway"></a> [application\_gateway](#output\_application\_gateway)
+
+Description: The Application Gateway resource output from the AVM module.
+
+### <a name="output_application_insights"></a> [application\_insights](#output\_application\_insights)
+
+Description: The Application Insights resource output from the AVM module.
+
+### <a name="output_application_insights_connection_string"></a> [application\_insights\_connection\_string](#output\_application\_insights\_connection\_string)
+
+Description: The connection string of the Application Insights resource.
+
+### <a name="output_application_insights_instrumentation_key"></a> [application\_insights\_instrumentation\_key](#output\_application\_insights\_instrumentation\_key)
+
+Description: The instrumentation key of the Application Insights resource.
+
+### <a name="output_bastion_host"></a> [bastion\_host](#output\_bastion\_host)
+
+Description: The Bastion Host resource output from the AVM module.
+
+### <a name="output_bastion_host_id"></a> [bastion\_host\_id](#output\_bastion\_host\_id)
+
+Description: The resource ID of the Bastion Host (created or BYO).
+
 ### <a name="output_front_door"></a> [front\_door](#output\_front\_door)
 
 Description: The Azure Front Door resource output from the AVM module.
 
+### <a name="output_key_vault"></a> [key\_vault](#output\_key\_vault)
+
+Description: The Key Vault resource output from the AVM module.
+
+### <a name="output_key_vault_id"></a> [key\_vault\_id](#output\_key\_vault\_id)
+
+Description: The resource ID of the Key Vault (created or BYO).
+
+### <a name="output_key_vault_name"></a> [key\_vault\_name](#output\_key\_vault\_name)
+
+Description: The name of the Key Vault.
+
 ### <a name="output_private_dns_zone_web"></a> [private\_dns\_zone\_web](#output\_private\_dns\_zone\_web)
 
 Description: The private DNS zone for web apps (privatelink.azurewebsites.net) resource output.
+
+### <a name="output_resource_group_name"></a> [resource\_group\_name](#output\_resource\_group\_name)
+
+Description: The name of the resource group.
+
+### <a name="output_route_table"></a> [route\_table](#output\_route\_table)
+
+Description: The route table resource output from the AVM module.
+
+### <a name="output_storage_account"></a> [storage\_account](#output\_storage\_account)
+
+Description: The Storage Account resource output from the AVM module.
+
+### <a name="output_storage_account_id"></a> [storage\_account\_id](#output\_storage\_account\_id)
+
+Description: The resource ID of the Storage Account (created or BYO).
 
 ### <a name="output_virtual_network"></a> [virtual\_network](#output\_virtual\_network)
 
@@ -417,6 +4373,10 @@ Description: The virtual network resource output from the AVM module.
 ### <a name="output_virtual_network_id"></a> [virtual\_network\_id](#output\_virtual\_network\_id)
 
 Description: The resource ID of the virtual network (created or BYO).
+
+### <a name="output_virtual_network_name"></a> [virtual\_network\_name](#output\_virtual\_network\_name)
+
+Description: The name of the virtual network.
 
 ### <a name="output_web_apps"></a> [web\_apps](#output\_web\_apps)
 
@@ -438,17 +4398,65 @@ Source: Azure/avm-res-web-serverfarm/azurerm
 
 Version: 2.0.1
 
+### <a name="module_application_gateway"></a> [application\_gateway](#module\_application\_gateway)
+
+Source: Azure/avm-res-network-applicationgateway/azurerm
+
+Version: 0.5.2
+
+### <a name="module_application_insights"></a> [application\_insights](#module\_application\_insights)
+
+Source: Azure/avm-res-insights-component/azurerm
+
+Version: 0.3.0
+
+### <a name="module_bastion_host"></a> [bastion\_host](#module\_bastion\_host)
+
+Source: Azure/avm-res-network-bastionhost/azurerm
+
+Version: 0.9.0
+
 ### <a name="module_front_door"></a> [front\_door](#module\_front\_door)
 
 Source: Azure/avm-res-cdn-profile/azurerm
 
 Version: 0.1.9
 
+### <a name="module_key_vault"></a> [key\_vault](#module\_key\_vault)
+
+Source: Azure/avm-res-keyvault-vault/azurerm
+
+Version: 0.10.2
+
+### <a name="module_private_dns_zone_key_vault"></a> [private\_dns\_zone\_key\_vault](#module\_private\_dns\_zone\_key\_vault)
+
+Source: Azure/avm-res-network-privatednszone/azurerm
+
+Version: 0.5.0
+
+### <a name="module_private_dns_zone_storage_blob"></a> [private\_dns\_zone\_storage\_blob](#module\_private\_dns\_zone\_storage\_blob)
+
+Source: Azure/avm-res-network-privatednszone/azurerm
+
+Version: 0.5.0
+
 ### <a name="module_private_dns_zone_web"></a> [private\_dns\_zone\_web](#module\_private\_dns\_zone\_web)
 
 Source: Azure/avm-res-network-privatednszone/azurerm
 
 Version: 0.5.0
+
+### <a name="module_route_table"></a> [route\_table](#module\_route\_table)
+
+Source: Azure/avm-res-network-routetable/azurerm
+
+Version: 0.4.1
+
+### <a name="module_storage_account"></a> [storage\_account](#module\_storage\_account)
+
+Source: Azure/avm-res-storage-storageaccount/azurerm
+
+Version: 0.6.7
 
 ### <a name="module_virtual_network"></a> [virtual\_network](#module\_virtual\_network)
 

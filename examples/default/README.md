@@ -58,16 +58,43 @@ module "test" {
   name                = module.naming.app_service.name_unique
   resource_group_name = azurerm_resource_group.this.name
   enable_telemetry    = var.enable_telemetry
-  # Azure Front Door Premium with WAF (defaults)
-  front_door_enabled = true
-  # Virtual network with default address space (10.0.0.0/16)
-  virtual_network_enabled = true
-  # A single Linux web app with system-assigned managed identity
   web_apps = {
     app1 = {
       name = module.naming.app_service.name_unique
-      managed_identities = {
-        system_assigned = true
+      deployment_slots = {
+        dev = {
+          name = "dev"
+          site_config = {
+            application_stack = {
+              dotnet = {
+                dotnet_version = "v10.0"
+                current_stack  = "dotnet"
+              }
+            }
+          }
+        }
+        stage = {
+          name = "stage"
+          site_config = {
+            application_stack = {
+              dotnet = {
+                dotnet_version = "v10.0"
+                current_stack  = "dotnet"
+              }
+            }
+          }
+        }
+        prod = {
+          name = "prod"
+          site_config = {
+            application_stack = {
+              dotnet = {
+                dotnet_version = "v10.0"
+                current_stack  = "dotnet"
+              }
+            }
+          }
+        }
       }
     }
   }

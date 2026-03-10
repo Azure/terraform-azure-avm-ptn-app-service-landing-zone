@@ -74,6 +74,26 @@ module "test" {
       managed_identities = {
         system_assigned = true
       }
+      deployment_slots = {
+        dev = {
+          name = "dev"
+          site_config = {
+            windows_fx_version = "DOCKER|mcr.microsoft.com/dotnet/samples:aspnetapp"
+          }
+        }
+        stage = {
+          name = "stage"
+          site_config = {
+            windows_fx_version = "DOCKER|mcr.microsoft.com/dotnet/samples:aspnetapp"
+          }
+        }
+        prod = {
+          name = "prod"
+          site_config = {
+            windows_fx_version = "DOCKER|mcr.microsoft.com/dotnet/samples:aspnetapp"
+          }
+        }
+      }
     }
   }
 }

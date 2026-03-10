@@ -19,6 +19,18 @@ locals {
       module.virtual_network[0].subnets["app_service"].resource_id
     ) : null
   )
+  # Application Insights - auto-wire connection string to web apps when AI is created by this module
+  application_insights_connection_string = var.application_insights_enabled && var.application_insights_resource_id == null ? module.application_insights[0].connection_string : null
+  application_insights_key               = var.application_insights_enabled && var.application_insights_resource_id == null ? module.application_insights[0].instrumentation_key : null
+  # Bastion Host
+  bastion_host_effectively_enabled = coalesce(var.bastion_host_enabled, var.app_service_plan_os_type == "WindowsManagedInstance")
+  bastion_host_subnet_id = var.bastion_host_subnet_resource_id != null ? var.bastion_host_subnet_resource_id : (
+    var.virtual_network_enabled && var.virtual_network_resource_id == null && local.bastion_host_effectively_enabled ? (
+      module.virtual_network[0].subnets["AzureBastionSubnet"].resource_id
+    ) : null
+  )
+  create_private_dns_zone_key_vault    = var.private_dns_zones_enabled && var.private_dns_zone_key_vault_resource_id == null && local.virtual_network_enabled && var.key_vault_enabled
+  create_private_dns_zone_storage_blob = var.private_dns_zones_enabled && var.private_dns_zone_storage_blob_resource_id == null && local.virtual_network_enabled && var.storage_account_enabled
   # Private DNS Zone
   create_private_dns_zone_web = var.private_dns_zones_enabled && var.private_dns_zone_web_resource_id == null && local.virtual_network_enabled
   # App Service Plan - auto-adjust SKU for ASE (Isolated tier required)
