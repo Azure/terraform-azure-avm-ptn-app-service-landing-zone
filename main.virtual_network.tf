@@ -18,19 +18,34 @@ module "virtual_network" {
   ipam_pools              = var.virtual_network_ipam_pools
   lock                    = var.virtual_network_lock
   name                    = coalesce(var.virtual_network_name, "vnet-${var.name}")
-  peerings = var.hub_peering_enabled && var.hub_virtual_network_resource_id != null ? {
-    hub = {
-      name                               = "peer-to-hub"
-      remote_virtual_network_resource_id = var.hub_virtual_network_resource_id
-      allow_forwarded_traffic            = true
-      allow_gateway_transit              = false
-      use_remote_gateways                = false
-      create_reverse_peering             = true
-      reverse_name                       = "peer-to-spoke-${var.name}"
-      reverse_allow_forwarded_traffic    = true
-      reverse_allow_gateway_transit      = true
-    }
-  } : {}
+  peerings = merge(
+    var.hub_peering_enabled && var.hub_virtual_network_resource_id != null ? {
+      hub = {
+        name                               = "peer-to-hub"
+        remote_virtual_network_resource_id = var.hub_virtual_network_resource_id
+        allow_forwarded_traffic            = true
+        allow_gateway_transit              = false
+        use_remote_gateways                = false
+        create_reverse_peering             = true
+        reverse_name                       = "peer-to-spoke-${var.name}"
+        reverse_allow_forwarded_traffic    = true
+        reverse_allow_gateway_transit      = true
+      }
+    } : {},
+    var.alz_platform_landing_zone_peer_to_hub_enabled && var.alz_platform_landing_zone_peering_hub_virtual_network_id != null ? {
+      alz_hub = {
+        name                               = coalesce(var.alz_platform_landing_zone_peer_to_hub_name, "peer-to-alz-hub")
+        remote_virtual_network_resource_id = var.alz_platform_landing_zone_peering_hub_virtual_network_id
+        allow_forwarded_traffic            = true
+        allow_gateway_transit              = false
+        use_remote_gateways                = false
+        create_reverse_peering             = true
+        reverse_name                       = coalesce(var.alz_platform_landing_zone_peer_from_hub_name, "peer-from-alz-hub-${var.name}")
+        reverse_allow_forwarded_traffic    = true
+        reverse_allow_gateway_transit      = true
+      }
+    } : {}
+  )
   retry            = var.virtual_network_retry
   role_assignments = var.virtual_network_role_assignments
   subnets          = local.subnets

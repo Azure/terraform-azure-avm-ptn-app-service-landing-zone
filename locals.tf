@@ -33,10 +33,10 @@ locals {
       module.virtual_network[0].subnets["AzureBastionSubnet"].resource_id
     ) : null
   )
-  create_private_dns_zone_key_vault    = var.private_dns_zones_enabled && var.virtual_network_enabled && var.key_vault_enabled
-  create_private_dns_zone_storage_blob = var.private_dns_zones_enabled && var.virtual_network_enabled && var.storage_account_enabled
+  create_private_dns_zone_key_vault    = var.private_dns_zones_enabled && var.virtual_network_enabled && var.key_vault_enabled && !var.alz_platform_landing_zone_private_dns_zone_mode_enabled
+  create_private_dns_zone_storage_blob = var.private_dns_zones_enabled && var.virtual_network_enabled && var.storage_account_enabled && !var.alz_platform_landing_zone_private_dns_zone_mode_enabled
   # Private DNS Zone
-  create_private_dns_zone_web = var.private_dns_zones_enabled && var.virtual_network_enabled
+  create_private_dns_zone_web = var.private_dns_zones_enabled && var.virtual_network_enabled && !var.alz_platform_landing_zone_private_dns_zone_mode_enabled
   # App Service Plan - auto-adjust SKU for ASE (Isolated tier required)
   effective_sku_name = var.app_service_environment_enabled && !startswith(var.app_service_plan_sku_name, "I") ? "I1v2" : var.app_service_plan_sku_name
   private_dns_zone_web_id = var.private_dns_zone_web_resource_id != null ? var.private_dns_zone_web_resource_id : (

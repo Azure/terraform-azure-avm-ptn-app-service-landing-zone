@@ -1,6 +1,8 @@
 locals {
-  # Route table ID for egress lockdown
-  route_table_id = var.egress_lockdown_enabled && var.firewall_private_ip != null ? module.route_table[0].resource_id : null
+  # Route table ID - prefer BYO route table, then ALZ-created route table
+  route_table_id = var.alz_platform_landing_zone_route_table_resource_id != null ? var.alz_platform_landing_zone_route_table_resource_id : (
+    var.alz_platform_landing_zone_route_table_enabled ? module.alz_route_table[0].resource_id : null
+  )
   # Subnets to create in the virtual network
   subnets = merge(
     # App Service VNet integration subnet (when NOT using ASE)

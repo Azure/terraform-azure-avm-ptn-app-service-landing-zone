@@ -123,8 +123,13 @@ output "resource_group_name" {
 }
 
 output "route_table" {
-  description = "The route table resource output from the AVM module."
-  value       = var.egress_lockdown_enabled && var.firewall_private_ip != null ? module.route_table[0] : null
+  description = "The ALZ route table resource output from the AVM module. Returns null when using a BYO route table."
+  value       = var.alz_platform_landing_zone_route_table_resource_id == null && var.alz_platform_landing_zone_route_table_enabled ? module.alz_route_table[0] : null
+}
+
+output "route_table_id" {
+  description = "The resource ID of the route table (created or BYO)."
+  value       = local.route_table_id
 }
 
 output "storage_account" {
