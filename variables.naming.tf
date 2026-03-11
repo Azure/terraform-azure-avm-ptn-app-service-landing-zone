@@ -38,7 +38,7 @@ variable "resource_name_defaults" {
     web_app_slot_managed_identity = "id-slot-$${resource_name_workload}-$${resource_name_environment}-$${location}-$${sequence}"
 
     # Front Door per-app components
-    front_door_endpoint     = "fde-$${resource_name_workload}-$${resource_name_environment}-$${sequence}"
+    front_door_endpoint     = "fde-$${resource_name_workload}-$${resource_name_environment}-$${unique_name}-$${sequence}"
     front_door_origin_group = "fdog-$${resource_name_workload}-$${resource_name_environment}-$${sequence}"
     front_door_origin       = "fdo-$${resource_name_workload}-$${resource_name_environment}-$${sequence}"
     front_door_route        = "fdr-$${resource_name_workload}-$${resource_name_environment}-$${sequence}"

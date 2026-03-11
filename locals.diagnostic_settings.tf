@@ -30,7 +30,7 @@ locals {
   }
   _diag_default_new = var.log_analytics_workspace_resource_id != null ? {
     default = {
-      name = null
+      name = "default-diagnostic-setting"
       logs = toset([{
         category       = null
         category_group = "allLogs"
@@ -40,6 +40,26 @@ locals {
           enabled = false
         }
       }])
+      metrics = toset([{
+        category = "AllMetrics"
+        enabled  = true
+        retention_policy = {
+          days    = 0
+          enabled = false
+        }
+      }])
+      log_analytics_destination_type           = "Dedicated"
+      workspace_resource_id                    = var.log_analytics_workspace_resource_id
+      storage_account_resource_id              = null
+      event_hub_authorization_rule_resource_id = null
+      event_hub_name                           = null
+      marketplace_partner_resource_id          = null
+    }
+  } : {}
+  _diag_default_new_metrics_only = var.log_analytics_workspace_resource_id != null ? {
+    default = {
+      name = "default-diagnostic-setting"
+      logs = toset([])
       metrics = toset([{
         category = "AllMetrics"
         enabled  = true
@@ -121,7 +141,7 @@ locals {
     "table" = var.storage_account_diagnostic_settings_table,
   }
   app_service_environment_diagnostic_settings = length(var.app_service_environment_diagnostic_settings) > 0 ? local._new_law_default["app_service_environment"] : local._diag_default_new
-  app_service_plan_diagnostic_settings        = length(var.app_service_plan_diagnostic_settings) > 0 ? local._new_law_default["app_service_plan"] : local._diag_default_new
+  app_service_plan_diagnostic_settings        = length(var.app_service_plan_diagnostic_settings) > 0 ? local._new_law_default["app_service_plan"] : local._diag_default_new_metrics_only
   application_gateway_diagnostic_settings     = length(var.application_gateway_diagnostic_settings) > 0 ? local._coerce_old["application_gateway"] : local._diag_default_old
   bastion_host_diagnostic_settings            = length(var.bastion_host_diagnostic_settings) > 0 ? local._coerce_old["bastion_host"] : local._diag_default_old
   container_registry_diagnostic_settings      = length(var.container_registry_diagnostic_settings) > 0 ? local._coerce_old["container_registry"] : local._diag_default_old
