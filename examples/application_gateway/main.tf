@@ -42,7 +42,7 @@ module "resource_group" {
   version = "0.2.2"
 
   location         = local.azure_regions[random_integer.region_index.result]
-  name             = "${module.naming.resource_group.name_unique}-ase-linux"
+  name             = "${module.naming.resource_group.name_unique}-appgw"
   enable_telemetry = var.enable_telemetry
 }
 
@@ -56,25 +56,24 @@ module "log_analytics_workspace" {
   enable_telemetry    = var.enable_telemetry
 }
 
-# App Service Environment v3 - Linux
-# ASE provides a fully isolated, dedicated hosting environment.
-# The App Service Plan SKU is automatically set to Isolated v2 tier.
+# App Service Plan - Linux with .NET 10 and Application Gateway (WAF_v2)
 module "test" {
   source = "../../"
 
   location                            = module.resource_group.location
   parent_id                           = module.resource_group.resource_id
-  # Enable App Service Environment v3
-  app_service_environment_enabled     = true
   enable_telemetry                    = var.enable_telemetry
+  application_gateway_enabled         = true
+  front_door_enabled                  = false
   log_analytics_workspace_resource_id = module.log_analytics_workspace.resource_id
   web_apps = {
     app1 = {
       name = module.naming.app_service.name_unique
       site_config = {
         application_stack = {
-          node = {
-            node_version = "20-lts"
+          dotnet = {
+            dotnet_version = "v10.0"
+            current_stack  = "dotnet"
           }
         }
       }

@@ -2,18 +2,18 @@ locals {
   # Auto-generate Application Gateway configuration from web apps if not explicitly provided
   application_gateway_backend_address_pools = var.application_gateway_backend_address_pools != null ? var.application_gateway_backend_address_pools : {
     for key, app in var.web_apps : key => {
-      name         = "backend-${app.name}"
+      name         = module.naming.resource_names.application_gateway_backend_pool[key]
       fqdns        = [replace(replace(module.web_app[key].resource_uri, "https://", ""), "/", "")]
       ip_addresses = null
     }
   }
   application_gateway_backend_http_settings = var.application_gateway_backend_http_settings != null ? var.application_gateway_backend_http_settings : {
     for key, app in var.web_apps : key => {
-      name                                = "httpsetting-${app.name}"
+      name                                = module.naming.resource_names.application_gateway_http_setting[key]
       port                                = 443
       protocol                            = "Https"
       pick_host_name_from_backend_address = true
-      probe_name                          = "probe-${app.name}"
+      probe_name                          = module.naming.resource_names.application_gateway_probe[key]
       request_timeout                     = 120
     }
   }
@@ -29,14 +29,14 @@ locals {
   }
   application_gateway_http_listeners = var.application_gateway_http_listeners != null ? var.application_gateway_http_listeners : {
     for key, app in var.web_apps : key => {
-      name               = "listener-${app.name}"
+      name               = module.naming.resource_names.application_gateway_listener[key]
       frontend_port_name = "port-443"
       host_name          = replace(replace(module.web_app[key].resource_uri, "https://", ""), "/", "")
     }
   }
   application_gateway_probe_configurations = var.application_gateway_probe_configurations != null ? var.application_gateway_probe_configurations : {
     for key, app in var.web_apps : key => {
-      name                                      = "probe-${app.name}"
+      name                                      = module.naming.resource_names.application_gateway_probe[key]
       host                                      = null
       interval                                  = 30
       timeout                                   = 30
@@ -54,11 +54,11 @@ locals {
   }
   application_gateway_request_routing_rules = var.application_gateway_request_routing_rules != null ? var.application_gateway_request_routing_rules : {
     for idx_key in keys(var.web_apps) : idx_key => {
-      name                       = "rule-${var.web_apps[idx_key].name}"
+      name                       = module.naming.resource_names.application_gateway_routing_rule[idx_key]
       rule_type                  = "Basic"
-      http_listener_name         = "listener-${var.web_apps[idx_key].name}"
-      backend_address_pool_name  = "backend-${var.web_apps[idx_key].name}"
-      backend_http_settings_name = "httpsetting-${var.web_apps[idx_key].name}"
+      http_listener_name         = module.naming.resource_names.application_gateway_listener[idx_key]
+      backend_address_pool_name  = module.naming.resource_names.application_gateway_backend_pool[idx_key]
+      backend_http_settings_name = module.naming.resource_names.application_gateway_http_setting[idx_key]
       priority                   = 100 + index(keys(var.web_apps), idx_key)
     }
   }

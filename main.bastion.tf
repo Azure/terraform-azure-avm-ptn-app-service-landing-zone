@@ -4,9 +4,10 @@ module "bastion_host" {
   count   = local.bastion_host_effectively_enabled ? 1 : 0
 
   location           = var.location
-  name               = coalesce(var.bastion_host_name, "bas-${var.name}")
+  name               = coalesce(var.bastion_host_name, module.naming.resource_names.bastion_host)
   parent_id          = local.resource_group_id
   copy_paste_enabled = var.bastion_host_copy_paste_enabled
+  diagnostic_settings = var.alz_platform_landing_zone_diagnostic_settings_mode_enabled ? {} : local.bastion_host_diagnostic_settings
   enable_telemetry   = var.enable_telemetry
   file_copy_enabled  = var.bastion_host_file_copy_enabled
   ip_configuration = {

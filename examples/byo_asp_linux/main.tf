@@ -48,6 +48,16 @@ module "resource_group" {
 
 # --- Pre-existing (BYO) resources ---
 
+module "log_analytics_workspace" {
+  source  = "Azure/avm-res-operationalinsights-workspace/azurerm"
+  version = "0.5.1"
+
+  location            = module.resource_group.location
+  name                = module.naming.log_analytics_workspace.name_unique
+  resource_group_name = module.resource_group.name
+  enable_telemetry    = var.enable_telemetry
+}
+
 # Virtual Network with subnets
 module "virtual_network" {
   source  = "Azure/avm-res-network-virtualnetwork/azurerm"
@@ -116,15 +126,15 @@ module "test" {
   source = "../../"
 
   location            = module.resource_group.location
-  name                = module.naming.app_service.name_unique
-  resource_group_name = module.resource_group.name
+  parent_id           = module.resource_group.resource_id
   # BYO App Service Plan - disable creation, provide existing resource ID
-  app_service_plan_enabled       = false
-  app_service_plan_resource_id   = module.app_service_plan.resource_id
-  app_service_subnet_resource_id = module.virtual_network.subnets["app_service"].resource_id
-  enable_telemetry               = var.enable_telemetry
+  app_service_plan_enabled               = false
+  app_service_plan_resource_id           = module.app_service_plan.resource_id
+  app_service_subnet_resource_id         = module.virtual_network.subnets["app_service"].resource_id
+  enable_telemetry                       = var.enable_telemetry
   # Front Door (created by the module)
-  front_door_enabled = true
+  front_door_enabled                     = true
+  log_analytics_workspace_resource_id    = module.log_analytics_workspace.resource_id
   # BYO Private DNS Zone - disable creation, provide existing resource ID
   private_dns_zone_web_resource_id    = module.private_dns_zone_web.resource_id
   private_dns_zones_enabled           = false

@@ -24,6 +24,17 @@ locals {
   # Application Insights - auto-wire connection string to web apps when AI is created by this module
   application_insights_connection_string = var.application_insights_enabled ? module.application_insights[0].connection_string : null
   application_insights_key               = var.application_insights_enabled ? module.application_insights[0].instrumentation_key : null
+  # Container Registry - auto-detect when any web app uses a container configuration
+  container_apps_detected = anytrue([
+    for _, app in var.web_apps : (
+      try(app.site_config.application_stack.docker, null) != null ||
+      try(app.site_config.windows_fx_version, null) != null
+    )
+  ])
+  container_registry_effectively_enabled = var.container_registry_resource_id == null && coalesce(var.container_registry_enabled, local.container_apps_detected)
+  container_registry_login_server = local.container_registry_effectively_enabled ? module.container_registry[0].resource.login_server : (
+    var.container_registry_resource_id != null ? null : null
+  )
   # Managed Identity for Managed Instance - used for plan default identity
   managed_instance_managed_identity_resource_id = var.app_service_plan_os_type == "WindowsManagedInstance" && var.managed_instance_managed_identity_enabled ? module.managed_instance_managed_identity[0].resource_id : null
   # Bastion Host
@@ -33,8 +44,9 @@ locals {
       module.virtual_network[0].subnets["AzureBastionSubnet"].resource_id
     ) : null
   )
-  create_private_dns_zone_key_vault    = var.private_dns_zones_enabled && var.virtual_network_enabled && var.key_vault_enabled && !var.alz_platform_landing_zone_private_dns_zone_mode_enabled
-  create_private_dns_zone_storage_blob = var.private_dns_zones_enabled && var.virtual_network_enabled && var.storage_account_enabled && !var.alz_platform_landing_zone_private_dns_zone_mode_enabled
+  create_private_dns_zone_container_registry = var.private_dns_zones_enabled && var.virtual_network_enabled && local.container_registry_effectively_enabled && !var.alz_platform_landing_zone_private_dns_zone_mode_enabled
+  create_private_dns_zone_key_vault          = var.private_dns_zones_enabled && var.virtual_network_enabled && var.key_vault_enabled && !var.alz_platform_landing_zone_private_dns_zone_mode_enabled
+  create_private_dns_zone_storage_blob       = var.private_dns_zones_enabled && var.virtual_network_enabled && var.storage_account_enabled && !var.alz_platform_landing_zone_private_dns_zone_mode_enabled
   # Private DNS Zone
   create_private_dns_zone_web = var.private_dns_zones_enabled && var.virtual_network_enabled && !var.alz_platform_landing_zone_private_dns_zone_mode_enabled
   # App Service Plan - auto-adjust SKU for ASE (Isolated tier required)
@@ -47,7 +59,8 @@ locals {
       module.virtual_network[0].subnets["private_endpoints"].resource_id
     ) : null
   )
-  resource_group_id = "/subscriptions/${data.azapi_client_config.this.subscription_id}/resourceGroups/${var.resource_group_name}"
+  resource_group_id   = var.parent_id
+  resource_group_name = provider::azapi::parse_resource_id("Microsoft.Resources/resourceGroups", var.parent_id).resource_group_name
   # Virtual networking
   virtual_network_enabled = var.virtual_network_enabled
   virtual_network_id = var.virtual_network_resource_id != null ? var.virtual_network_resource_id : (

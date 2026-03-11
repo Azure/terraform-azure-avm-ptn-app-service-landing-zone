@@ -2,14 +2,14 @@ locals {
   # Front Door endpoints - one per web app
   front_door_endpoints = {
     for key, app in var.web_apps : key => {
-      name = "fde-${app.name}"
+      name = module.naming.resource_names.front_door_endpoint[key]
     }
   }
   # Front Door WAF policy
   front_door_firewall_policies = var.front_door_waf_enabled ? {
     default_waf = {
-      name                = "wafpolicy${replace(var.name, "-", "")}"
-      resource_group_name = var.resource_group_name
+      name                = module.naming.resource_names.front_door_waf_policy
+      resource_group_name = local.resource_group_name
       sku_name            = var.front_door_sku
       mode                = "Prevention"
       managed_rules = {
@@ -29,7 +29,7 @@ locals {
   # Front Door origin groups - one per web app
   front_door_origin_groups = {
     for key, app in var.web_apps : key => {
-      name = "fdog-${app.name}"
+      name = module.naming.resource_names.front_door_origin_group[key]
       health_probe = {
         hp1 = {
           interval_in_seconds = 100
@@ -50,7 +50,7 @@ locals {
   # Front Door origins - one per web app, with optional private link
   front_door_origins = {
     for key, app in var.web_apps : key => {
-      name                           = "fdo-${app.name}"
+      name                           = module.naming.resource_names.front_door_origin[key]
       origin_group_key               = key
       host_name                      = replace(replace(module.web_app[key].resource_uri, "https://", ""), "/", "")
       certificate_name_check_enabled = "true"
@@ -71,7 +71,7 @@ locals {
   # Front Door routes - one per web app
   front_door_routes = {
     for key, app in var.web_apps : key => {
-      name                   = "fdr-${app.name}"
+      name                   = module.naming.resource_names.front_door_route[key]
       endpoint_key           = key
       origin_group_key       = key
       origin_keys            = [key]
@@ -84,7 +84,7 @@ locals {
   # Front Door security policies - apply WAF to all endpoints
   front_door_security_policies = var.front_door_waf_enabled && length(var.web_apps) > 0 ? {
     default_security = {
-      name = "secpol${replace(var.name, "-", "")}"
+      name = module.naming.resource_names.front_door_security_policy
       firewall = {
         front_door_firewall_policy_key = "default_waf"
         association = {

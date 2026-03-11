@@ -4,14 +4,14 @@ module "app_service_environment" {
   count   = var.app_service_environment_enabled ? 1 : 0
 
   location                               = var.location
-  name                                   = coalesce(var.app_service_environment_name, "ase-${var.name}")
+  name                                   = coalesce(var.app_service_environment_name, module.naming.resource_names.app_service_environment)
   parent_id                              = local.resource_group_id
   subnet_id                              = local.app_service_environment_subnet_id
   allow_new_private_endpoint_connections = var.app_service_environment_allow_new_private_endpoint_connections
   cluster_settings                       = var.app_service_environment_cluster_settings
   custom_dns_suffix_configuration        = var.app_service_environment_custom_dns_suffix_configuration
   dedicated_host_count                   = var.app_service_environment_dedicated_host_count
-  diagnostic_settings                    = var.app_service_environment_diagnostic_settings
+  diagnostic_settings                    = var.alz_platform_landing_zone_diagnostic_settings_mode_enabled ? {} : local.app_service_environment_diagnostic_settings
   enable_telemetry                       = var.enable_telemetry
   fips_mode_enabled                      = var.app_service_environment_fips_mode_enabled
   front_end_tls_cipher_suite_order       = var.app_service_environment_front_end_tls_cipher_suite_order

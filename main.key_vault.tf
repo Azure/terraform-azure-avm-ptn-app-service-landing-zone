@@ -4,10 +4,10 @@ module "key_vault" {
   count   = var.key_vault_enabled ? 1 : 0
 
   location                       = var.location
-  name                           = var.key_vault_name
-  resource_group_name            = var.resource_group_name
+  name                           = coalesce(var.key_vault_name, module.naming.resource_names.key_vault)
+  resource_group_name            = local.resource_group_name
   tenant_id                      = data.azapi_client_config.this.tenant_id
-  diagnostic_settings            = var.key_vault_diagnostic_settings
+  diagnostic_settings            = var.alz_platform_landing_zone_diagnostic_settings_mode_enabled ? {} : local.key_vault_diagnostic_settings
   enable_telemetry               = var.enable_telemetry
   legacy_access_policies_enabled = !var.key_vault_enable_rbac_authorization
   lock                           = var.key_vault_lock

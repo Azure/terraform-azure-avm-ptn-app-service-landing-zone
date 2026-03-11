@@ -59,6 +59,16 @@ module "resource_group" {
   enable_telemetry = var.enable_telemetry
 }
 
+module "log_analytics_workspace" {
+  source  = "Azure/avm-res-operationalinsights-workspace/azurerm"
+  version = "0.5.1"
+
+  location            = module.resource_group.location
+  name                = module.naming.log_analytics_workspace.name_unique
+  resource_group_name = module.resource_group.name
+  enable_telemetry    = var.enable_telemetry
+}
+
 # A user-assigned managed identity for the Managed Instance plan default identity
 module "managed_identity" {
   source  = "Azure/avm-res-managedidentity-userassignedidentity/azurerm"
@@ -196,10 +206,9 @@ module "test" {
   source = "../../"
 
   location            = module.resource_group.location
-  name                = module.naming.app_service.name_unique
-  resource_group_name = module.resource_group.name
+  parent_id           = module.resource_group.resource_id
   # Install scripts - references the scripts.zip blob in the storage account
-  # The install script logs can be found in C:\InstallScripts on the VM instances
+  # The install script logs can be found in C:\\InstallScripts on the VM instances
   app_service_plan_install_scripts = [
     {
       name = "CustomInstaller"
@@ -258,13 +267,9 @@ module "test" {
       }
     }
   ]
-  app_service_plan_worker_count           = 3
-  app_service_plan_zone_balancing_enabled = true
   # Networking - bastion is auto-enabled for WindowsManagedInstance
-  enable_telemetry          = var.enable_telemetry
-  front_door_enabled        = true
-  private_dns_zones_enabled = true
-  virtual_network_enabled   = true
+  enable_telemetry = var.enable_telemetry
+  log_analytics_workspace_resource_id = module.log_analytics_workspace.resource_id
   # Web apps
   web_apps = {
     app1 = {
@@ -277,9 +282,6 @@ module "test" {
             current_stack  = "dotnet"
           }
         }
-      }
-      managed_identities = {
-        system_assigned = true
       }
       deployment_slots = {
         uat = {

@@ -6,8 +6,8 @@ module "managed_instance_managed_identity" {
   count   = var.app_service_plan_os_type == "WindowsManagedInstance" && var.managed_instance_managed_identity_enabled ? 1 : 0
 
   location            = var.location
-  name                = coalesce(var.managed_instance_managed_identity_name, "id-${var.name}")
-  resource_group_name = var.resource_group_name
+  name                = coalesce(var.managed_instance_managed_identity_name, module.naming.resource_names.managed_identity)
+  resource_group_name = local.resource_group_name
   enable_telemetry    = var.enable_telemetry
   tags                = var.tags
 }
@@ -23,8 +23,8 @@ module "web_app_managed_identity" {
   }
 
   location            = var.location
-  name                = coalesce(each.value.managed_identity_name, "id-${each.value.name}")
-  resource_group_name = var.resource_group_name
+  name                = coalesce(each.value.managed_identity_name, module.naming.resource_names.web_app_managed_identity[each.key])
+  resource_group_name = local.resource_group_name
   enable_telemetry    = var.enable_telemetry
   tags                = var.tags
 }
@@ -49,8 +49,8 @@ module "web_app_slot_managed_identity" {
   }
 
   location            = var.location
-  name                = coalesce(each.value.slot.managed_identity_name, "id-${each.value.app_name}-${each.value.slot.name}")
-  resource_group_name = var.resource_group_name
+  name                = coalesce(each.value.slot.managed_identity_name, module.naming.resource_names.web_app_slot_managed_identity[each.key])
+  resource_group_name = local.resource_group_name
   enable_telemetry    = var.enable_telemetry
   tags                = var.tags
 }

@@ -46,34 +46,40 @@ module "resource_group" {
   enable_telemetry = var.enable_telemetry
 }
 
+module "log_analytics_workspace" {
+  source  = "Azure/avm-res-operationalinsights-workspace/azurerm"
+  version = "0.5.1"
+
+  location            = module.resource_group.location
+  name                = module.naming.log_analytics_workspace.name_unique
+  resource_group_name = module.resource_group.name
+  enable_telemetry    = var.enable_telemetry
+}
+
+locals {
+  container_registry_name         = module.naming.container_registry.name_unique
+  container_registry_login_server = "${local.container_registry_name}.azurecr.io"
+}
+
 # App Service Plan - Linux Container (custom Docker image)
 module "test" {
   source = "../../"
 
-  location                                = module.resource_group.location
-  name                                    = module.naming.app_service.name_unique
-  resource_group_name                     = module.resource_group.name
-  app_service_plan_os_type                = "Linux"
-  app_service_plan_sku_name               = "P1v3"
-  app_service_plan_worker_count           = 3
-  app_service_plan_zone_balancing_enabled = true
-  enable_telemetry                        = var.enable_telemetry
-  front_door_enabled                      = true
-  private_dns_zones_enabled               = true
-  virtual_network_enabled                 = true
+  location                            = module.resource_group.location
+  parent_id                           = module.resource_group.resource_id
+  container_registry_name             = local.container_registry_name
+  enable_telemetry                    = var.enable_telemetry
+  log_analytics_workspace_resource_id = module.log_analytics_workspace.resource_id
   web_apps = {
     app1 = {
       name = module.naming.app_service.name_unique
       site_config = {
         application_stack = {
           docker = {
-            docker_image_name   = "mcr.microsoft.com/dotnet/samples:aspnetapp"
-            docker_registry_url = "https://mcr.microsoft.com"
+            docker_image_name   = "aspnetapp:latest"
+            docker_registry_url = "https://${local.container_registry_login_server}"
           }
         }
-      }
-      managed_identities = {
-        system_assigned = true
       }
       deployment_slots = {
         uat = {
@@ -81,8 +87,8 @@ module "test" {
           site_config = {
             application_stack = {
               docker = {
-                docker_image_name   = "mcr.microsoft.com/dotnet/samples:aspnetapp"
-                docker_registry_url = "https://mcr.microsoft.com"
+                docker_image_name   = "aspnetapp:latest"
+                docker_registry_url = "https://${local.container_registry_login_server}"
               }
             }
           }
@@ -92,13 +98,24 @@ module "test" {
           site_config = {
             application_stack = {
               docker = {
-                docker_image_name   = "mcr.microsoft.com/dotnet/samples:aspnetapp"
-                docker_registry_url = "https://mcr.microsoft.com"
+                docker_image_name   = "aspnetapp:latest"
+                docker_registry_url = "https://${local.container_registry_login_server}"
               }
             }
           }
         }
       }
     }
+  }
+}
+
+# Import the sample container image into the Container Registry
+resource "terraform_data" "acr_import" {
+  depends_on = [module.test]
+
+  input = local.container_registry_name
+
+  provisioner "local-exec" {
+    command = "az acr import --name ${local.container_registry_name} --source mcr.microsoft.com/dotnet/samples:aspnetapp --image aspnetapp:latest --force"
   }
 }

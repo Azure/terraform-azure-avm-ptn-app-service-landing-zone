@@ -46,21 +46,24 @@ module "resource_group" {
   enable_telemetry = var.enable_telemetry
 }
 
+module "log_analytics_workspace" {
+  source  = "Azure/avm-res-operationalinsights-workspace/azurerm"
+  version = "0.5.1"
+
+  location            = module.resource_group.location
+  name                = module.naming.log_analytics_workspace.name_unique
+  resource_group_name = module.resource_group.name
+  enable_telemetry    = var.enable_telemetry
+}
+
 # App Service Plan - Linux with Node.js 20
 module "test" {
   source = "../../"
 
-  location                                = module.resource_group.location
-  name                                    = module.naming.app_service.name_unique
-  resource_group_name                     = module.resource_group.name
-  app_service_plan_os_type                = "Linux"
-  app_service_plan_sku_name               = "P1v3"
-  app_service_plan_worker_count           = 3
-  app_service_plan_zone_balancing_enabled = true
-  enable_telemetry                        = var.enable_telemetry
-  front_door_enabled                      = true
-  private_dns_zones_enabled               = true
-  virtual_network_enabled                 = true
+  location                            = module.resource_group.location
+  parent_id                           = module.resource_group.resource_id
+  enable_telemetry                    = var.enable_telemetry
+  log_analytics_workspace_resource_id = module.log_analytics_workspace.resource_id
   web_apps = {
     app1 = {
       name = module.naming.app_service.name_unique
@@ -70,9 +73,6 @@ module "test" {
             node_version = "20-lts"
           }
         }
-      }
-      managed_identities = {
-        system_assigned = true
       }
       deployment_slots = {
         uat = {

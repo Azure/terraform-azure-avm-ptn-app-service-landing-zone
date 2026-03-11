@@ -25,7 +25,7 @@ module "private_dns_zone_web" {
   virtual_network_links = merge(
     {
       vnet_link = {
-        name               = "vnetlink-${var.name}"
+        name               = module.naming.resource_names.vnet_link_web
         virtual_network_id = local.virtual_network_id
       }
     },
@@ -44,7 +44,7 @@ module "private_dns_zone_key_vault" {
   tags             = var.tags
   virtual_network_links = {
     vnet_link = {
-      name               = "vnetlink-kv-${var.name}"
+      name               = module.naming.resource_names.vnet_link_key_vault
       virtual_network_id = local.virtual_network_id
     }
   }
@@ -61,7 +61,24 @@ module "private_dns_zone_storage_blob" {
   tags             = var.tags
   virtual_network_links = {
     vnet_link = {
-      name               = "vnetlink-blob-${var.name}"
+      name               = module.naming.resource_names.vnet_link_storage_blob
+      virtual_network_id = local.virtual_network_id
+    }
+  }
+}
+
+module "private_dns_zone_container_registry" {
+  source  = "Azure/avm-res-network-privatednszone/azurerm"
+  version = "0.5.0"
+  count   = local.create_private_dns_zone_container_registry ? 1 : 0
+
+  domain_name      = "privatelink.azurecr.io"
+  parent_id        = local.resource_group_id
+  enable_telemetry = var.enable_telemetry
+  tags             = var.tags
+  virtual_network_links = {
+    vnet_link = {
+      name               = module.naming.resource_names.vnet_link_container_registry
       virtual_network_id = local.virtual_network_id
     }
   }

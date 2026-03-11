@@ -1,3 +1,10 @@
+variable "alz_platform_landing_zone_diagnostic_settings_mode_enabled" {
+  type        = bool
+  default     = false
+  description = "(Optional) When enabled, the module will not configure diagnostic settings on any resources. Instead, it relies on Azure Landing Zone (ALZ) policy (DINE) to create diagnostic settings. Defaults to false."
+  nullable    = false
+}
+
 variable "alz_platform_landing_zone_private_dns_zone_mode_enabled" {
   type        = bool
   default     = false

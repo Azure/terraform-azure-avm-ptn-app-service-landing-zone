@@ -55,6 +55,26 @@ output "bastion_host_id" {
   value       = var.bastion_host_resource_id != null ? var.bastion_host_resource_id : (local.bastion_host_effectively_enabled ? module.bastion_host[0].resource_id : null)
 }
 
+output "container_registry" {
+  description = "The Container Registry resource output from the AVM module."
+  value       = local.container_registry_effectively_enabled ? module.container_registry[0] : null
+}
+
+output "container_registry_id" {
+  description = "The resource ID of the Container Registry (created or BYO)."
+  value       = var.container_registry_resource_id != null ? var.container_registry_resource_id : (local.container_registry_effectively_enabled ? module.container_registry[0].resource_id : null)
+}
+
+output "container_registry_login_server" {
+  description = "The login server URL of the Container Registry."
+  value       = local.container_registry_effectively_enabled ? module.container_registry[0].resource.login_server : null
+}
+
+output "container_registry_name" {
+  description = "The name of the Container Registry."
+  value       = local.container_registry_effectively_enabled ? module.container_registry[0].name : null
+}
+
 output "front_door" {
   description = "The Azure Front Door resource output from the AVM module."
   value       = var.front_door_enabled && var.front_door_resource_id == null && length(var.web_apps) > 0 ? module.front_door[0] : null
@@ -119,7 +139,7 @@ output "private_dns_zone_web" {
 
 output "resource_group_name" {
   description = "The name of the resource group."
-  value       = var.resource_group_name
+  value       = local.resource_group_name
 }
 
 output "route_table" {

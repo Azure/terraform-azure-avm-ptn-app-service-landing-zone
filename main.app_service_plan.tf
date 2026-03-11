@@ -4,11 +4,11 @@ module "app_service_plan" {
   count   = var.app_service_plan_enabled ? 1 : 0
 
   location                        = var.location
-  name                            = coalesce(var.app_service_plan_name, "asp-${var.name}")
+  name                            = coalesce(var.app_service_plan_name, module.naming.resource_names.app_service_plan)
   os_type                         = var.app_service_plan_os_type
   parent_id                       = local.resource_group_id
   app_service_environment_id      = local.app_service_environment_id
-  diagnostic_settings             = var.app_service_plan_diagnostic_settings
+  diagnostic_settings             = var.alz_platform_landing_zone_diagnostic_settings_mode_enabled ? {} : local.app_service_plan_diagnostic_settings
   enable_telemetry                = var.enable_telemetry
   install_scripts                 = var.app_service_plan_install_scripts
   lock                            = var.app_service_plan_lock

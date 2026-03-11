@@ -40,7 +40,7 @@ module "web_app" {
     })
   } : each.value.deployment_slots
   deployment_slots_inherit_lock            = each.value.deployment_slots_inherit_lock
-  diagnostic_settings                      = each.value.diagnostic_settings
+  diagnostic_settings                      = var.alz_platform_landing_zone_diagnostic_settings_mode_enabled ? {} : local.web_app_diagnostic_settings[each.key]
   dns_configuration                        = each.value.dns_configuration
   enable_telemetry                         = coalesce(each.value.enable_telemetry, var.enable_telemetry)
   enabled                                  = each.value.enabled

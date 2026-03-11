@@ -4,21 +4,15 @@ variable "location" {
   nullable    = false
 }
 
-variable "name" {
+variable "parent_id" {
   type        = string
-  description = "The base name used for naming resources in this module. Individual resource names can be overridden using their respective name variables (e.g., `virtual_network_name`, `app_service_plan_name`)."
+  description = "The resource ID of the resource group where the resources will be deployed. The resource group must already exist."
   nullable    = false
 
   validation {
-    condition     = can(regex("^[a-zA-Z0-9-]{1,50}$", var.name))
-    error_message = "The name must be between 1 and 50 characters long and can only contain letters, numbers, and hyphens."
+    condition     = can(provider::azapi::parse_resource_id("Microsoft.Resources/resourceGroups", var.parent_id))
+    error_message = "The parent_id must be a valid Azure resource group resource ID (e.g., /subscriptions/{sub}/resourceGroups/{rg})."
   }
-}
-
-variable "resource_group_name" {
-  type        = string
-  description = "The name of the resource group where the resources will be deployed. The resource group must already exist."
-  nullable    = false
 }
 
 variable "enable_telemetry" {

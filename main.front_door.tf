@@ -4,13 +4,13 @@ module "front_door" {
   count   = var.front_door_enabled && length(var.web_apps) > 0 ? 1 : 0
 
   location            = "Global"
-  name                = coalesce(var.front_door_name, "afd-${var.name}")
-  resource_group_name = var.resource_group_name
+  name                = coalesce(var.front_door_name, module.naming.resource_names.front_door)
+  resource_group_name = local.resource_group_name
   # CDN resources
   cdn_endpoint_custom_domains = var.front_door_cdn_endpoint_custom_domains
   cdn_endpoints               = var.front_door_cdn_endpoints
   # Management
-  diagnostic_settings = var.front_door_diagnostic_settings
+  diagnostic_settings = var.alz_platform_landing_zone_diagnostic_settings_mode_enabled ? {} : local.front_door_diagnostic_settings
   enable_telemetry    = var.enable_telemetry
   # Front Door resources - merge auto-generated locals with user overrides
   front_door_custom_domains    = var.front_door_custom_domains

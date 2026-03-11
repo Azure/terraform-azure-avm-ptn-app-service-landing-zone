@@ -51,6 +51,12 @@ variable "private_dns_zone_cname_records" {
   nullable    = false
 }
 
+variable "private_dns_zone_container_registry_resource_id" {
+  type        = string
+  default     = null
+  description = "(Optional) The resource ID of an existing private DNS zone for 'privatelink.azurecr.io'. When set, the module will not create this DNS zone for Container Registry private endpoints."
+}
+
 variable "private_dns_zone_key_vault_resource_id" {
   type        = string
   default     = null

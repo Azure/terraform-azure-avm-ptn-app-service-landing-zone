@@ -46,6 +46,16 @@ module "resource_group" {
   enable_telemetry = var.enable_telemetry
 }
 
+module "log_analytics_workspace" {
+  source  = "Azure/avm-res-operationalinsights-workspace/azurerm"
+  version = "0.5.1"
+
+  location            = module.resource_group.location
+  name                = module.naming.log_analytics_workspace.name_unique
+  resource_group_name = module.resource_group.name
+  enable_telemetry    = var.enable_telemetry
+}
+
 # ------------------------------------------------------------------
 # Hub Network - simulates the ALZ connectivity subscription hub VNet
 # ------------------------------------------------------------------
@@ -153,18 +163,11 @@ module "test" {
   source = "../../"
 
   location            = module.resource_group.location
-  name                = module.naming.app_service.name_unique
-  resource_group_name = module.resource_group.name
+  parent_id           = module.resource_group.resource_id
   enable_telemetry    = var.enable_telemetry
-
-  # App Service Plan
-  app_service_plan_os_type                = "Linux"
-  app_service_plan_sku_name               = "P1v3"
-  app_service_plan_worker_count           = 3
-  app_service_plan_zone_balancing_enabled = true
+  log_analytics_workspace_resource_id = module.log_analytics_workspace.resource_id
 
   # Networking
-  virtual_network_enabled       = true
   virtual_network_address_space = ["10.1.0.0/16"]
 
   # Private DNS zones are deployed by this module since we don't have the ALZ
@@ -172,15 +175,13 @@ module "test" {
   # In a real ALZ environment with the DINE policy for private DNS zone group
   # creation, set alz_platform_landing_zone_private_dns_zone_mode_enabled = true
   # to skip deploying private DNS zones and rely on the centrally managed zones.
-  private_dns_zones_enabled                                = true
-  alz_platform_landing_zone_private_dns_zone_mode_enabled  = false
 
   # ALZ hub peering - bi-directional peering to the hub VNet
   alz_platform_landing_zone_peer_to_hub_enabled            = true
   alz_platform_landing_zone_peering_hub_virtual_network_id = module.hub_virtual_network.resource_id
 
   # ALZ route table - routes internet-bound traffic through the hub firewall
-  alz_platform_landing_zone_route_table_enabled                        = true
+  alz_platform_landing_zone_route_table_enabled                          = true
   alz_platform_landing_zone_route_table_hub_virtual_appliance_ip_address = module.firewall.resource.ip_configuration[0].private_ip_address
 
   # Route hub network address space through the firewall as well
@@ -196,9 +197,6 @@ module "test" {
             node_version = "20-lts"
           }
         }
-      }
-      managed_identities = {
-        system_assigned = true
       }
     }
   }
