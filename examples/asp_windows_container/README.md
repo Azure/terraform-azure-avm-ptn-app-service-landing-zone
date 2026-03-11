@@ -92,8 +92,8 @@ module "test" {
             windows_fx_version = "DOCKER|${local.container_registry_login_server}/aspnetapp:latest"
           }
         }
-        stage = {
-          name = "stage"
+        staging = {
+          name = "staging"
           site_config = {
             windows_fx_version = "DOCKER|${local.container_registry_login_server}/aspnetapp:latest"
           }

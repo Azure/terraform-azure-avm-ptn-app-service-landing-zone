@@ -184,6 +184,28 @@ module "test" {
           }
         }
       }
+      deployment_slots = {
+        uat = {
+          name = "uat"
+          site_config = {
+            application_stack = {
+              node = {
+                node_version = "20-lts"
+              }
+            }
+          }
+        }
+        staging = {
+          name = "staging"
+          site_config = {
+            application_stack = {
+              node = {
+                node_version = "20-lts"
+              }
+            }
+          }
+        }
+      }
     }
   }
 }

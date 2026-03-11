@@ -100,8 +100,8 @@ module "test" {
             }
           }
         }
-        stage = {
-          name = "stage"
+        staging = {
+          name = "staging"
           site_config = {
             application_stack = {
               docker = {
