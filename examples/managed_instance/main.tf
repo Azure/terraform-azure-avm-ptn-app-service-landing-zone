@@ -86,28 +86,21 @@ module "storage_account" {
   source  = "Azure/avm-res-storage-storageaccount/azurerm"
   version = "0.6.7"
 
-  location                  = module.resource_group.location
-  name                      = module.naming.storage_account.name_unique
-  resource_group_name       = module.resource_group.name
-  access_tier               = "Hot"
-  account_replication_type  = "ZRS"
-  account_tier              = "Standard"
-  enable_telemetry          = var.enable_telemetry
-  shared_access_key_enabled = true
-  network_rules = {
-    default_action = "Allow"
-  }
+  location                 = module.resource_group.location
+  name                     = module.naming.storage_account.name_unique
+  resource_group_name      = module.resource_group.name
+  access_tier              = "Hot"
+  account_replication_type = "ZRS"
+  account_tier             = "Standard"
   containers = {
     scripts = {
       name          = "scripts"
       public_access = "None"
     }
   }
-  shares = {
-    hshare = {
-      name  = "hshare"
-      quota = 5
-    }
+  enable_telemetry = var.enable_telemetry
+  network_rules = {
+    default_action = "Allow"
   }
   role_assignments = {
     blob_reader = {
@@ -119,6 +112,13 @@ module "storage_account" {
     blob_contributor_current_user = {
       role_definition_id_or_name = "Storage Blob Data Contributor"
       principal_id               = data.azapi_client_config.this.object_id
+    }
+  }
+  shared_access_key_enabled = true
+  shares = {
+    hshare = {
+      name  = "hshare"
+      quota = 5
     }
   }
 }
@@ -136,8 +136,6 @@ module "key_vault" {
   enable_telemetry               = var.enable_telemetry
   legacy_access_policies_enabled = false
   purge_protection_enabled       = false
-  soft_delete_retention_days     = 7
-  sku_name                       = "standard"
   role_assignments = {
     secrets_officer = {
       role_definition_id_or_name = "Key Vault Secrets Officer"
@@ -166,6 +164,8 @@ module "key_vault" {
     registry_string = "MyExampleStringValue"
     registry_dword  = "336"
   }
+  sku_name                   = "standard"
+  soft_delete_retention_days = 7
 }
 
 # Retrieve the storage account keys
@@ -205,8 +205,8 @@ resource "azurerm_storage_blob" "scripts_zip" {
 module "test" {
   source = "../../"
 
-  location            = module.resource_group.location
-  parent_id           = module.resource_group.resource_id
+  location  = module.resource_group.location
+  parent_id = module.resource_group.resource_id
   # Install scripts - references the scripts.zip blob in the storage account
   # The install script logs can be found in C:\\InstallScripts on the VM instances
   app_service_plan_install_scripts = [
@@ -268,7 +268,7 @@ module "test" {
     }
   ]
   # Networking - bastion is auto-enabled for WindowsManagedInstance
-  enable_telemetry = var.enable_telemetry
+  enable_telemetry                    = var.enable_telemetry
   log_analytics_workspace_resource_id = module.log_analytics_workspace.resource_id
   # Web apps
   web_apps = {

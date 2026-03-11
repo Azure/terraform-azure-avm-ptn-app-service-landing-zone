@@ -2,6 +2,7 @@ variable "bastion_host_copy_paste_enabled" {
   type        = bool
   default     = true
   description = "(Optional) Specifies whether copy-paste functionality is enabled for the Azure Bastion Host. Defaults to true."
+  nullable    = false
 }
 
 variable "bastion_host_diagnostic_settings" {
@@ -38,20 +39,23 @@ variable "bastion_host_diagnostic_settings" {
 
 variable "bastion_host_enabled" {
   type        = bool
-  default     = null
-  description = "(Optional) Whether to create an Azure Bastion Host. When null (default), bastion is automatically enabled for WindowsManagedInstance plans and disabled otherwise. Set explicitly to true or false to override this behavior."
+  default     = false
+  description = "(Optional) Whether to create an Azure Bastion Host. Defaults to false."
+  nullable    = false
 }
 
 variable "bastion_host_file_copy_enabled" {
   type        = bool
   default     = false
   description = "(Optional) Specifies whether file copy functionality is enabled for the Azure Bastion Host. Requires Standard or Premium SKU. Defaults to false."
+  nullable    = false
 }
 
 variable "bastion_host_ip_connect_enabled" {
   type        = bool
   default     = false
   description = "(Optional) Specifies whether IP connect functionality is enabled for the Azure Bastion Host. Requires Standard or Premium SKU. Defaults to false."
+  nullable    = false
 }
 
 variable "bastion_host_name" {
@@ -106,6 +110,7 @@ variable "bastion_host_tunneling_enabled" {
   type        = bool
   default     = false
   description = "(Optional) Specifies whether tunneling functionality (native client support) is enabled for the Azure Bastion Host. Requires Standard or Premium SKU. Defaults to false."
+  nullable    = false
 }
 
 variable "bastion_host_zones" {

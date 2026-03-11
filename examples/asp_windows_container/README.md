@@ -44,9 +44,28 @@ module "naming" {
   version = "~> 0.4"
 }
 
-resource "azurerm_resource_group" "this" {
-  location = local.azure_regions[random_integer.region_index.result]
-  name     = module.naming.resource_group.name_unique
+module "resource_group" {
+  source  = "Azure/avm-res-resources-resourcegroup/azurerm"
+  version = "0.2.2"
+
+  location         = local.azure_regions[random_integer.region_index.result]
+  name             = "${module.naming.resource_group.name_unique}-asp-windows-container"
+  enable_telemetry = var.enable_telemetry
+}
+
+module "log_analytics_workspace" {
+  source  = "Azure/avm-res-operationalinsights-workspace/azurerm"
+  version = "0.5.1"
+
+  location            = module.resource_group.location
+  name                = module.naming.log_analytics_workspace.name_unique
+  resource_group_name = module.resource_group.name
+  enable_telemetry    = var.enable_telemetry
+}
+
+locals {
+  container_registry_login_server = "${local.container_registry_name}.azurecr.io"
+  container_registry_name         = module.naming.container_registry.name_unique
 }
 
 # App Service Plan - Windows Container (custom Docker image)
@@ -54,47 +73,44 @@ resource "azurerm_resource_group" "this" {
 module "test" {
   source = "../../"
 
-  location                                = azurerm_resource_group.this.location
-  name                                    = module.naming.app_service.name_unique
-  resource_group_name                     = azurerm_resource_group.this.name
-  app_service_plan_os_type                = "Windows"
-  app_service_plan_sku_name               = "P1v3"
-  app_service_plan_worker_count           = 3
-  app_service_plan_zone_balancing_enabled = true
-  enable_telemetry                        = var.enable_telemetry
-  front_door_enabled                      = true
-  private_dns_zones_enabled               = true
-  virtual_network_enabled                 = true
+  location                            = module.resource_group.location
+  parent_id                           = module.resource_group.resource_id
+  app_service_plan_os_type            = "Windows"
+  container_registry_name             = local.container_registry_name
+  enable_telemetry                    = var.enable_telemetry
+  log_analytics_workspace_resource_id = module.log_analytics_workspace.resource_id
   web_apps = {
     app1 = {
       name = module.naming.app_service.name_unique
       site_config = {
-        windows_fx_version = "DOCKER|mcr.microsoft.com/dotnet/samples:aspnetapp"
-      }
-      managed_identities = {
-        system_assigned = true
+        windows_fx_version = "DOCKER|${local.container_registry_login_server}/aspnetapp:latest"
       }
       deployment_slots = {
-        dev = {
-          name = "dev"
+        uat = {
+          name = "uat"
           site_config = {
-            windows_fx_version = "DOCKER|mcr.microsoft.com/dotnet/samples:aspnetapp"
+            windows_fx_version = "DOCKER|${local.container_registry_login_server}/aspnetapp:latest"
           }
         }
         stage = {
           name = "stage"
           site_config = {
-            windows_fx_version = "DOCKER|mcr.microsoft.com/dotnet/samples:aspnetapp"
-          }
-        }
-        prod = {
-          name = "prod"
-          site_config = {
-            windows_fx_version = "DOCKER|mcr.microsoft.com/dotnet/samples:aspnetapp"
+            windows_fx_version = "DOCKER|${local.container_registry_login_server}/aspnetapp:latest"
           }
         }
       }
     }
+  }
+}
+
+# Import the sample container image into the Container Registry
+resource "terraform_data" "acr_import" {
+  depends_on = [module.test]
+
+  input = local.container_registry_name
+
+  provisioner "local-exec" {
+    command = "az acr import --name ${local.container_registry_name} --source mcr.microsoft.com/dotnet/samples:aspnetapp --image aspnetapp:latest --force"
   }
 }
 ```
@@ -118,8 +134,8 @@ The following requirements are needed by this module:
 
 The following resources are used by this module:
 
-- [azurerm_resource_group.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/resource_group) (resource)
 - [random_integer.region_index](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/integer) (resource)
+- [terraform_data.acr_import](https://registry.terraform.io/providers/hashicorp/terraform/latest/docs/resources/data) (resource)
 
 <!-- markdownlint-disable MD013 -->
 ## Required Inputs
@@ -148,11 +164,23 @@ No outputs.
 
 The following Modules are called:
 
+### <a name="module_log_analytics_workspace"></a> [log\_analytics\_workspace](#module\_log\_analytics\_workspace)
+
+Source: Azure/avm-res-operationalinsights-workspace/azurerm
+
+Version: 0.5.1
+
 ### <a name="module_naming"></a> [naming](#module\_naming)
 
 Source: Azure/naming/azurerm
 
 Version: ~> 0.4
+
+### <a name="module_resource_group"></a> [resource\_group](#module\_resource\_group)
+
+Source: Azure/avm-res-resources-resourcegroup/azurerm
+
+Version: 0.2.2
 
 ### <a name="module_test"></a> [test](#module\_test)
 

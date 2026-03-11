@@ -1,10 +1,3 @@
-variable "app_service_plan_enabled" {
-  type        = bool
-  default     = true
-  description = "(Optional) Whether to create an App Service Plan. Set to false when providing app_service_plan_resource_id. Defaults to true."
-  nullable    = false
-}
-
 variable "app_service_plan_diagnostic_settings" {
   type = map(object({
     name = optional(string, null)
@@ -34,6 +27,13 @@ variable "app_service_plan_diagnostic_settings" {
   }))
   default     = {}
   description = "(Optional) A map of diagnostic settings to create on the App Service Plan."
+  nullable    = false
+}
+
+variable "app_service_plan_enabled" {
+  type        = bool
+  default     = true
+  description = "(Optional) Whether to create an App Service Plan. Set to false when providing app_service_plan_resource_id. Defaults to true."
   nullable    = false
 }
 
@@ -106,6 +106,7 @@ variable "app_service_plan_per_site_scaling_enabled" {
   type        = bool
   default     = false
   description = "(Optional) Should per site scaling be enabled for this App Service Plan. Defaults to false."
+  nullable    = false
 }
 
 variable "app_service_plan_plan_default_identity" {
@@ -126,12 +127,14 @@ variable "app_service_plan_premium_plan_auto_scale_enabled" {
   type        = bool
   default     = false
   description = "(Optional) Should elastic scale be enabled for this App Service Plan. Only set to true if deploying a Premium or Elastic Premium SKU. Defaults to false."
+  nullable    = false
 }
 
 variable "app_service_plan_rdp_enabled" {
   type        = bool
-  default     = null
-  description = "(Optional) Whether RDP is enabled for the Managed Instance App Service Plan. Only applicable when os_type is WindowsManagedInstance."
+  default     = false
+  description = "(Optional) Whether RDP is enabled for the Managed Instance App Service Plan. Only applicable when os_type is WindowsManagedInstance. Defaults to false."
+  nullable    = false
 }
 
 variable "app_service_plan_registry_adapters" {

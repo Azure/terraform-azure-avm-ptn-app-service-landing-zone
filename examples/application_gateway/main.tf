@@ -62,8 +62,8 @@ module "test" {
 
   location                            = module.resource_group.location
   parent_id                           = module.resource_group.resource_id
-  enable_telemetry                    = var.enable_telemetry
   application_gateway_enabled         = true
+  enable_telemetry                    = var.enable_telemetry
   front_door_enabled                  = false
   log_analytics_workspace_resource_id = module.log_analytics_workspace.resource_id
   web_apps = {

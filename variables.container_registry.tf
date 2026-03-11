@@ -32,8 +32,9 @@ variable "container_registry_diagnostic_settings" {
 
 variable "container_registry_enabled" {
   type        = bool
-  default     = null
-  description = "(Optional) Whether to create an Azure Container Registry. Defaults to null, which auto-enables when any web app uses a container-based configuration."
+  default     = false
+  description = "(Optional) Whether to create an Azure Container Registry. Defaults to false."
+  nullable    = false
 }
 
 variable "container_registry_lock" {
@@ -67,6 +68,7 @@ variable "container_registry_public_network_access_enabled" {
   type        = bool
   default     = true
   description = "(Optional) Whether public network access is enabled for the Container Registry. Defaults to true."
+  nullable    = false
 }
 
 variable "container_registry_resource_id" {
@@ -112,4 +114,5 @@ variable "container_registry_zone_redundancy_enabled" {
   type        = bool
   default     = true
   description = "(Optional) Whether zone redundancy is enabled for the Container Registry. Requires Premium SKU. Defaults to true."
+  nullable    = false
 }

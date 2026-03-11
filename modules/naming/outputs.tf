@@ -14,11 +14,11 @@ output "resource_names" {
     managed_identity              = local.managed_identity_name
     key_vault                     = local.key_vault_name
     storage_account               = local.storage_account_name
-    container_registry             = local.container_registry_name
+    container_registry            = local.container_registry_name
     vnet_link_web                 = local.vnet_link_web_name
     vnet_link_key_vault           = local.vnet_link_key_vault_name
     vnet_link_storage_blob        = local.vnet_link_storage_blob_name
-    vnet_link_container_registry   = local.vnet_link_container_registry_name
+    vnet_link_container_registry  = local.vnet_link_container_registry_name
     peer_to_hub                   = local.peer_to_hub_name
     peer_from_hub                 = local.peer_from_hub_name
     alz_peer_to_hub               = local.alz_peer_to_hub_name

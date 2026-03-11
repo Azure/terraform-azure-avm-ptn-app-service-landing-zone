@@ -1,24 +1,3 @@
-variable "resource_name_workload" {
-  type        = string
-  default     = "demo"
-  description = "The workload name segment used in resource name templates."
-  nullable    = false
-}
-
-variable "resource_name_environment" {
-  type        = string
-  default     = "dev"
-  description = "The environment name segment used in resource name templates."
-  nullable    = false
-}
-
-variable "resource_name_sequence_start_number" {
-  type        = number
-  default     = 1
-  description = "The starting sequence number used in resource name templates. Formatted as a 3-character string (e.g. 001). For multi-instance resources like web apps, each instance increments from this starting number."
-  nullable    = false
-}
-
 variable "resource_name_defaults" {
   type = map(string)
   default = {
@@ -35,16 +14,16 @@ variable "resource_name_defaults" {
     managed_identity              = "id-$${resource_name_workload}-$${resource_name_environment}-$${location}-$${sequence}"
 
     # Globally unique resources (with unique_name segment)
-    key_vault = "kv-$${resource_name_workload}-$${resource_name_environment}-$${unique_name}-$${sequence}"
+    key_vault = "kv-$${resource_name_workload}-$${resource_name_environment}-$${sequence}-$${unique_name}"
 
     # No hyphens, short location, globally unique
     storage_account    = "st$${resource_name_workload}$${resource_name_environment}$${short_location}$${unique_name}$${sequence}"
     container_registry = "cr$${resource_name_workload}$${resource_name_environment}$${short_location}$${unique_name}$${sequence}"
 
     # VNet links
-    vnet_link_web          = "vnetlink-$${resource_name_workload}-$${resource_name_environment}-$${sequence}"
-    vnet_link_key_vault    = "vnetlink-kv-$${resource_name_workload}-$${resource_name_environment}-$${sequence}"
-    vnet_link_storage_blob      = "vnetlink-blob-$${resource_name_workload}-$${resource_name_environment}-$${sequence}"
+    vnet_link_web                = "vnetlink-$${resource_name_workload}-$${resource_name_environment}-$${sequence}"
+    vnet_link_key_vault          = "vnetlink-kv-$${resource_name_workload}-$${resource_name_environment}-$${sequence}"
+    vnet_link_storage_blob       = "vnetlink-blob-$${resource_name_workload}-$${resource_name_environment}-$${sequence}"
     vnet_link_container_registry = "vnetlink-cr-$${resource_name_workload}-$${resource_name_environment}-$${sequence}"
 
     # Peering names
@@ -94,4 +73,25 @@ resource_name_defaults = {
 }
 ```
 DESCRIPTION
+}
+
+variable "resource_name_environment" {
+  type        = string
+  default     = "dev"
+  description = "The environment name segment used in resource name templates."
+  nullable    = false
+}
+
+variable "resource_name_sequence_start_number" {
+  type        = number
+  default     = 1
+  description = "The starting sequence number used in resource name templates. Formatted as a 3-character string (e.g. 001). For multi-instance resources like web apps, each instance increments from this starting number."
+  nullable    = false
+}
+
+variable "resource_name_workload" {
+  type        = string
+  default     = "demo"
+  description = "The workload name segment used in resource name templates."
+  nullable    = false
 }

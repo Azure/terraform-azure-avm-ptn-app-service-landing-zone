@@ -95,6 +95,7 @@ variable "application_gateway_http2_enabled" {
   type        = bool
   default     = true
   description = "(Optional) Whether HTTP/2 is enabled on the Application Gateway. Defaults to true."
+  nullable    = false
 }
 
 variable "application_gateway_http_listeners" {

@@ -4,24 +4,10 @@ variable "location" {
   nullable    = false
 }
 
-variable "resource_name_workload" {
-  type        = string
-  default     = "demo"
-  description = "The workload name segment used in resource name templates."
-  nullable    = false
-}
-
-variable "resource_name_environment" {
-  type        = string
-  default     = "dev"
-  description = "The environment name segment used in resource name templates."
-  nullable    = false
-}
-
-variable "resource_name_sequence_start_number" {
-  type        = number
-  default     = 1
-  description = "The starting sequence number used in resource name templates. Formatted as a 3-character string (e.g. 001)."
+variable "enable_telemetry" {
+  type        = bool
+  default     = true
+  description = "Controls whether telemetry is enabled for sub-modules."
   nullable    = false
 }
 
@@ -40,6 +26,27 @@ Templates use the templatestring function with these available variables:
 DESCRIPTION
 }
 
+variable "resource_name_environment" {
+  type        = string
+  default     = "dev"
+  description = "The environment name segment used in resource name templates."
+  nullable    = false
+}
+
+variable "resource_name_sequence_start_number" {
+  type        = number
+  default     = 1
+  description = "The starting sequence number used in resource name templates. Formatted as a 3-character string (e.g. 001)."
+  nullable    = false
+}
+
+variable "resource_name_workload" {
+  type        = string
+  default     = "demo"
+  description = "The workload name segment used in resource name templates."
+  nullable    = false
+}
+
 variable "web_app_keys" {
   type        = list(string)
   default     = []
@@ -50,11 +57,4 @@ variable "web_app_slot_keys" {
   type        = map(list(string))
   default     = {}
   description = "Map of web app key to list of deployment slot keys."
-}
-
-variable "enable_telemetry" {
-  type        = bool
-  default     = true
-  description = "Controls whether telemetry is enabled for sub-modules."
-  nullable    = false
 }

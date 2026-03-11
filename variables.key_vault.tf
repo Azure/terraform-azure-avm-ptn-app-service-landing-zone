@@ -74,12 +74,14 @@ variable "key_vault_public_network_access_enabled" {
   type        = bool
   default     = false
   description = "(Optional) Whether public network access is enabled for the Key Vault. Defaults to false."
+  nullable    = false
 }
 
 variable "key_vault_purge_protection_enabled" {
   type        = bool
   default     = true
   description = "(Optional) Specifies whether protection against purge is enabled for this Key Vault. Defaults to true."
+  nullable    = false
 }
 
 variable "key_vault_resource_id" {

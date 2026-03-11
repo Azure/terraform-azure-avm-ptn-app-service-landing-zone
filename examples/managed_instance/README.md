@@ -57,193 +57,130 @@ module "naming" {
   version = "~> 0.4"
 }
 
-resource "azurerm_resource_group" "this" {
-  location = local.azure_regions[random_integer.region_index.result]
-  name     = module.naming.resource_group.name_unique
+module "resource_group" {
+  source  = "Azure/avm-res-resources-resourcegroup/azurerm"
+  version = "0.2.2"
+
+  location         = local.azure_regions[random_integer.region_index.result]
+  name             = "${module.naming.resource_group.name_unique}-managed-instance"
+  enable_telemetry = var.enable_telemetry
+}
+
+module "log_analytics_workspace" {
+  source  = "Azure/avm-res-operationalinsights-workspace/azurerm"
+  version = "0.5.1"
+
+  location            = module.resource_group.location
+  name                = module.naming.log_analytics_workspace.name_unique
+  resource_group_name = module.resource_group.name
+  enable_telemetry    = var.enable_telemetry
 }
 
 # A user-assigned managed identity for the Managed Instance plan default identity
-resource "azapi_resource" "managed_identity" {
-  location               = azurerm_resource_group.this.location
-  name                   = module.naming.user_assigned_identity.name_unique
-  parent_id              = azurerm_resource_group.this.id
-  type                   = "Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31"
-  response_export_values = ["properties.principalId"]
+module "managed_identity" {
+  source  = "Azure/avm-res-managedidentity-userassignedidentity/azurerm"
+  version = "0.4.0"
+
+  location            = module.resource_group.location
+  name                = module.naming.user_assigned_identity.name_unique
+  resource_group_name = module.resource_group.name
+  enable_telemetry    = var.enable_telemetry
 }
 
 # Storage account to host the install scripts package and file shares
-resource "azapi_resource" "storage_account" {
-  location  = azurerm_resource_group.this.location
-  name      = module.naming.storage_account.name_unique
-  parent_id = azurerm_resource_group.this.id
-  type      = "Microsoft.Storage/storageAccounts@2023-05-01"
-  body = {
-    kind = "StorageV2"
-    properties = {
-      accessTier               = "Hot"
-      allowBlobPublicAccess    = false
-      allowSharedKeyAccess     = true
-      minimumTlsVersion        = "TLS1_2"
-      supportsHttpsTrafficOnly = true
-      publicNetworkAccess      = "Enabled"
-      networkAcls = {
-        defaultAction = "Allow"
-      }
-    }
-    sku = {
-      name = "Standard_ZRS"
+# Role assignments are managed via the AVM module's role_assignments interface
+module "storage_account" {
+  source  = "Azure/avm-res-storage-storageaccount/azurerm"
+  version = "0.6.7"
+
+  location                 = module.resource_group.location
+  name                     = module.naming.storage_account.name_unique
+  resource_group_name      = module.resource_group.name
+  access_tier              = "Hot"
+  account_replication_type = "ZRS"
+  account_tier             = "Standard"
+  containers = {
+    scripts = {
+      name          = "scripts"
+      public_access = "None"
     }
   }
-  response_export_values = []
-}
-
-# Blob container to hold scripts.zip
-resource "azapi_resource" "blob_container" {
-  name      = "scripts"
-  parent_id = "${azapi_resource.storage_account.id}/blobServices/default"
-  type      = "Microsoft.Storage/storageAccounts/blobServices/containers@2023-05-01"
-  body = {
-    properties = {
-      publicAccess = "None"
+  enable_telemetry = var.enable_telemetry
+  network_rules = {
+    default_action = "Allow"
+  }
+  role_assignments = {
+    blob_reader = {
+      role_definition_id_or_name       = "Storage Blob Data Reader"
+      principal_id                     = module.managed_identity.principal_id
+      skip_service_principal_aad_check = true
+      principal_type                   = "ServicePrincipal"
+    }
+    blob_contributor_current_user = {
+      role_definition_id_or_name = "Storage Blob Data Contributor"
+      principal_id               = data.azapi_client_config.this.object_id
     }
   }
-  response_export_values = []
-}
-
-# File share for H: drive mount
-resource "azapi_resource" "file_share" {
-  name      = "hshare"
-  parent_id = "${azapi_resource.storage_account.id}/fileServices/default"
-  type      = "Microsoft.Storage/storageAccounts/fileServices/shares@2023-05-01"
-  body = {
-    properties = {
-      shareQuota = 5
+  shared_access_key_enabled = true
+  shares = {
+    hshare = {
+      name  = "hshare"
+      quota = 5
     }
   }
-  response_export_values = []
-}
-
-# Grant the managed identity "Storage Blob Data Reader" on the storage account
-# so the plan can pull install scripts
-resource "azapi_resource" "role_assignment_blob_reader" {
-  name      = "7d2b4b60-b4a1-4e5e-a123-abcdef012345"
-  parent_id = azapi_resource.storage_account.id
-  type      = "Microsoft.Authorization/roleAssignments@2022-04-01"
-  body = {
-    properties = {
-      principalId      = azapi_resource.managed_identity.output.properties.principalId
-      principalType    = "ServicePrincipal"
-      roleDefinitionId = "/subscriptions/${data.azapi_client_config.this.subscription_id}/providers/Microsoft.Authorization/roleDefinitions/2a2b9908-6ea1-4ae2-8e65-a410df84e7d1"
-    }
-  }
-  response_export_values = []
-
-  depends_on = [azapi_resource.blob_container]
-}
-
-# Grant the current user "Storage Blob Data Contributor" on the storage account
-# so the azurerm provider can upload the blob via Azure AD auth
-resource "azapi_resource" "role_assignment_blob_contributor_current_user" {
-  name      = "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
-  parent_id = azapi_resource.storage_account.id
-  type      = "Microsoft.Authorization/roleAssignments@2022-04-01"
-  body = {
-    properties = {
-      principalId      = data.azapi_client_config.this.object_id
-      roleDefinitionId = "/subscriptions/${data.azapi_client_config.this.subscription_id}/providers/Microsoft.Authorization/roleDefinitions/ba92f5b4-2d11-453d-a403-e96b0029c9fe"
-    }
-  }
-  response_export_values = []
-
-  depends_on = [azapi_resource.blob_container]
 }
 
 # Key Vault for storing secrets used by the Managed Instance plan
-resource "azapi_resource" "key_vault" {
-  location  = azurerm_resource_group.this.location
-  name      = module.naming.key_vault.name_unique
-  parent_id = azurerm_resource_group.this.id
-  type      = "Microsoft.KeyVault/vaults@2023-07-01"
-  body = {
-    properties = {
-      enablePurgeProtection        = null
-      enableRbacAuthorization      = true
-      enableSoftDelete             = false
-      enabledForDeployment         = false
-      enabledForTemplateDeployment = false
-      sku = {
-        family = "A"
-        name   = "standard"
-      }
-      tenantId = data.azapi_client_config.this.tenant_id
-    }
-  }
-  response_export_values = []
-}
+# Role assignments and secrets are managed via the AVM module's interfaces
+module "key_vault" {
+  source  = "Azure/avm-res-keyvault-vault/azurerm"
+  version = "0.10.2"
 
-# Grant the current user "Key Vault Secrets Officer" so we can create secrets
-resource "azapi_resource" "role_assignment_kv_secrets_officer" {
-  name      = "b1c2d3e4-f5a6-7890-abcd-ef1234567891"
-  parent_id = azapi_resource.key_vault.id
-  type      = "Microsoft.Authorization/roleAssignments@2022-04-01"
-  body = {
-    properties = {
-      principalId      = data.azapi_client_config.this.object_id
-      roleDefinitionId = "/subscriptions/${data.azapi_client_config.this.subscription_id}/providers/Microsoft.Authorization/roleDefinitions/b86a8fe4-44ce-4948-aee5-eccb2c155cd7"
+  location                       = module.resource_group.location
+  name                           = module.naming.key_vault.name_unique
+  resource_group_name            = module.resource_group.name
+  tenant_id                      = data.azapi_client_config.this.tenant_id
+  enable_telemetry               = var.enable_telemetry
+  legacy_access_policies_enabled = false
+  purge_protection_enabled       = false
+  role_assignments = {
+    secrets_officer = {
+      role_definition_id_or_name = "Key Vault Secrets Officer"
+      principal_id               = data.azapi_client_config.this.object_id
+    }
+    secrets_user = {
+      role_definition_id_or_name       = "Key Vault Secrets User"
+      principal_id                     = module.managed_identity.principal_id
+      skip_service_principal_aad_check = true
+      principal_type                   = "ServicePrincipal"
     }
   }
-  response_export_values = []
-}
-
-# Grant the managed identity "Key Vault Secrets User" on the Key Vault
-# so the App Service Plan can read secrets for registry adapters and storage mount credentials
-resource "azapi_resource" "role_assignment_kv_secrets_user" {
-  name      = "c2d3e4f5-a6b7-8901-bcde-f12345678902"
-  parent_id = azapi_resource.key_vault.id
-  type      = "Microsoft.Authorization/roleAssignments@2022-04-01"
-  body = {
-    properties = {
-      principalId      = azapi_resource.managed_identity.output.properties.principalId
-      principalType    = "ServicePrincipal"
-      roleDefinitionId = "/subscriptions/${data.azapi_client_config.this.subscription_id}/providers/Microsoft.Authorization/roleDefinitions/4633458b-17de-408a-b874-0445c86b69e6"
+  secrets = {
+    storage_key = {
+      name = "storage-account-key"
+    }
+    registry_string = {
+      name = "registry-string-value"
+    }
+    registry_dword = {
+      name = "registry-dword-value"
     }
   }
-  response_export_values = []
+  secrets_value = {
+    storage_key     = "DefaultEndpointsProtocol=https;AccountName=${module.storage_account.name};AccountKey=${data.azapi_resource_action.storage_account_keys.output.keys[0].value};EndpointSuffix=core.windows.net"
+    registry_string = "MyExampleStringValue"
+    registry_dword  = "336"
+  }
+  sku_name                   = "standard"
+  soft_delete_retention_days = 7
 }
 
 # Retrieve the storage account keys
 data "azapi_resource_action" "storage_account_keys" {
   action                 = "listKeys"
-  resource_id            = azapi_resource.storage_account.id
+  resource_id            = module.storage_account.resource_id
   type                   = "Microsoft.Storage/storageAccounts@2023-05-01"
   response_export_values = ["keys"]
-}
-
-# Store the storage account connection string in Key Vault as a secret
-resource "azurerm_key_vault_secret" "storage_key" {
-  key_vault_id = azapi_resource.key_vault.id
-  name         = "storage-account-key"
-  value        = "DefaultEndpointsProtocol=https;AccountName=${azapi_resource.storage_account.name};AccountKey=${data.azapi_resource_action.storage_account_keys.output.keys[0].value};EndpointSuffix=core.windows.net"
-
-  depends_on = [azapi_resource.role_assignment_kv_secrets_officer]
-}
-
-# Key Vault secret for a registry adapter string value
-resource "azurerm_key_vault_secret" "registry_string" {
-  key_vault_id = azapi_resource.key_vault.id
-  name         = "registry-string-value"
-  value        = "MyExampleStringValue"
-
-  depends_on = [azapi_resource.role_assignment_kv_secrets_officer]
-}
-
-# Key Vault secret for a registry adapter DWORD value
-resource "azurerm_key_vault_secret" "registry_dword" {
-  key_vault_id = azapi_resource.key_vault.id
-  name         = "registry-dword-value"
-  value        = "336" # Must be an Integer
-
-  depends_on = [azapi_resource.role_assignment_kv_secrets_officer]
 }
 
 # Archive the install scripts into a zip file
@@ -254,16 +191,18 @@ data "archive_file" "scripts" {
   output_file_mode = "0644"
 }
 
-# Upload scripts.zip as a placeholder for the install script package
+# Upload scripts.zip as a placeholder for the install script package.
+# NOTE: azurerm_storage_blob is retained here because blob upload is a data plane
+# operation not supported by azapi or any AVM module.
 resource "azurerm_storage_blob" "scripts_zip" {
   name                   = "scripts.zip"
-  storage_account_name   = azapi_resource.storage_account.name
-  storage_container_name = azapi_resource.blob_container.name
+  storage_account_name   = module.storage_account.name
+  storage_container_name = "scripts"
   type                   = "Block"
   content_md5            = data.archive_file.scripts.output_md5
   source                 = data.archive_file.scripts.output_path
 
-  depends_on = [azapi_resource.role_assignment_blob_reader, azapi_resource.role_assignment_blob_contributor_current_user]
+  depends_on = [module.storage_account]
 }
 
 # App Service Managed Instance (WindowsManagedInstance)
@@ -273,30 +212,29 @@ resource "azurerm_storage_blob" "scripts_zip" {
 module "test" {
   source = "../../"
 
-  location            = azurerm_resource_group.this.location
-  name                = module.naming.app_service.name_unique
-  resource_group_name = azurerm_resource_group.this.name
+  location  = module.resource_group.location
+  parent_id = module.resource_group.resource_id
   # Install scripts - references the scripts.zip blob in the storage account
-  # The install script logs can be found in C:\InstallScripts on the VM instances
+  # The install script logs can be found in C:\\InstallScripts on the VM instances
   app_service_plan_install_scripts = [
     {
       name = "CustomInstaller"
       source = {
         type       = "RemoteAzureBlob"
-        source_uri = "https://${azapi_resource.storage_account.name}.blob.core.windows.net/${azapi_resource.blob_container.name}/scripts.zip"
+        source_uri = "https://${module.storage_account.name}.blob.core.windows.net/scripts/scripts.zip"
       }
     }
   ]
   # Managed identities on the plan
   app_service_plan_managed_identities = {
-    user_assigned_resource_ids = [azapi_resource.managed_identity.id]
+    user_assigned_resource_ids = [module.managed_identity.resource_id]
   }
   # App Service Plan - WindowsManagedInstance with V4 SKU
   app_service_plan_os_type = "WindowsManagedInstance"
   # Plan default identity - used by the platform to pull install scripts
   app_service_plan_plan_default_identity = {
     identity_type                      = "UserAssigned"
-    user_assigned_identity_resource_id = azapi_resource.managed_identity.id
+    user_assigned_identity_resource_id = module.managed_identity.resource_id
   }
   # RDP access enabled
   app_service_plan_rdp_enabled = true
@@ -306,14 +244,14 @@ module "test" {
       registry_key = "HKEY_LOCAL_MACHINE/SOFTWARE/MyApp1/RegistryAdapterString"
       type         = "String"
       key_vault_secret_reference = {
-        secret_uri = "https://${azapi_resource.key_vault.name}.vault.azure.net/secrets/${azurerm_key_vault_secret.registry_string.name}"
+        secret_uri = "https://${module.key_vault.name}.vault.azure.net/secrets/registry-string-value"
       }
     },
     {
       registry_key = "HKEY_LOCAL_MACHINE/SOFTWARE/MyApp1/RegistryAdapterDWORD"
       type         = "DWORD"
       key_vault_secret_reference = {
-        secret_uri = "https://${azapi_resource.key_vault.name}.vault.azure.net/secrets/${azurerm_key_vault_secret.registry_dword.name}"
+        secret_uri = "https://${module.key_vault.name}.vault.azure.net/secrets/registry-dword-value"
       }
     }
   ]
@@ -328,21 +266,17 @@ module "test" {
     {
       name             = "h-drive"
       type             = "AzureFiles"
-      source           = "\\\\${azapi_resource.storage_account.name}.file.core.windows.net\\${azapi_resource.file_share.name}"
+      source           = "\\\\${module.storage_account.name}.file.core.windows.net\\hshare"
       destination_path = "H:\\"
       credentials_key_vault_reference = {
         # NOTE: the double slash after the vault URI is intentional to comply with Key Vault secret URI format for this resource
-        secret_uri = "https://${azapi_resource.key_vault.name}.vault.azure.net//secrets/${azurerm_key_vault_secret.storage_key.name}"
+        secret_uri = "https://${module.key_vault.name}.vault.azure.net//secrets/storage-account-key"
       }
     }
   ]
-  app_service_plan_worker_count           = 3
-  app_service_plan_zone_balancing_enabled = true
   # Networking - bastion is auto-enabled for WindowsManagedInstance
-  enable_telemetry          = var.enable_telemetry
-  front_door_enabled        = true
-  private_dns_zones_enabled = true
-  virtual_network_enabled   = true
+  enable_telemetry                    = var.enable_telemetry
+  log_analytics_workspace_resource_id = module.log_analytics_workspace.resource_id
   # Web apps
   web_apps = {
     app1 = {
@@ -356,12 +290,9 @@ module "test" {
           }
         }
       }
-      managed_identities = {
-        system_assigned = true
-      }
       deployment_slots = {
-        dev = {
-          name = "dev"
+        uat = {
+          name = "uat"
           site_config = {
             application_stack = {
               dotnet = {
@@ -373,17 +304,6 @@ module "test" {
         }
         stage = {
           name = "stage"
-          site_config = {
-            application_stack = {
-              dotnet = {
-                dotnet_version = "v10.0"
-                current_stack  = "dotnet"
-              }
-            }
-          }
-        }
-        prod = {
-          name = "prod"
           site_config = {
             application_stack = {
               dotnet = {
@@ -422,19 +342,6 @@ The following requirements are needed by this module:
 
 The following resources are used by this module:
 
-- [azapi_resource.blob_container](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
-- [azapi_resource.file_share](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
-- [azapi_resource.key_vault](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
-- [azapi_resource.managed_identity](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
-- [azapi_resource.role_assignment_blob_contributor_current_user](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
-- [azapi_resource.role_assignment_blob_reader](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
-- [azapi_resource.role_assignment_kv_secrets_officer](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
-- [azapi_resource.role_assignment_kv_secrets_user](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
-- [azapi_resource.storage_account](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
-- [azurerm_key_vault_secret.registry_dword](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) (resource)
-- [azurerm_key_vault_secret.registry_string](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) (resource)
-- [azurerm_key_vault_secret.storage_key](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) (resource)
-- [azurerm_resource_group.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/resource_group) (resource)
 - [azurerm_storage_blob.scripts_zip](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/storage_blob) (resource)
 - [random_integer.region_index](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/integer) (resource)
 - [archive_file.scripts](https://registry.terraform.io/providers/hashicorp/archive/latest/docs/data-sources/file) (data source)
@@ -468,11 +375,41 @@ No outputs.
 
 The following Modules are called:
 
+### <a name="module_key_vault"></a> [key\_vault](#module\_key\_vault)
+
+Source: Azure/avm-res-keyvault-vault/azurerm
+
+Version: 0.10.2
+
+### <a name="module_log_analytics_workspace"></a> [log\_analytics\_workspace](#module\_log\_analytics\_workspace)
+
+Source: Azure/avm-res-operationalinsights-workspace/azurerm
+
+Version: 0.5.1
+
+### <a name="module_managed_identity"></a> [managed\_identity](#module\_managed\_identity)
+
+Source: Azure/avm-res-managedidentity-userassignedidentity/azurerm
+
+Version: 0.4.0
+
 ### <a name="module_naming"></a> [naming](#module\_naming)
 
 Source: Azure/naming/azurerm
 
 Version: ~> 0.4
+
+### <a name="module_resource_group"></a> [resource\_group](#module\_resource\_group)
+
+Source: Azure/avm-res-resources-resourcegroup/azurerm
+
+Version: 0.2.2
+
+### <a name="module_storage_account"></a> [storage\_account](#module\_storage\_account)
+
+Source: Azure/avm-res-storage-storageaccount/azurerm
+
+Version: 0.6.7
 
 ### <a name="module_test"></a> [test](#module\_test)
 

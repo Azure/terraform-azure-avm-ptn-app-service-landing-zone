@@ -57,8 +57,8 @@ module "log_analytics_workspace" {
 }
 
 locals {
-  container_registry_name         = module.naming.container_registry.name_unique
   container_registry_login_server = "${local.container_registry_name}.azurecr.io"
+  container_registry_name         = module.naming.container_registry.name_unique
 }
 
 # App Service Plan - Linux Container (custom Docker image)

@@ -239,6 +239,7 @@ variable "storage_account_shared_access_key_enabled" {
   type        = bool
   default     = false
   description = "(Optional) Indicates whether the storage account permits requests to be authorized with the account access key. Defaults to false (Azure AD only)."
+  nullable    = false
 }
 
 variable "storage_account_shares" {

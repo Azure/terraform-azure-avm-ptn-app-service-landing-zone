@@ -89,6 +89,7 @@ variable "app_service_environment_fips_mode_enabled" {
   type        = bool
   default     = false
   description = "(Optional) Enable FIPS mode on the App Service Environment (ASE). Defaults to false."
+  nullable    = false
 }
 
 variable "app_service_environment_front_end_tls_cipher_suite_order" {
@@ -101,6 +102,7 @@ variable "app_service_environment_ftp_enabled" {
   type        = bool
   default     = false
   description = "(Optional) Enable FTP on the App Service Environment (ASE). Defaults to false."
+  nullable    = false
 }
 
 variable "app_service_environment_inbound_ip_address_override" {
@@ -113,6 +115,7 @@ variable "app_service_environment_internal_encryption_enabled" {
   type        = bool
   default     = true
   description = "(Optional) Enable internal encryption on the App Service Environment (ASE). Defaults to true."
+  nullable    = false
 }
 
 variable "app_service_environment_internal_load_balancing_mode" {
@@ -158,8 +161,9 @@ variable "app_service_environment_name" {
 
 variable "app_service_environment_remote_debug_enabled" {
   type        = bool
-  default     = null
-  description = "(Optional) Enable Remote Debug on the App Service Environment (ASE)."
+  default     = false
+  description = "(Optional) Enable Remote Debug on the App Service Environment (ASE). Defaults to false."
+  nullable    = false
 }
 
 variable "app_service_environment_resource_id" {
@@ -209,6 +213,7 @@ variable "app_service_environment_tls_1_enabled" {
   type        = bool
   default     = false
   description = "(Optional) Enable TLS 1.0 on the App Service Environment (ASE). Defaults to false."
+  nullable    = false
 }
 
 variable "app_service_environment_upgrade_preference" {

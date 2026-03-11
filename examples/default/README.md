@@ -44,9 +44,23 @@ module "naming" {
   version = "~> 0.4"
 }
 
-resource "azurerm_resource_group" "this" {
-  location = local.azure_regions[random_integer.region_index.result]
-  name     = module.naming.resource_group.name_unique
+module "resource_group" {
+  source  = "Azure/avm-res-resources-resourcegroup/azurerm"
+  version = "0.2.2"
+
+  location         = local.azure_regions[random_integer.region_index.result]
+  name             = "${module.naming.resource_group.name_unique}-default"
+  enable_telemetry = var.enable_telemetry
+}
+
+module "log_analytics_workspace" {
+  source  = "Azure/avm-res-operationalinsights-workspace/azurerm"
+  version = "0.5.1"
+
+  location            = module.resource_group.location
+  name                = module.naming.log_analytics_workspace.name_unique
+  resource_group_name = module.resource_group.name
+  enable_telemetry    = var.enable_telemetry
 }
 
 # Default deployment: Linux App Service Plan with a web app, VNet integration,
@@ -54,16 +68,16 @@ resource "azurerm_resource_group" "this" {
 module "test" {
   source = "../../"
 
-  location            = azurerm_resource_group.this.location
-  name                = module.naming.app_service.name_unique
-  resource_group_name = azurerm_resource_group.this.name
-  enable_telemetry    = var.enable_telemetry
+  location                            = module.resource_group.location
+  parent_id                           = module.resource_group.resource_id
+  enable_telemetry                    = var.enable_telemetry
+  log_analytics_workspace_resource_id = module.log_analytics_workspace.resource_id
   web_apps = {
     app1 = {
       name = module.naming.app_service.name_unique
       deployment_slots = {
-        dev = {
-          name = "dev"
+        uat = {
+          name = "uat"
           site_config = {
             application_stack = {
               dotnet = {
@@ -75,17 +89,6 @@ module "test" {
         }
         stage = {
           name = "stage"
-          site_config = {
-            application_stack = {
-              dotnet = {
-                dotnet_version = "v10.0"
-                current_stack  = "dotnet"
-              }
-            }
-          }
-        }
-        prod = {
-          name = "prod"
           site_config = {
             application_stack = {
               dotnet = {
@@ -120,7 +123,6 @@ The following requirements are needed by this module:
 
 The following resources are used by this module:
 
-- [azurerm_resource_group.this](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/resource_group) (resource)
 - [random_integer.region_index](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/integer) (resource)
 
 <!-- markdownlint-disable MD013 -->
@@ -150,11 +152,23 @@ No outputs.
 
 The following Modules are called:
 
+### <a name="module_log_analytics_workspace"></a> [log\_analytics\_workspace](#module\_log\_analytics\_workspace)
+
+Source: Azure/avm-res-operationalinsights-workspace/azurerm
+
+Version: 0.5.1
+
 ### <a name="module_naming"></a> [naming](#module\_naming)
 
 Source: Azure/naming/azurerm
 
 Version: ~> 0.4
+
+### <a name="module_resource_group"></a> [resource\_group](#module\_resource\_group)
+
+Source: Azure/avm-res-resources-resourcegroup/azurerm
+
+Version: 0.2.2
 
 ### <a name="module_test"></a> [test](#module\_test)
 

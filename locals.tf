@@ -24,6 +24,13 @@ locals {
   # Application Insights - auto-wire connection string to web apps when AI is created by this module
   application_insights_connection_string = var.application_insights_enabled ? module.application_insights[0].connection_string : null
   application_insights_key               = var.application_insights_enabled ? module.application_insights[0].instrumentation_key : null
+  # Bastion Host
+  bastion_host_effectively_enabled = var.bastion_host_enabled
+  bastion_host_subnet_id = var.bastion_host_subnet_resource_id != null ? var.bastion_host_subnet_resource_id : (
+    var.virtual_network_enabled && local.bastion_host_effectively_enabled ? (
+      module.virtual_network[0].subnets["AzureBastionSubnet"].resource_id
+    ) : null
+  )
   # Container Registry - auto-detect when any web app uses a container configuration
   container_apps_detected = anytrue([
     for _, app in var.web_apps : (
@@ -31,18 +38,9 @@ locals {
       try(app.site_config.windows_fx_version, null) != null
     )
   ])
-  container_registry_effectively_enabled = var.container_registry_resource_id == null && coalesce(var.container_registry_enabled, local.container_apps_detected)
+  container_registry_effectively_enabled = var.container_registry_resource_id == null && var.container_registry_enabled
   container_registry_login_server = local.container_registry_effectively_enabled ? module.container_registry[0].resource.login_server : (
     var.container_registry_resource_id != null ? null : null
-  )
-  # Managed Identity for Managed Instance - used for plan default identity
-  managed_instance_managed_identity_resource_id = var.app_service_plan_os_type == "WindowsManagedInstance" && var.managed_instance_managed_identity_enabled ? module.managed_instance_managed_identity[0].resource_id : null
-  # Bastion Host
-  bastion_host_effectively_enabled = coalesce(var.bastion_host_enabled, var.app_service_plan_os_type == "WindowsManagedInstance")
-  bastion_host_subnet_id = var.bastion_host_subnet_resource_id != null ? var.bastion_host_subnet_resource_id : (
-    var.virtual_network_enabled && local.bastion_host_effectively_enabled ? (
-      module.virtual_network[0].subnets["AzureBastionSubnet"].resource_id
-    ) : null
   )
   create_private_dns_zone_container_registry = var.private_dns_zones_enabled && var.virtual_network_enabled && local.container_registry_effectively_enabled && !var.alz_platform_landing_zone_private_dns_zone_mode_enabled
   create_private_dns_zone_key_vault          = var.private_dns_zones_enabled && var.virtual_network_enabled && var.key_vault_enabled && !var.alz_platform_landing_zone_private_dns_zone_mode_enabled
@@ -51,6 +49,8 @@ locals {
   create_private_dns_zone_web = var.private_dns_zones_enabled && var.virtual_network_enabled && !var.alz_platform_landing_zone_private_dns_zone_mode_enabled
   # App Service Plan - auto-adjust SKU for ASE (Isolated tier required)
   effective_sku_name = var.app_service_environment_enabled && !startswith(var.app_service_plan_sku_name, "I") ? "I1v2" : var.app_service_plan_sku_name
+  # Managed Identity for Managed Instance - used for plan default identity
+  managed_instance_managed_identity_resource_id = var.app_service_plan_os_type == "WindowsManagedInstance" && var.managed_instance_managed_identity_enabled ? module.managed_instance_managed_identity[0].resource_id : null
   private_dns_zone_web_id = var.private_dns_zone_web_resource_id != null ? var.private_dns_zone_web_resource_id : (
     local.create_private_dns_zone_web ? module.private_dns_zone_web[0].resource_id : null
   )

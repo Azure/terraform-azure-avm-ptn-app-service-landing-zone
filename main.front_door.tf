@@ -40,7 +40,6 @@ resource "azapi_resource" "frontdoor_security_policy" {
   name      = each.value.name
   parent_id = module.front_door[0].resource_id
   type      = "Microsoft.Cdn/profiles/securityPolicies@2024-09-01"
-
   body = {
     properties = {
       parameters = {
@@ -64,4 +63,8 @@ resource "azapi_resource" "frontdoor_security_policy" {
       }
     }
   }
+  create_headers = var.enable_telemetry ? { "User-Agent" : local.avm_azapi_header } : null
+  delete_headers = var.enable_telemetry ? { "User-Agent" : local.avm_azapi_header } : null
+  read_headers   = var.enable_telemetry ? { "User-Agent" : local.avm_azapi_header } : null
+  update_headers = var.enable_telemetry ? { "User-Agent" : local.avm_azapi_header } : null
 }

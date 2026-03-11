@@ -39,12 +39,14 @@ variable "application_insights_internet_ingestion_enabled" {
   type        = bool
   default     = true
   description = "(Optional) Whether internet ingestion is enabled. Defaults to true."
+  nullable    = false
 }
 
 variable "application_insights_internet_query_enabled" {
   type        = bool
   default     = true
   description = "(Optional) Whether internet query is enabled. Defaults to true."
+  nullable    = false
 }
 
 variable "application_insights_linked_storage_account" {

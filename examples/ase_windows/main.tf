@@ -62,8 +62,8 @@ module "log_analytics_workspace" {
 module "test" {
   source = "../../"
 
-  location                            = module.resource_group.location
-  parent_id                           = module.resource_group.resource_id
+  location  = module.resource_group.location
+  parent_id = module.resource_group.resource_id
   # Enable App Service Environment v3
   app_service_environment_enabled     = true
   app_service_plan_os_type            = "Windows"
