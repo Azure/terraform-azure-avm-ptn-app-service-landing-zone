@@ -1,7 +1,7 @@
 module "bastion_host" {
   source  = "Azure/avm-res-network-bastionhost/azurerm"
   version = "0.9.0"
-  count   = local.bastion_host_effectively_enabled && var.bastion_host_resource_id == null ? 1 : 0
+  count   = local.bastion_host_effectively_enabled ? 1 : 0
 
   location           = var.location
   name               = coalesce(var.bastion_host_name, "bas-${var.name}")
@@ -17,7 +17,7 @@ module "bastion_host" {
   ip_connect_enabled = var.bastion_host_ip_connect_enabled
   scale_units        = var.bastion_host_scale_units
   sku                = var.bastion_host_sku
-  tags               = coalesce(var.bastion_host_tags, var.tags)
+  tags               = try(coalesce(var.bastion_host_tags, var.tags), {})
   tunneling_enabled  = var.bastion_host_tunneling_enabled
   zones              = var.bastion_host_zones
 }

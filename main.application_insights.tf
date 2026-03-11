@@ -1,7 +1,7 @@
 module "application_insights" {
   source  = "Azure/avm-res-insights-component/azurerm"
   version = "0.3.0"
-  count   = var.application_insights_enabled && var.application_insights_resource_id == null ? 1 : 0
+  count   = var.application_insights_enabled ? 1 : 0
 
   location                              = var.location
   name                                  = coalesce(var.application_insights_name, "ai-${var.name}")
@@ -21,5 +21,5 @@ module "application_insights" {
   retention_in_days                     = var.application_insights_retention_in_days
   role_assignments                      = var.application_insights_role_assignments
   sampling_percentage                   = var.application_insights_sampling_percentage
-  tags                                  = coalesce(var.application_insights_tags, var.tags)
+  tags                                  = try(coalesce(var.application_insights_tags, var.tags), {})
 }

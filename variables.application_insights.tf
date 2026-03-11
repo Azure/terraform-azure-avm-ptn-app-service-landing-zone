@@ -24,8 +24,8 @@ variable "application_insights_disable_ip_masking" {
 
 variable "application_insights_enabled" {
   type        = bool
-  default     = false
-  description = "(Optional) Whether to create an Application Insights resource. Defaults to false."
+  default     = true
+  description = "(Optional) Whether to create an Application Insights resource. Defaults to true."
   nullable    = false
 }
 

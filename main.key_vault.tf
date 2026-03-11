@@ -1,7 +1,7 @@
 module "key_vault" {
   source  = "Azure/avm-res-keyvault-vault/azurerm"
   version = "0.10.2"
-  count   = var.key_vault_enabled && var.key_vault_resource_id == null ? 1 : 0
+  count   = var.key_vault_enabled ? 1 : 0
 
   location                       = var.location
   name                           = var.key_vault_name
@@ -25,5 +25,5 @@ module "key_vault" {
   secrets_value                 = var.key_vault_secrets_value
   sku_name                      = var.key_vault_sku_name
   soft_delete_retention_days    = var.key_vault_soft_delete_retention_days
-  tags                          = coalesce(var.key_vault_tags, var.tags)
+  tags                          = try(coalesce(var.key_vault_tags, var.tags), {})
 }

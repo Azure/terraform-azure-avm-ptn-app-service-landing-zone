@@ -1,7 +1,7 @@
 module "storage_account" {
   source  = "Azure/avm-res-storage-storageaccount/azurerm"
   version = "0.6.7"
-  count   = var.storage_account_enabled && var.storage_account_resource_id == null ? 1 : 0
+  count   = var.storage_account_enabled ? 1 : 0
 
   location                 = var.location
   name                     = var.storage_account_name
@@ -22,5 +22,5 @@ module "storage_account" {
   role_assignments          = var.storage_account_role_assignments
   shared_access_key_enabled = var.storage_account_shared_access_key_enabled
   shares                    = var.storage_account_shares
-  tags                      = coalesce(var.storage_account_tags, var.tags)
+  tags                      = try(coalesce(var.storage_account_tags, var.tags), {})
 }

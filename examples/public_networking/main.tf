@@ -37,18 +37,22 @@ module "naming" {
   version = "~> 0.4"
 }
 
-resource "azurerm_resource_group" "this" {
-  location = local.azure_regions[random_integer.region_index.result]
-  name     = "${module.naming.resource_group.name_unique}-public-networking"
+module "resource_group" {
+  source  = "Azure/avm-res-resources-resourcegroup/azurerm"
+  version = "0.2.2"
+
+  location         = local.azure_regions[random_integer.region_index.result]
+  name             = "${module.naming.resource_group.name_unique}-public-networking"
+  enable_telemetry = var.enable_telemetry
 }
 
 # Public networking - no VNet, no private endpoints, no Front Door
 module "test" {
   source = "../../"
 
-  location                                = azurerm_resource_group.this.location
+  location                                = module.resource_group.location
   name                                    = module.naming.app_service.name_unique
-  resource_group_name                     = azurerm_resource_group.this.name
+  resource_group_name                     = module.resource_group.name
   app_service_plan_os_type                = "Linux"
   app_service_plan_sku_name               = "P1v3"
   app_service_plan_worker_count           = 3
@@ -72,8 +76,8 @@ module "test" {
         system_assigned = true
       }
       deployment_slots = {
-        dev = {
-          name = "dev"
+        uat = {
+          name = "uat"
           site_config = {
             application_stack = {
               dotnet = {
@@ -85,17 +89,6 @@ module "test" {
         }
         stage = {
           name = "stage"
-          site_config = {
-            application_stack = {
-              dotnet = {
-                dotnet_version = "v10.0"
-                current_stack  = "dotnet"
-              }
-            }
-          }
-        }
-        prod = {
-          name = "prod"
           site_config = {
             application_stack = {
               dotnet = {

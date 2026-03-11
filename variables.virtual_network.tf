@@ -210,6 +210,6 @@ variable "virtual_network_timeouts" {
     update = optional(string, "30m")
     delete = optional(string, "30m")
   })
-  default     = null
+  default     = {}
   description = "(Optional) Timeouts for the virtual network resource operations."
 }

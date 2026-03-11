@@ -13,8 +13,8 @@ module "web_app" {
   always_ready                           = each.value.always_ready
   app_service_active_slot                = each.value.app_service_active_slot
   app_settings                           = each.value.app_settings
-  application_insights_connection_string = coalesce(each.value.application_insights_connection_string, local.application_insights_connection_string)
-  application_insights_key               = coalesce(each.value.application_insights_key, local.application_insights_key)
+  application_insights_connection_string = try(coalesce(each.value.application_insights_connection_string, local.application_insights_connection_string), null)
+  application_insights_key               = try(coalesce(each.value.application_insights_key, local.application_insights_key), null)
   auth_settings                          = each.value.auth_settings
   auth_settings_v2                       = each.value.auth_settings_v2
   auto_generated_domain_name_label_scope = each.value.auto_generated_domain_name_label_scope
@@ -62,15 +62,37 @@ module "web_app" {
   logic_app_runtime_version                = each.value.logic_app_runtime_version
   logs                                     = each.value.logs
   managed_environment_id                   = each.value.managed_environment_id
-  managed_identities                       = each.value.managed_identities
-  maximum_instance_count                   = each.value.maximum_instance_count
-  os_type                                  = coalesce(each.value.os_type, local.web_app_default_os_type)
+  managed_identities = {
+    system_assigned = each.value.managed_identities.system_assigned
+    user_assigned_resource_ids = setunion(
+      each.value.managed_identities.user_assigned_resource_ids,
+      each.value.managed_identity_enabled ? [module.web_app_managed_identity[each.key].resource_id] : [],
+      [
+        for slot_key, slot in each.value.deployment_slots :
+        module.web_app_slot_managed_identity["${each.key}-${slot_key}"].resource_id
+        if slot.managed_identity_enabled
+      ]
+    )
+  }
+  maximum_instance_count = each.value.maximum_instance_count
+  os_type                = coalesce(each.value.os_type, local.web_app_default_os_type)
   # Computed values with user override support
   private_endpoints = each.value.private_endpoints != null ? each.value.private_endpoints : (
     local.virtual_network_enabled && !var.app_service_environment_enabled ? {
       default = {
-        subnet_resource_id            = local.private_endpoint_subnet_id
-        private_dns_zone_resource_ids = local.private_dns_zone_web_id != null ? toset([local.private_dns_zone_web_id]) : toset([])
+        subnet_resource_id                      = local.private_endpoint_subnet_id
+        private_dns_zone_resource_ids           = local.private_dns_zone_web_id != null ? toset([local.private_dns_zone_web_id]) : toset([])
+        application_security_group_associations = {}
+        ip_configurations                       = {}
+        location                                = null
+        lock                                    = null
+        name                                    = null
+        network_interface_name                  = null
+        private_dns_zone_group_name             = "default"
+        private_service_connection_name         = null
+        resource_group_name                     = null
+        role_assignments                        = {}
+        tags                                    = null
       }
     } : {}
   )
@@ -101,7 +123,7 @@ module "web_app" {
   timeouts                                       = each.value.timeouts
   use_extension_bundle                           = each.value.use_extension_bundle
   virtual_network_backup_restore_enabled         = each.value.virtual_network_backup_restore_enabled
-  virtual_network_subnet_id                      = each.value.virtual_network_subnet_id != null ? each.value.virtual_network_subnet_id : (var.app_service_environment_enabled ? null : local.app_service_subnet_id)
+  virtual_network_subnet_id                      = each.value.virtual_network_subnet_id != null ? each.value.virtual_network_subnet_id : (var.app_service_environment_enabled || var.app_service_plan_os_type == "WindowsManagedInstance" ? null : local.app_service_subnet_id)
   vnet_application_traffic_enabled               = each.value.vnet_application_traffic_enabled
   vnet_content_share_enabled                     = each.value.vnet_content_share_enabled != null ? each.value.vnet_content_share_enabled : (var.app_service_environment_enabled ? true : false)
   vnet_image_pull_enabled                        = each.value.vnet_image_pull_enabled != null ? each.value.vnet_image_pull_enabled : (var.app_service_environment_enabled ? true : false)

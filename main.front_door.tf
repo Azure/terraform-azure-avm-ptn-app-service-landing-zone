@@ -1,7 +1,7 @@
 module "front_door" {
   source  = "Azure/avm-res-cdn-profile/azurerm"
   version = "0.1.9"
-  count   = var.front_door_enabled && var.front_door_resource_id == null && length(var.web_apps) > 0 ? 1 : 0
+  count   = var.front_door_enabled && length(var.web_apps) > 0 ? 1 : 0
 
   location            = "Global"
   name                = coalesce(var.front_door_name, "afd-${var.name}")
@@ -22,7 +22,7 @@ module "front_door" {
   front_door_rule_sets         = var.front_door_rule_sets
   front_door_rules             = var.front_door_rules
   front_door_secrets           = var.front_door_secrets
-  front_door_security_policies = merge(local.front_door_security_policies, var.front_door_additional_security_policies)
+  front_door_security_policies = {} # Managed outside the CDN module to work around for_each/try() issue
   lock                         = var.front_door_lock
   managed_identities           = var.front_door_managed_identities
   metric_alerts                = var.front_door_metric_alerts
@@ -30,4 +30,38 @@ module "front_door" {
   role_assignments             = var.front_door_role_assignments
   sku                          = var.front_door_sku
   tags                         = var.tags
+}
+
+# Security policies are created outside the CDN module to work around a
+# for_each/try() incompatibility in the CDN module (v0.1.9) with Terraform 1.12+.
+resource "azapi_resource" "frontdoor_security_policy" {
+  for_each = var.front_door_enabled && length(var.web_apps) > 0 ? merge(local.front_door_security_policies, var.front_door_additional_security_policies) : {}
+
+  name      = each.value.name
+  parent_id = module.front_door[0].resource_id
+  type      = "Microsoft.Cdn/profiles/securityPolicies@2024-09-01"
+
+  body = {
+    properties = {
+      parameters = {
+        type = "WebApplicationFirewall"
+        wafPolicy = {
+          id = module.front_door[0].frontdoor_firewall_policies[each.value.firewall.front_door_firewall_policy_key].id
+        }
+        associations = [
+          {
+            domains = [
+              for id in concat(
+                [for ep_key in each.value.firewall.association.endpoint_keys : module.front_door[0].frontdoor_endpoints[ep_key].id],
+                [for cd_key in try(each.value.firewall.association.domain_keys, []) : module.front_door[0].frontdoor_custom_domains[cd_key].id]
+                ) : {
+                id = id
+              }
+            ]
+            patternsToMatch = each.value.firewall.association.patterns_to_match
+          }
+        ]
+      }
+    }
+  }
 }

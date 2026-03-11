@@ -37,7 +37,7 @@ module "application_gateway" {
   sku                         = var.application_gateway_sku
   ssl_certificates            = var.application_gateway_ssl_certificates
   ssl_policy                  = var.application_gateway_ssl_policy
-  tags                        = coalesce(var.application_gateway_tags, var.tags)
+  tags                        = try(coalesce(var.application_gateway_tags, var.tags), {})
   trusted_root_certificate    = var.application_gateway_trusted_root_certificates
   url_path_map_configurations = var.application_gateway_url_path_maps
   waf_configuration           = var.application_gateway_waf_configuration

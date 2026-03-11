@@ -75,6 +75,43 @@ output "key_vault_name" {
   value       = var.key_vault_enabled && var.key_vault_resource_id == null ? module.key_vault[0].name : null
 }
 
+output "managed_instance_managed_identity_id" {
+  description = "The resource ID of the User-Assigned Managed Identity for the App Service Managed Instance plan default identity."
+  value       = var.app_service_plan_os_type == "WindowsManagedInstance" && var.managed_instance_managed_identity_enabled ? module.managed_instance_managed_identity[0].resource_id : null
+}
+
+output "managed_instance_managed_identity_principal_id" {
+  description = "The principal ID of the User-Assigned Managed Identity for the App Service Managed Instance plan default identity."
+  value       = var.app_service_plan_os_type == "WindowsManagedInstance" && var.managed_instance_managed_identity_enabled ? module.managed_instance_managed_identity[0].principal_id : null
+}
+
+output "managed_instance_managed_identity_client_id" {
+  description = "The client ID of the User-Assigned Managed Identity for the App Service Managed Instance plan default identity."
+  value       = var.app_service_plan_os_type == "WindowsManagedInstance" && var.managed_instance_managed_identity_enabled ? module.managed_instance_managed_identity[0].client_id : null
+}
+
+output "web_app_managed_identities" {
+  description = "A map of User-Assigned Managed Identities created for each web app, keyed by web app key."
+  value = {
+    for key, mi in module.web_app_managed_identity : key => {
+      resource_id  = mi.resource_id
+      principal_id = mi.principal_id
+      client_id    = mi.client_id
+    }
+  }
+}
+
+output "web_app_slot_managed_identities" {
+  description = "A map of User-Assigned Managed Identities created for each deployment slot, keyed by '{app_key}-{slot_key}'."
+  value = {
+    for key, mi in module.web_app_slot_managed_identity : key => {
+      resource_id  = mi.resource_id
+      principal_id = mi.principal_id
+      client_id    = mi.client_id
+    }
+  }
+}
+
 output "private_dns_zone_web" {
   description = "The private DNS zone for web apps (privatelink.azurewebsites.net) resource output."
   value       = local.create_private_dns_zone_web ? module.private_dns_zone_web[0] : null
@@ -92,17 +129,17 @@ output "route_table" {
 
 output "storage_account" {
   description = "The Storage Account resource output from the AVM module."
-  value       = var.storage_account_enabled && var.storage_account_resource_id == null ? module.storage_account[0] : null
+  value       = var.storage_account_enabled ? module.storage_account[0] : null
 }
 
 output "storage_account_id" {
   description = "The resource ID of the Storage Account (created or BYO)."
-  value       = var.storage_account_resource_id != null ? var.storage_account_resource_id : (var.storage_account_enabled ? module.storage_account[0].resource_id : null)
+  value       = var.storage_account_enabled ? module.storage_account[0].resource_id : null
 }
 
 output "virtual_network" {
   description = "The virtual network resource output from the AVM module."
-  value       = var.virtual_network_enabled && var.virtual_network_resource_id == null ? module.virtual_network[0] : null
+  value       = var.virtual_network_enabled ? module.virtual_network[0] : null
 }
 
 output "virtual_network_id" {

@@ -201,7 +201,7 @@ variable "app_service_environment_timeouts" {
     read   = optional(string, "5m")
     update = optional(string, "6h")
   })
-  default     = null
+  default     = {}
   description = "(Optional) Timeouts for App Service Environment resource operations. ASE operations can take a long time (defaults: 6h for create/delete/update)."
 }
 

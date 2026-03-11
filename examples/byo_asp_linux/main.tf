@@ -37,66 +37,77 @@ module "naming" {
   version = "~> 0.4"
 }
 
-resource "azurerm_resource_group" "this" {
-  location = local.azure_regions[random_integer.region_index.result]
-  name     = "${module.naming.resource_group.name_unique}-byo-asp-linux"
+module "resource_group" {
+  source  = "Azure/avm-res-resources-resourcegroup/azurerm"
+  version = "0.2.2"
+
+  location         = local.azure_regions[random_integer.region_index.result]
+  name             = "${module.naming.resource_group.name_unique}-byo-asp-linux"
+  enable_telemetry = var.enable_telemetry
 }
 
 # --- Pre-existing (BYO) resources ---
 
 # Virtual Network with subnets
-resource "azurerm_virtual_network" "this" {
-  location            = azurerm_resource_group.this.location
-  name                = module.naming.virtual_network.name_unique
-  resource_group_name = azurerm_resource_group.this.name
-  address_space       = ["10.0.0.0/16"]
-}
+module "virtual_network" {
+  source  = "Azure/avm-res-network-virtualnetwork/azurerm"
+  version = "0.17.1"
 
-resource "azurerm_subnet" "app_service" {
-  address_prefixes     = ["10.0.0.0/24"]
-  name                 = "snet-app-service"
-  resource_group_name  = azurerm_resource_group.this.name
-  virtual_network_name = azurerm_virtual_network.this.name
-
-  delegation {
-    name = "Microsoft.Web-serverFarms"
-
-    service_delegation {
-      name    = "Microsoft.Web/serverFarms"
-      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+  location         = module.resource_group.location
+  parent_id        = module.resource_group.resource_id
+  address_space    = ["10.0.0.0/16"]
+  enable_telemetry = var.enable_telemetry
+  name             = module.naming.virtual_network.name_unique
+  subnets = {
+    app_service = {
+      name             = "snet-app-service"
+      address_prefixes = ["10.0.0.0/24"]
+      delegations = [
+        {
+          name = "Microsoft.Web-serverFarms"
+          service_delegation = {
+            name    = "Microsoft.Web/serverFarms"
+            actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+          }
+        }
+      ]
+    }
+    private_endpoints = {
+      name             = "snet-private-endpoints"
+      address_prefixes = ["10.0.1.0/24"]
     }
   }
 }
 
-resource "azurerm_subnet" "private_endpoints" {
-  address_prefixes     = ["10.0.1.0/24"]
-  name                 = "snet-private-endpoints"
-  resource_group_name  = azurerm_resource_group.this.name
-  virtual_network_name = azurerm_virtual_network.this.name
-}
-
 # App Service Plan
-resource "azurerm_service_plan" "this" {
-  location               = azurerm_resource_group.this.location
+module "app_service_plan" {
+  source  = "Azure/avm-res-web-serverfarm/azurerm"
+  version = "2.0.1"
+
+  location               = module.resource_group.location
   name                   = module.naming.app_service_plan.name_unique
   os_type                = "Linux"
-  resource_group_name    = azurerm_resource_group.this.name
+  parent_id              = module.resource_group.resource_id
   sku_name               = "P1v3"
+  enable_telemetry       = var.enable_telemetry
   worker_count           = 3
   zone_balancing_enabled = true
 }
 
 # Private DNS Zone
-resource "azurerm_private_dns_zone" "web" {
-  name                = "privatelink.azurewebsites.net"
-  resource_group_name = azurerm_resource_group.this.name
-}
+module "private_dns_zone_web" {
+  source  = "Azure/avm-res-network-privatednszone/azurerm"
+  version = "0.5.0"
 
-resource "azurerm_private_dns_zone_virtual_network_link" "web" {
-  name                  = "vnet-link"
-  private_dns_zone_name = azurerm_private_dns_zone.web.name
-  resource_group_name   = azurerm_resource_group.this.name
-  virtual_network_id    = azurerm_virtual_network.this.id
+  domain_name      = "privatelink.azurewebsites.net"
+  parent_id        = module.resource_group.resource_id
+  enable_telemetry = var.enable_telemetry
+  virtual_network_links = {
+    vnet_link = {
+      name               = "vnet-link"
+      virtual_network_id = module.virtual_network.resource_id
+    }
+  }
 }
 
 # --- Module deployment using BYO resources ---
@@ -104,20 +115,23 @@ resource "azurerm_private_dns_zone_virtual_network_link" "web" {
 module "test" {
   source = "../../"
 
-  location            = azurerm_resource_group.this.location
+  location            = module.resource_group.location
   name                = module.naming.app_service.name_unique
-  resource_group_name = azurerm_resource_group.this.name
-  # BYO App Service Plan
-  app_service_plan_resource_id   = azurerm_service_plan.this.id
-  app_service_subnet_resource_id = azurerm_subnet.app_service.id
+  resource_group_name = module.resource_group.name
+  # BYO App Service Plan - disable creation, provide existing resource ID
+  app_service_plan_enabled       = false
+  app_service_plan_resource_id   = module.app_service_plan.resource_id
+  app_service_subnet_resource_id = module.virtual_network.subnets["app_service"].resource_id
   enable_telemetry               = var.enable_telemetry
   # Front Door (created by the module)
   front_door_enabled = true
-  # BYO Private DNS Zone
-  private_dns_zone_web_resource_id    = azurerm_private_dns_zone.web.id
-  private_endpoint_subnet_resource_id = azurerm_subnet.private_endpoints.id
-  # BYO Virtual Network and subnets
-  virtual_network_resource_id = azurerm_virtual_network.this.id
+  # BYO Private DNS Zone - disable creation, provide existing resource ID
+  private_dns_zone_web_resource_id    = module.private_dns_zone_web.resource_id
+  private_dns_zones_enabled           = false
+  private_endpoint_subnet_resource_id = module.virtual_network.subnets["private_endpoints"].resource_id
+  # BYO Virtual Network - disable creation, provide existing resource ID
+  virtual_network_enabled     = false
+  virtual_network_resource_id = module.virtual_network.resource_id
   web_apps = {
     app1 = {
       name = module.naming.app_service.name_unique
@@ -131,9 +145,15 @@ module "test" {
       managed_identities = {
         system_assigned = true
       }
+      private_endpoints = {
+        default = {
+          subnet_resource_id            = module.virtual_network.subnets["private_endpoints"].resource_id
+          private_dns_zone_resource_ids = toset([module.private_dns_zone_web.resource_id])
+        }
+      }
       deployment_slots = {
-        dev = {
-          name = "dev"
+        uat = {
+          name = "uat"
           site_config = {
             application_stack = {
               dotnet = {
@@ -145,17 +165,6 @@ module "test" {
         }
         stage = {
           name = "stage"
-          site_config = {
-            application_stack = {
-              dotnet = {
-                dotnet_version = "v10.0"
-                current_stack  = "dotnet"
-              }
-            }
-          }
-        }
-        prod = {
-          name = "prod"
           site_config = {
             application_stack = {
               dotnet = {

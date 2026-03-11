@@ -316,6 +316,8 @@ variable "web_apps" {
     }), null)
     deployment_slots = optional(map(object({
       name                                   = optional(string)
+      managed_identity_enabled               = optional(bool, true)
+      managed_identity_name                  = optional(string, null)
       auto_generated_domain_name_label_scope = optional(string)
       client_affinity_enabled                = optional(bool, false)
       client_affinity_partitioning_enabled   = optional(bool)
@@ -690,7 +692,9 @@ variable "web_apps" {
       system_assigned            = optional(bool, false)
       user_assigned_resource_ids = optional(set(string), [])
     }), {})
-    maximum_instance_count = optional(number, null)
+    managed_identity_enabled = optional(bool, true)
+    managed_identity_name    = optional(string, null)
+    maximum_instance_count   = optional(number, null)
     private_endpoints = optional(map(object({
       name = optional(string, null)
       role_assignments = optional(map(object({

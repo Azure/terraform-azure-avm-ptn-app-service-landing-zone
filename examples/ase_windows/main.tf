@@ -37,9 +37,13 @@ module "naming" {
   version = "~> 0.4"
 }
 
-resource "azurerm_resource_group" "this" {
-  location = local.azure_regions[random_integer.region_index.result]
-  name     = "${module.naming.resource_group.name_unique}-ase-windows"
+module "resource_group" {
+  source  = "Azure/avm-res-resources-resourcegroup/azurerm"
+  version = "0.2.2"
+
+  location         = local.azure_regions[random_integer.region_index.result]
+  name             = "${module.naming.resource_group.name_unique}-ase-windows"
+  enable_telemetry = var.enable_telemetry
 }
 
 # App Service Environment v3 - Windows with .NET 8
@@ -48,9 +52,9 @@ resource "azurerm_resource_group" "this" {
 module "test" {
   source = "../../"
 
-  location            = azurerm_resource_group.this.location
+  location            = module.resource_group.location
   name                = module.naming.app_service.name_unique
-  resource_group_name = azurerm_resource_group.this.name
+  resource_group_name = module.resource_group.name
   # Enable App Service Environment v3
   app_service_environment_enabled                      = true
   app_service_environment_internal_load_balancing_mode = "Web, Publishing"
@@ -78,8 +82,8 @@ module "test" {
         system_assigned = true
       }
       deployment_slots = {
-        dev = {
-          name = "dev"
+        uat = {
+          name = "uat"
           site_config = {
             application_stack = {
               dotnet = {
@@ -91,17 +95,6 @@ module "test" {
         }
         stage = {
           name = "stage"
-          site_config = {
-            application_stack = {
-              dotnet = {
-                dotnet_version = "v10.0"
-                current_stack  = "dotnet"
-              }
-            }
-          }
-        }
-        prod = {
-          name = "prod"
           site_config = {
             application_stack = {
               dotnet = {

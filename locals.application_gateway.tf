@@ -2,8 +2,9 @@ locals {
   # Auto-generate Application Gateway configuration from web apps if not explicitly provided
   application_gateway_backend_address_pools = var.application_gateway_backend_address_pools != null ? var.application_gateway_backend_address_pools : {
     for key, app in var.web_apps : key => {
-      name  = "backend-${app.name}"
-      fqdns = [replace(replace(module.web_app[key].resource_uri, "https://", ""), "/", "")]
+      name         = "backend-${app.name}"
+      fqdns        = [replace(replace(module.web_app[key].resource_uri, "https://", ""), "/", "")]
+      ip_addresses = null
     }
   }
   application_gateway_backend_http_settings = var.application_gateway_backend_http_settings != null ? var.application_gateway_backend_http_settings : {
@@ -36,13 +37,17 @@ locals {
   application_gateway_probe_configurations = var.application_gateway_probe_configurations != null ? var.application_gateway_probe_configurations : {
     for key, app in var.web_apps : key => {
       name                                      = "probe-${app.name}"
+      host                                      = null
       interval                                  = 30
       timeout                                   = 30
       unhealthy_threshold                       = 3
       protocol                                  = "Https"
+      port                                      = null
       path                                      = "/"
       pick_host_name_from_backend_http_settings = true
+      minimum_servers                           = null
       match = {
+        body        = null
         status_code = ["200-399"]
       }
     }

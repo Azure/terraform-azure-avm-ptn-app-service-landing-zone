@@ -1,3 +1,10 @@
+variable "app_service_plan_enabled" {
+  type        = bool
+  default     = true
+  description = "(Optional) Whether to create an App Service Plan. Set to false when providing app_service_plan_resource_id. Defaults to true."
+  nullable    = false
+}
+
 variable "app_service_plan_diagnostic_settings" {
   type = map(object({
     name = optional(string, null)
