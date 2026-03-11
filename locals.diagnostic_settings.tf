@@ -28,7 +28,7 @@ locals {
       }
     }
   }
-  _diag_default_new = var.log_analytics_workspace_resource_id != null ? {
+  _diag_default_new = var.default_diagnostic_settings_enabled ? {
     default = {
       name = "default-diagnostic-setting"
       logs = toset([{
@@ -56,7 +56,7 @@ locals {
       marketplace_partner_resource_id          = null
     }
   } : {}
-  _diag_default_new_metrics_only = var.log_analytics_workspace_resource_id != null ? {
+  _diag_default_new_metrics_only = var.default_diagnostic_settings_enabled ? {
     default = {
       name = "default-diagnostic-setting"
       logs = toset([])
@@ -76,7 +76,7 @@ locals {
       marketplace_partner_resource_id          = null
     }
   } : {}
-  _diag_default_old = var.log_analytics_workspace_resource_id != null ? {
+  _diag_default_old = var.default_diagnostic_settings_enabled ? {
     default = {
       name                                     = null
       log_categories                           = toset([])
@@ -90,7 +90,7 @@ locals {
       marketplace_partner_resource_id          = null
     }
   } : {}
-  _diag_default_old_metrics_only = var.log_analytics_workspace_resource_id != null ? {
+  _diag_default_old_metrics_only = var.default_diagnostic_settings_enabled ? {
     default = {
       name                                     = null
       metric_categories                        = toset(["AllMetrics"])
