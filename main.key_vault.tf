@@ -27,6 +27,12 @@ module "key_vault" {
         role_definition_id_or_name = "Key Vault Certificates Officer"
         principal_id               = data.azapi_client_config.this.object_id
       }
+      appgw_secrets_user = {
+        role_definition_id_or_name       = "Key Vault Secrets User"
+        principal_id                     = module.application_gateway_managed_identity[0].principal_id
+        skip_service_principal_aad_check = true
+        principal_type                   = "ServicePrincipal"
+      }
     } : {},
     var.app_service_plan_os_type == "WindowsManagedInstance" && var.managed_instance_managed_identity_enabled ? {
       managed_instance_secrets_user = {

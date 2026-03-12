@@ -68,12 +68,18 @@ resource "azurerm_storage_blob" "managed_instance" {
 # Store the storage account connection string in Key Vault for AzureFiles storage mounts.
 # This secret is created outside the AVM module because its value depends on the
 # storage account key, which is only available after the storage account is created.
-resource "azurerm_key_vault_secret" "managed_instance_storage_connection_string" {
+resource "azapi_resource" "managed_instance_storage_connection_string" {
   count = local.managed_instance_shared_access_key_needed ? 1 : 0
 
-  name         = "mi-storage-connection-string"
-  value        = "DefaultEndpointsProtocol=https;AccountName=${module.storage_account[0].name};AccountKey=${data.azapi_resource_action.managed_instance_storage_account_keys[0].output.keys[0].value};EndpointSuffix=core.windows.net"
-  key_vault_id = module.key_vault[0].resource_id
+  type      = "Microsoft.KeyVault/vaults/secrets@2023-07-01"
+  name      = "mi-storage-connection-string"
+  parent_id = module.key_vault[0].resource_id
+
+  body = {
+    properties = {
+      value = "DefaultEndpointsProtocol=https;AccountName=${module.storage_account[0].name};AccountKey=${data.azapi_resource_action.managed_instance_storage_account_keys[0].output.keys[0].value};EndpointSuffix=core.windows.net"
+    }
+  }
 
   depends_on = [module.key_vault]
 }

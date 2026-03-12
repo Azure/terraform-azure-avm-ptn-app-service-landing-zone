@@ -36,7 +36,9 @@ module "application_gateway_managed_identity" {
   tags                = var.tags
 }
 
-# Self-signed certificate in Key Vault
+# Self-signed certificate in Key Vault.
+# NOTE: azurerm_key_vault_certificate is used because certificate creation is a
+# data-plane operation not supported by azapi or any AVM module.
 resource "azurerm_key_vault_certificate" "application_gateway_default" {
   count = local.application_gateway_default_ssl_enabled ? 1 : 0
 
@@ -67,14 +69,4 @@ resource "azurerm_key_vault_certificate" "application_gateway_default" {
   }
 
   depends_on = [module.key_vault]
-}
-
-# Grant App Gateway managed identity access to read Key Vault secrets
-resource "azurerm_role_assignment" "application_gateway_kv_secrets" {
-  count = local.application_gateway_default_ssl_enabled ? 1 : 0
-
-  scope                            = module.key_vault[0].resource_id
-  role_definition_name             = "Key Vault Secrets User"
-  principal_id                     = module.application_gateway_managed_identity[0].principal_id
-  skip_service_principal_aad_check = true
 }

@@ -61,31 +61,38 @@ module "log_analytics_workspace" {
 # extensions/zipdeploy ARM API can fetch it via HTTPS URL.
 # ------------------------------------------------------------------
 
-resource "azurerm_storage_account" "zip_deploy" {
+module "storage_account_zip_deploy" {
+  source  = "Azure/avm-res-storage-storageaccount/azurerm"
+  version = "0.6.7"
+
+  location                 = module.resource_group.location
   name                     = module.naming.storage_account.name_unique
   resource_group_name      = module.resource_group.name
-  location                 = module.resource_group.location
-  account_tier             = "Standard"
   account_replication_type = "LRS"
-}
-
-resource "azurerm_storage_container" "zip_deploy" {
-  name                 = "zip-deploy"
-  storage_account_id   = azurerm_storage_account.zip_deploy.id
+  account_tier             = "Standard"
+  containers = {
+    zip-deploy = {
+      name = "zip-deploy"
+    }
+  }
+  enable_telemetry          = var.enable_telemetry
+  shared_access_key_enabled = true
 }
 
 resource "azurerm_storage_blob" "zip_deploy" {
   name                   = "app.zip"
-  storage_account_name   = azurerm_storage_account.zip_deploy.name
-  storage_container_name = azurerm_storage_container.zip_deploy.name
+  storage_account_name   = module.storage_account_zip_deploy.name
+  storage_container_name = "zip-deploy"
   type                   = "Block"
   source                 = "${path.module}/app.zip"
   content_md5            = filemd5("${path.module}/app.zip")
+
+  depends_on = [module.storage_account_zip_deploy]
 }
 
 data "azurerm_storage_account_blob_container_sas" "zip_deploy" {
-  connection_string = azurerm_storage_account.zip_deploy.primary_connection_string
-  container_name    = azurerm_storage_container.zip_deploy.name
+  connection_string = module.storage_account_zip_deploy.resource.primary_connection_string
+  container_name    = "zip-deploy"
   start             = "2024-01-01T00:00:00Z"
   expiry            = "2099-01-01T00:00:00Z"
 
@@ -115,10 +122,13 @@ module "test" {
     app1 = {
       name            = module.naming.app_service.name_unique
       zip_deploy_file = nonsensitive("${azurerm_storage_blob.zip_deploy.url}${data.azurerm_storage_account_blob_container_sas.zip_deploy.sas}")
+      app_settings = {
+        SCM_DO_BUILD_DURING_DEPLOYMENT = "true"
+      }
       site_config = {
         application_stack = {
           dotnet = {
-            dotnet_version = "v10.0"
+            dotnet_version = "10.0"
             current_stack  = "dotnet"
           }
         }
@@ -129,7 +139,7 @@ module "test" {
           site_config = {
             application_stack = {
               dotnet = {
-                dotnet_version = "v10.0"
+                dotnet_version = "10.0"
                 current_stack  = "dotnet"
               }
             }
@@ -140,7 +150,7 @@ module "test" {
           site_config = {
             application_stack = {
               dotnet = {
-                dotnet_version = "v10.0"
+                dotnet_version = "10.0"
                 current_stack  = "dotnet"
               }
             }
