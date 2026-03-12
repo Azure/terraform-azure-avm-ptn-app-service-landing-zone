@@ -18,6 +18,7 @@ output "resource_names" {
     vnet_link_web                 = local.vnet_link_web_name
     vnet_link_key_vault           = local.vnet_link_key_vault_name
     vnet_link_storage_blob        = local.vnet_link_storage_blob_name
+    vnet_link_storage_file        = local.vnet_link_storage_file_name
     vnet_link_container_registry  = local.vnet_link_container_registry_name
     peer_to_hub                   = local.peer_to_hub_name
     peer_from_hub                 = local.peer_from_hub_name

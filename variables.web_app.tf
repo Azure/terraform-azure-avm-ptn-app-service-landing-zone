@@ -352,8 +352,12 @@ variable "web_apps" {
       ip_mode                                  = optional(string)
       key_vault_reference_identity             = optional(string, null)
       managed_environment_id                   = optional(string)
-      public_network_access_enabled            = optional(bool, false)
-      redundancy_mode                          = optional(string)
+      managed_identities = optional(object({
+        system_assigned            = optional(bool, false)
+        user_assigned_resource_ids = optional(set(string), [])
+      }), {})
+      public_network_access_enabled = optional(bool, false)
+      redundancy_mode               = optional(string)
       resource_config = optional(object({
         cpu    = optional(number)
         memory = optional(string)

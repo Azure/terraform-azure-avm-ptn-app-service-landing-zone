@@ -22,7 +22,7 @@ module "application_gateway" {
   enable_telemetry        = var.enable_telemetry
   http2_enable            = var.application_gateway_http2_enabled
   lock                    = var.application_gateway_lock
-  managed_identities      = var.application_gateway_managed_identities
+  managed_identities      = local.application_gateway_effective_managed_identities
   probe_configurations    = local.application_gateway_probe_configurations
   public_ip_address_configuration = {
     public_ip_name    = coalesce(var.application_gateway_public_ip_name, module.naming.resource_names.application_gateway_public_ip)
@@ -35,7 +35,7 @@ module "application_gateway" {
   rewrite_rule_set            = var.application_gateway_rewrite_rule_sets
   role_assignments            = var.application_gateway_role_assignments
   sku                         = var.application_gateway_sku
-  ssl_certificates            = var.application_gateway_ssl_certificates
+  ssl_certificates            = local.application_gateway_effective_ssl_certificates
   ssl_policy                  = var.application_gateway_ssl_policy
   tags                        = try(coalesce(var.application_gateway_tags, var.tags), {})
   trusted_root_certificate    = var.application_gateway_trusted_root_certificates

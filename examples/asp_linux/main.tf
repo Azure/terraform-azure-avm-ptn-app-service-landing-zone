@@ -56,7 +56,50 @@ module "log_analytics_workspace" {
   enable_telemetry    = var.enable_telemetry
 }
 
-# App Service Plan - Linux with Node.js 20
+# ------------------------------------------------------------------
+# Upload the sample app zip to a public storage account so the
+# extensions/zipdeploy ARM API can fetch it via HTTPS URL.
+# ------------------------------------------------------------------
+
+resource "azurerm_storage_account" "zip_deploy" {
+  name                     = module.naming.storage_account.name_unique
+  resource_group_name      = module.resource_group.name
+  location                 = module.resource_group.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_container" "zip_deploy" {
+  name                 = "zip-deploy"
+  storage_account_id   = azurerm_storage_account.zip_deploy.id
+}
+
+resource "azurerm_storage_blob" "zip_deploy" {
+  name                   = "app.zip"
+  storage_account_name   = azurerm_storage_account.zip_deploy.name
+  storage_container_name = azurerm_storage_container.zip_deploy.name
+  type                   = "Block"
+  source                 = "${path.module}/app.zip"
+  content_md5            = filemd5("${path.module}/app.zip")
+}
+
+data "azurerm_storage_account_blob_container_sas" "zip_deploy" {
+  connection_string = azurerm_storage_account.zip_deploy.primary_connection_string
+  container_name    = azurerm_storage_container.zip_deploy.name
+  start             = "2024-01-01T00:00:00Z"
+  expiry            = "2099-01-01T00:00:00Z"
+
+  permissions {
+    read   = true
+    add    = false
+    create = false
+    write  = false
+    delete = false
+    list   = false
+  }
+}
+
+# App Service Plan - Linux with .NET 10 and zip deploy
 module "test" {
   source = "../../"
 
@@ -66,11 +109,13 @@ module "test" {
   log_analytics_workspace_resource_id = module.log_analytics_workspace.resource_id
   web_apps = {
     app1 = {
-      name = module.naming.app_service.name_unique
+      name            = module.naming.app_service.name_unique
+      zip_deploy_file = nonsensitive("${azurerm_storage_blob.zip_deploy.url}${data.azurerm_storage_account_blob_container_sas.zip_deploy.sas}")
       site_config = {
         application_stack = {
-          node = {
-            node_version = "20-lts"
+          dotnet = {
+            dotnet_version = "v10.0"
+            current_stack  = "dotnet"
           }
         }
       }

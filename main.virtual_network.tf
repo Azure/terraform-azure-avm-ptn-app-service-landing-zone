@@ -19,7 +19,7 @@ module "virtual_network" {
   lock                    = var.virtual_network_lock
   name                    = coalesce(var.virtual_network_name, module.naming.resource_names.virtual_network)
   peerings = merge(
-    var.hub_peering_enabled && var.hub_virtual_network_resource_id != null ? {
+    var.hub_peering_enabled ? {
       hub = {
         name                               = module.naming.resource_names.peer_to_hub
         remote_virtual_network_resource_id = var.hub_virtual_network_resource_id
@@ -32,7 +32,7 @@ module "virtual_network" {
         reverse_allow_gateway_transit      = true
       }
     } : {},
-    var.alz_platform_landing_zone_peer_to_hub_enabled && var.alz_platform_landing_zone_peering_hub_virtual_network_id != null ? {
+    var.alz_platform_landing_zone_peer_to_hub_enabled ? {
       alz_hub = {
         name                               = coalesce(var.alz_platform_landing_zone_peer_to_hub_name, module.naming.resource_names.alz_peer_to_hub)
         remote_virtual_network_resource_id = var.alz_platform_landing_zone_peering_hub_virtual_network_id

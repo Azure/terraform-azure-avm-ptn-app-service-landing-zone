@@ -29,6 +29,11 @@ override.tf.json
 # Ignore Terraform lock file
 .terraform.lock.hcl
 
+# Build artifacts from pre.sh (sample ASP.NET app zip deploy)
+examples/*/app.zip
+examples/*/publish/
+examples/*/dotnet-docker-temp/
+
 # Include tfplan files to ignore the plan output of command: terraform plan -out=tfplan
 # example: *tfplan*
 
@@ -47,6 +52,9 @@ avm.tflint_module.merged.hcl
 *.md.tmp
 # MacOS
 .DS_Store
+
+# Subscription cache for example runner
+.subscription-cache.json
 
 # conftest policy
 examples/*/policy

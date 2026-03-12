@@ -179,6 +179,12 @@ variable "private_dns_zone_storage_blob_resource_id" {
   description = "(Optional) The resource ID of an existing private DNS zone for 'privatelink.blob.core.windows.net'. When set, the module will not create this DNS zone for Storage Account private endpoints."
 }
 
+variable "private_dns_zone_storage_file_resource_id" {
+  type        = string
+  default     = null
+  description = "(Optional) The resource ID of an existing private DNS zone for 'privatelink.file.core.windows.net'. When set, the module will not create this DNS zone for Storage Account file share private endpoints."
+}
+
 variable "private_dns_zone_timeouts" {
   type = object({
     dns_zones = optional(object({

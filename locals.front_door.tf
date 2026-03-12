@@ -53,7 +53,7 @@ locals {
       name                           = module.naming.resource_names.front_door_origin[key]
       origin_group_key               = key
       host_name                      = replace(replace(module.web_app[key].resource_uri, "https://", ""), "/", "")
-      origin_host_header             = replace(replace(module.web_app[key].resource_uri, "https://", ""), "/", "")
+      host_header                    = replace(replace(module.web_app[key].resource_uri, "https://", ""), "/", "")
       certificate_name_check_enabled = "true"
       http_port                      = 80
       https_port                     = 443

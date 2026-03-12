@@ -104,6 +104,7 @@ locals {
   vnet_link_container_registry_name = templatestring(local.templates["vnet_link_container_registry"], local.single_template_vars)
   vnet_link_key_vault_name          = templatestring(local.templates["vnet_link_key_vault"], local.single_template_vars)
   vnet_link_storage_blob_name       = templatestring(local.templates["vnet_link_storage_blob"], local.single_template_vars)
+  vnet_link_storage_file_name       = templatestring(local.templates["vnet_link_storage_file"], local.single_template_vars)
   vnet_link_web_name                = templatestring(local.templates["vnet_link_web"], local.single_template_vars)
   web_app_managed_identity_names = {
     for key in local.sorted_web_app_keys : key => templatestring(local.templates["web_app_managed_identity"], local.web_app_template_vars[key])

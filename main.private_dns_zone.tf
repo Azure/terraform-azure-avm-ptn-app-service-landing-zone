@@ -67,6 +67,23 @@ module "private_dns_zone_storage_blob" {
   }
 }
 
+module "private_dns_zone_storage_file" {
+  source  = "Azure/avm-res-network-privatednszone/azurerm"
+  version = "0.5.0"
+  count   = local.create_private_dns_zone_storage_file ? 1 : 0
+
+  domain_name      = "privatelink.file.core.windows.net"
+  parent_id        = local.resource_group_id
+  enable_telemetry = var.enable_telemetry
+  tags             = var.tags
+  virtual_network_links = {
+    vnet_link = {
+      name               = module.naming.resource_names.vnet_link_storage_file
+      virtual_network_id = local.virtual_network_id
+    }
+  }
+}
+
 module "private_dns_zone_container_registry" {
   source  = "Azure/avm-res-network-privatednszone/azurerm"
   version = "0.5.0"

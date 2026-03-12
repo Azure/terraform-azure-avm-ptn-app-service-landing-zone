@@ -9,7 +9,7 @@ module "alz_route_table" {
   bgp_route_propagation_enabled = false
   enable_telemetry              = var.enable_telemetry
   routes = merge(
-    var.alz_platform_landing_zone_route_table_hub_virtual_appliance_ip_address != null ? {
+    var.alz_platform_landing_zone_route_table_enabled ? {
       default_route = {
         name                   = "defaultRoute"
         address_prefix         = "0.0.0.0/0"
@@ -17,7 +17,7 @@ module "alz_route_table" {
         next_hop_in_ip_address = var.alz_platform_landing_zone_route_table_hub_virtual_appliance_ip_address
       }
     } : {},
-    var.alz_platform_landing_zone_route_table_hub_virtual_appliance_ip_address != null ? {
+    var.alz_platform_landing_zone_route_table_enabled ? {
       for idx, prefix in var.alz_platform_landing_zone_route_table_address_spaces : "address_space_${idx}" => {
         name                   = "route-address-space-${idx}"
         address_prefix         = prefix

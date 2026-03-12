@@ -24,6 +24,7 @@ variable "resource_name_defaults" {
     vnet_link_web                = "vnetlink-$${resource_name_workload}-$${resource_name_environment}-$${sequence}"
     vnet_link_key_vault          = "vnetlink-kv-$${resource_name_workload}-$${resource_name_environment}-$${sequence}"
     vnet_link_storage_blob       = "vnetlink-blob-$${resource_name_workload}-$${resource_name_environment}-$${sequence}"
+    vnet_link_storage_file       = "vnetlink-file-$${resource_name_workload}-$${resource_name_environment}-$${sequence}"
     vnet_link_container_registry = "vnetlink-cr-$${resource_name_workload}-$${resource_name_environment}-$${sequence}"
 
     # Peering names

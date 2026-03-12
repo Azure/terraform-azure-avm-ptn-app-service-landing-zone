@@ -93,12 +93,12 @@ variable "app_service_plan_name" {
 variable "app_service_plan_os_type" {
   type        = string
   default     = "Linux"
-  description = "The OS type for the App Service Plan. Possible values are 'Linux', 'Windows', or 'WindowsManagedInstance'. Defaults to 'Linux'."
+  description = "The OS type for the App Service Plan. Possible values are 'Linux', 'Windows', 'WindowsContainer', or 'WindowsManagedInstance'. Defaults to 'Linux'."
   nullable    = false
 
   validation {
-    condition     = contains(["Linux", "Windows", "WindowsManagedInstance"], var.app_service_plan_os_type)
-    error_message = "The OS type must be one of: 'Linux', 'Windows', 'WindowsManagedInstance'."
+    condition     = contains(["Linux", "Windows", "WindowsContainer", "WindowsManagedInstance"], var.app_service_plan_os_type)
+    error_message = "The OS type must be one of: 'Linux', 'Windows', 'WindowsContainer', 'WindowsManagedInstance'."
   }
 }
 

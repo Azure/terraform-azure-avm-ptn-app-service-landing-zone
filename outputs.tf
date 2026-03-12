@@ -62,7 +62,7 @@ output "container_registry" {
 
 output "container_registry_id" {
   description = "The resource ID of the Container Registry (created or BYO)."
-  value       = var.container_registry_resource_id != null ? var.container_registry_resource_id : (local.container_registry_effectively_enabled ? module.container_registry[0].resource_id : null)
+  value       = local.container_registry_id
 }
 
 output "container_registry_login_server" {
@@ -82,17 +82,17 @@ output "front_door" {
 
 output "key_vault" {
   description = "The Key Vault resource output from the AVM module."
-  value       = var.key_vault_enabled && var.key_vault_resource_id == null ? module.key_vault[0] : null
+  value       = length(module.key_vault) > 0 && var.key_vault_resource_id == null ? module.key_vault[0] : null
 }
 
 output "key_vault_id" {
   description = "The resource ID of the Key Vault (created or BYO)."
-  value       = var.key_vault_resource_id != null ? var.key_vault_resource_id : (var.key_vault_enabled ? module.key_vault[0].resource_id : null)
+  value       = var.key_vault_resource_id != null ? var.key_vault_resource_id : (length(module.key_vault) > 0 ? module.key_vault[0].resource_id : null)
 }
 
 output "key_vault_name" {
   description = "The name of the Key Vault."
-  value       = var.key_vault_enabled && var.key_vault_resource_id == null ? module.key_vault[0].name : null
+  value       = length(module.key_vault) > 0 && var.key_vault_resource_id == null ? module.key_vault[0].name : null
 }
 
 output "managed_instance_managed_identity_client_id" {
@@ -132,12 +132,17 @@ output "route_table_id" {
 
 output "storage_account" {
   description = "The Storage Account resource output from the AVM module."
-  value       = var.storage_account_enabled ? module.storage_account[0] : null
+  value       = length(module.storage_account) > 0 ? module.storage_account[0] : null
 }
 
 output "storage_account_id" {
   description = "The resource ID of the Storage Account (created or BYO)."
-  value       = var.storage_account_enabled ? module.storage_account[0].resource_id : null
+  value       = length(module.storage_account) > 0 ? module.storage_account[0].resource_id : null
+}
+
+output "storage_account_name" {
+  description = "The name of the Storage Account."
+  value       = length(module.storage_account) > 0 ? module.storage_account[0].name : null
 }
 
 output "virtual_network" {

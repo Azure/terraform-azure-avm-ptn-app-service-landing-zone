@@ -28,11 +28,15 @@ locals {
     }
   }
   application_gateway_http_listeners = var.application_gateway_http_listeners != null ? var.application_gateway_http_listeners : {
-    for key, app in var.web_apps : key => {
+    for key, app in var.web_apps : key => merge({
       name               = module.naming.resource_names.application_gateway_listener[key]
-      frontend_port_name = "port-443"
-      host_name          = replace(replace(module.web_app[key].resource_uri, "https://", ""), "/", "")
-    }
+      frontend_port_name = local.application_gateway_default_ssl_enabled || var.application_gateway_ssl_certificates != null ? "port-443" : "port-80"
+      host_name          = null
+      }, local.application_gateway_default_ssl_enabled ? {
+      ssl_certificate_name = local.application_gateway_default_ssl_cert_name
+      } : (var.application_gateway_ssl_certificates != null ? {
+        ssl_certificate_name = values(var.application_gateway_ssl_certificates)[0].name
+    } : {}))
   }
   application_gateway_probe_configurations = var.application_gateway_probe_configurations != null ? var.application_gateway_probe_configurations : {
     for key, app in var.web_apps : key => {

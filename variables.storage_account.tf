@@ -213,6 +213,13 @@ variable "storage_account_network_rules" {
   nullable    = false
 }
 
+variable "storage_account_public_network_access_enabled" {
+  type        = bool
+  default     = false
+  description = "(Optional) Whether public network access is enabled for the storage account. Defaults to false."
+  nullable    = false
+}
+
 variable "storage_account_resource_id" {
   type        = string
   default     = null

@@ -69,113 +69,6 @@ module "log_analytics_workspace" {
   enable_telemetry    = var.enable_telemetry
 }
 
-# A user-assigned managed identity for the Managed Instance plan default identity
-module "managed_identity" {
-  source  = "Azure/avm-res-managedidentity-userassignedidentity/azurerm"
-  version = "0.4.0"
-
-  location            = module.resource_group.location
-  name                = module.naming.user_assigned_identity.name_unique
-  resource_group_name = module.resource_group.name
-  enable_telemetry    = var.enable_telemetry
-}
-
-# Storage account to host the install scripts package and file shares
-# Role assignments are managed via the AVM module's role_assignments interface
-module "storage_account" {
-  source  = "Azure/avm-res-storage-storageaccount/azurerm"
-  version = "0.6.7"
-
-  location                 = module.resource_group.location
-  name                     = module.naming.storage_account.name_unique
-  resource_group_name      = module.resource_group.name
-  access_tier              = "Hot"
-  account_replication_type = "ZRS"
-  account_tier             = "Standard"
-  containers = {
-    scripts = {
-      name          = "scripts"
-      public_access = "None"
-    }
-  }
-  enable_telemetry = var.enable_telemetry
-  network_rules = {
-    default_action = "Allow"
-  }
-  role_assignments = {
-    blob_reader = {
-      role_definition_id_or_name       = "Storage Blob Data Reader"
-      principal_id                     = module.managed_identity.principal_id
-      skip_service_principal_aad_check = true
-      principal_type                   = "ServicePrincipal"
-    }
-    blob_contributor_current_user = {
-      role_definition_id_or_name = "Storage Blob Data Contributor"
-      principal_id               = data.azapi_client_config.this.object_id
-    }
-  }
-  shared_access_key_enabled = true
-  shares = {
-    hshare = {
-      name  = "hshare"
-      quota = 5
-    }
-  }
-}
-
-# Key Vault for storing secrets used by the Managed Instance plan
-# Role assignments and secrets are managed via the AVM module's interfaces
-module "key_vault" {
-  source  = "Azure/avm-res-keyvault-vault/azurerm"
-  version = "0.10.2"
-
-  location                       = module.resource_group.location
-  name                           = module.naming.key_vault.name_unique
-  resource_group_name            = module.resource_group.name
-  tenant_id                      = data.azapi_client_config.this.tenant_id
-  enable_telemetry               = var.enable_telemetry
-  legacy_access_policies_enabled = false
-  purge_protection_enabled       = false
-  role_assignments = {
-    secrets_officer = {
-      role_definition_id_or_name = "Key Vault Secrets Officer"
-      principal_id               = data.azapi_client_config.this.object_id
-    }
-    secrets_user = {
-      role_definition_id_or_name       = "Key Vault Secrets User"
-      principal_id                     = module.managed_identity.principal_id
-      skip_service_principal_aad_check = true
-      principal_type                   = "ServicePrincipal"
-    }
-  }
-  secrets = {
-    storage_key = {
-      name = "storage-account-key"
-    }
-    registry_string = {
-      name = "registry-string-value"
-    }
-    registry_dword = {
-      name = "registry-dword-value"
-    }
-  }
-  secrets_value = {
-    storage_key     = "DefaultEndpointsProtocol=https;AccountName=${module.storage_account.name};AccountKey=${data.azapi_resource_action.storage_account_keys.output.keys[0].value};EndpointSuffix=core.windows.net"
-    registry_string = "MyExampleStringValue"
-    registry_dword  = "336"
-  }
-  sku_name                   = "standard"
-  soft_delete_retention_days = 7
-}
-
-# Retrieve the storage account keys
-data "azapi_resource_action" "storage_account_keys" {
-  action                 = "listKeys"
-  resource_id            = module.storage_account.resource_id
-  type                   = "Microsoft.Storage/storageAccounts@2023-05-01"
-  response_export_values = ["keys"]
-}
-
 # Archive the install scripts into a zip file
 data "archive_file" "scripts" {
   type             = "zip"
@@ -184,73 +77,104 @@ data "archive_file" "scripts" {
   output_file_mode = "0644"
 }
 
-# Upload scripts.zip as a placeholder for the install script package.
-# NOTE: azurerm_storage_blob is retained here because blob upload is a data plane
-# operation not supported by azapi or any AVM module.
-resource "azurerm_storage_blob" "scripts_zip" {
-  name                   = "scripts.zip"
-  storage_account_name   = module.storage_account.name
-  storage_container_name = "scripts"
-  type                   = "Block"
-  content_md5            = data.archive_file.scripts.output_md5
-  source                 = data.archive_file.scripts.output_path
+# ------------------------------------------------------------------
+# Upload the sample app zip to a public storage account so the
+# extensions/zipdeploy ARM API can fetch it via HTTPS URL.
+# ------------------------------------------------------------------
 
-  depends_on = [module.storage_account]
+resource "azurerm_storage_account" "zip_deploy" {
+  name                     = module.naming.storage_account.name_unique
+  resource_group_name      = module.resource_group.name
+  location                 = module.resource_group.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_container" "zip_deploy" {
+  name                 = "zip-deploy"
+  storage_account_id   = azurerm_storage_account.zip_deploy.id
+}
+
+resource "azurerm_storage_blob" "zip_deploy" {
+  name                   = "app.zip"
+  storage_account_name   = azurerm_storage_account.zip_deploy.name
+  storage_container_name = azurerm_storage_container.zip_deploy.name
+  type                   = "Block"
+  source                 = "${path.module}/app.zip"
+  content_md5            = filemd5("${path.module}/app.zip")
+}
+
+data "azurerm_storage_account_blob_container_sas" "zip_deploy" {
+  connection_string = azurerm_storage_account.zip_deploy.primary_connection_string
+  container_name    = azurerm_storage_container.zip_deploy.name
+  start             = "2024-01-01T00:00:00Z"
+  expiry            = "2099-01-01T00:00:00Z"
+
+  permissions {
+    read   = true
+    add    = false
+    create = false
+    write  = false
+    delete = false
+    list   = false
+  }
 }
 
 # App Service Managed Instance (WindowsManagedInstance)
 # Provides enhanced security and performance features for Windows App Service.
 # Bastion host is automatically enabled for WindowsManagedInstance mode.
 # The os_type is automatically mapped to 'Windows' for web apps.
+#
+# The convenience variables (managed_instance_install_scripts, managed_instance_registry_adapters,
+# managed_instance_storage_mounts) automatically handle:
+#   - Creating the storage account with containers, blobs, and file shares
+#   - Creating the key vault with secrets for registry adapters and storage connection strings
+#   - Creating the managed identity and wiring it to the plan, key vault, and storage account
+#   - Configuring private endpoints for all resources
 module "test" {
   source = "../../"
 
   location  = module.resource_group.location
   parent_id = module.resource_group.resource_id
-  # Install scripts - references the scripts.zip blob in the storage account
-  # The install script logs can be found in C:\\InstallScripts on the VM instances
-  app_service_plan_install_scripts = [
-    {
-      name = "CustomInstaller"
-      source = {
-        type       = "RemoteAzureBlob"
-        source_uri = "https://${module.storage_account.name}.blob.core.windows.net/scripts/scripts.zip"
-      }
-    }
-  ]
-  # Managed identities on the plan
-  app_service_plan_managed_identities = {
-    user_assigned_resource_ids = [module.managed_identity.resource_id]
-  }
   # App Service Plan - WindowsManagedInstance with V4 SKU
-  app_service_plan_os_type = "WindowsManagedInstance"
-  # Plan default identity - used by the platform to pull install scripts
-  app_service_plan_plan_default_identity = {
-    identity_type                      = "UserAssigned"
-    user_assigned_identity_resource_id = module.managed_identity.resource_id
-  }
+  app_service_plan_os_type  = "WindowsManagedInstance"
+  app_service_plan_sku_name = "P1v4"
   # RDP access enabled
   app_service_plan_rdp_enabled = true
-  # Registry adapters - configure Windows registry keys via Key Vault references
-  app_service_plan_registry_adapters = [
+  enable_telemetry             = var.enable_telemetry
+  # Key Vault settings - the module auto-creates a key vault for registry adapters and storage mounts
+  key_vault_purge_protection_enabled   = false
+  key_vault_sku_name                   = "standard"
+  key_vault_soft_delete_retention_days = 7
+  key_vault_role_assignments = {
+    secrets_officer = {
+      role_definition_id_or_name = "Key Vault Secrets Officer"
+      principal_id               = data.azapi_client_config.this.object_id
+    }
+  }
+  log_analytics_workspace_resource_id = module.log_analytics_workspace.resource_id
+  # Install scripts - just provide the name and path; the module handles container, blob, and ASP config
+  managed_instance_install_scripts = [
+    {
+      name   = "CustomInstaller"
+      source = data.archive_file.scripts.output_path
+    }
+  ]
+  # Registry adapters - just provide the key, type, and value; the module handles KV secrets and ASP config
+  managed_instance_registry_adapters = [
     {
       registry_key = "HKEY_LOCAL_MACHINE/SOFTWARE/MyApp1/RegistryAdapterString"
       type         = "String"
-      key_vault_secret_reference = {
-        secret_uri = "https://${module.key_vault.name}.vault.azure.net/secrets/registry-string-value"
-      }
+      value        = "MyExampleStringValue"
     },
     {
       registry_key = "HKEY_LOCAL_MACHINE/SOFTWARE/MyApp1/RegistryAdapterDWORD"
       type         = "DWORD"
-      key_vault_secret_reference = {
-        secret_uri = "https://${module.key_vault.name}.vault.azure.net/secrets/registry-dword-value"
-      }
+      value        = "336"
     }
   ]
-  app_service_plan_sku_name = "P1v4"
-  # Storage mounts - G: drive (local) and H: drive (Azure Files)
-  app_service_plan_storage_mounts = [
+  # Storage mounts - just provide mount details; the module handles shares, KV secrets, and ASP config
+  managed_instance_storage_mounts = [
     {
       name             = "g-drive"
       type             = "LocalStorage"
@@ -259,21 +183,23 @@ module "test" {
     {
       name             = "h-drive"
       type             = "AzureFiles"
-      source           = "\\\\${module.storage_account.name}.file.core.windows.net\\hshare"
       destination_path = "H:\\"
-      credentials_key_vault_reference = {
-        # NOTE: the double slash after the vault URI is intentional to comply with Key Vault secret URI format for this resource
-        secret_uri = "https://${module.key_vault.name}.vault.azure.net//secrets/storage-account-key"
-      }
+      share_name       = "hshare"
+      share_quota      = 5
     }
   ]
-  # Networking - bastion is auto-enabled for WindowsManagedInstance
-  enable_telemetry                    = var.enable_telemetry
-  log_analytics_workspace_resource_id = module.log_analytics_workspace.resource_id
+  # Storage account settings - the module auto-creates a storage account for install scripts and mounts
+  storage_account_role_assignments = {
+    blob_contributor_current_user = {
+      role_definition_id_or_name = "Storage Blob Data Contributor"
+      principal_id               = data.azapi_client_config.this.object_id
+    }
+  }
   # Web apps
   web_apps = {
     app1 = {
-      name = module.naming.app_service.name_unique
+      name            = module.naming.app_service.name_unique
+      zip_deploy_file = nonsensitive("${azurerm_storage_blob.zip_deploy.url}${data.azurerm_storage_account_blob_container_sas.zip_deploy.sas}")
       site_config = {
         always_on = true
         application_stack = {
@@ -309,6 +235,4 @@ module "test" {
       }
     }
   }
-
-  depends_on = [azurerm_storage_blob.scripts_zip]
 }

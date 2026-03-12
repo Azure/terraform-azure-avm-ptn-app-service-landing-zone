@@ -1,3 +1,3 @@
 # App Service Managed Instance (Windows)
 
-This example deploys the module with a Windows Managed Instance App Service Plan, a Windows web app running .NET 8, VNet integration, private endpoints, private DNS, and Azure Front Door (Premium with WAF).
+This example deploys the module with a Windows Managed Instance App Service Plan using the convenience variables (`managed_instance_install_scripts`, `managed_instance_registry_adapters`, `managed_instance_storage_mounts`). The module automatically creates and configures the storage account, key vault, managed identity, containers, blobs, file shares, secrets, and private endpoints — the user only needs to specify the high-level intent.

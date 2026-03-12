@@ -75,6 +75,13 @@ variable "application_gateway_diagnostic_settings" {
   nullable    = false
 }
 
+variable "application_gateway_default_ssl_certificate_enabled" {
+  type        = bool
+  default     = true
+  description = "(Optional) When true and no custom `application_gateway_ssl_certificates` are provided, a self-signed certificate is created in Key Vault and configured on the Application Gateway HTTPS listener. Requires `key_vault_enabled = true` (auto-enabled when this is true). Defaults to true."
+  nullable    = false
+}
+
 variable "application_gateway_enabled" {
   type        = bool
   default     = false

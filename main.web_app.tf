@@ -1,6 +1,6 @@
 module "web_app" {
   source   = "Azure/avm-res-web-site/azurerm"
-  version  = "0.21.0"
+  version  = "0.21.1"
   for_each = var.web_apps
 
   # Required
@@ -33,12 +33,36 @@ module "web_app" {
   custom_domains                         = each.value.custom_domains
   daily_memory_time_quota                = each.value.daily_memory_time_quota
   dapr_config                            = each.value.dapr_config
-  deployment_slots = var.app_service_environment_enabled ? {
-    for slot_key, slot_value in each.value.deployment_slots : slot_key => merge(slot_value, {
-      vnet_content_share_enabled = true
-      vnet_image_pull_enabled    = true
-    })
-  } : each.value.deployment_slots
+  deployment_slots = {
+    for slot_key, slot_value in each.value.deployment_slots : slot_key => merge(slot_value,
+      # Per-slot managed identities - merge module-created identity with user-supplied ones
+      slot_value.managed_identity_enabled ? {
+        managed_identities = {
+          system_assigned = slot_value.managed_identities.system_assigned
+          user_assigned_resource_ids = setunion(
+            slot_value.managed_identities.user_assigned_resource_ids,
+            [module.web_app_slot_managed_identity["${each.key}-${slot_key}"].resource_id]
+          )
+        }
+      } : {},
+      # ASE overrides
+      var.app_service_environment_enabled ? {
+        vnet_content_share_enabled = true
+        vnet_image_pull_enabled    = true
+      } : {},
+      # VNet image pull for ACR
+      local.container_registry_effectively_enabled && local.virtual_network_enabled && !var.app_service_environment_enabled ? {
+        vnet_image_pull_enabled = true
+      } : {},
+      # Container registry managed identity site_config
+      local.container_registry_effectively_enabled && (slot_value.managed_identity_enabled || each.value.managed_identity_enabled) ? {
+        site_config = merge(slot_value.site_config, {
+          container_registry_use_managed_identity       = true
+          container_registry_managed_identity_client_id = slot_value.managed_identity_enabled ? module.web_app_slot_managed_identity["${each.key}-${slot_key}"].client_id : module.web_app_managed_identity[each.key].client_id
+        })
+      } : {}
+    )
+  }
   deployment_slots_inherit_lock            = each.value.deployment_slots_inherit_lock
   diagnostic_settings                      = var.alz_platform_landing_zone_diagnostic_settings_mode_enabled ? {} : local.web_app_diagnostic_settings[each.key]
   dns_configuration                        = each.value.dns_configuration
@@ -66,12 +90,7 @@ module "web_app" {
     system_assigned = each.value.managed_identities.system_assigned
     user_assigned_resource_ids = setunion(
       each.value.managed_identities.user_assigned_resource_ids,
-      each.value.managed_identity_enabled ? [module.web_app_managed_identity[each.key].resource_id] : [],
-      [
-        for slot_key, slot in each.value.deployment_slots :
-        module.web_app_slot_managed_identity["${each.key}-${slot_key}"].resource_id
-        if slot.managed_identity_enabled
-      ]
+      each.value.managed_identity_enabled ? [module.web_app_managed_identity[each.key].resource_id] : []
     )
   }
   maximum_instance_count = each.value.maximum_instance_count
@@ -96,15 +115,18 @@ module "web_app" {
       }
     } : {}
   )
-  private_endpoints_inherit_lock                 = each.value.private_endpoints_inherit_lock
-  private_endpoints_manage_dns_zone_group        = each.value.private_endpoints_manage_dns_zone_group
-  public_network_access_enabled                  = each.value.public_network_access_enabled
-  redundancy_mode                                = each.value.redundancy_mode
-  resource_config                                = each.value.resource_config
-  role_assignments                               = each.value.role_assignments
-  scm_publish_basic_authentication_enabled       = each.value.scm_publish_basic_authentication_enabled
-  scm_site_also_stopped                          = each.value.scm_site_also_stopped
-  site_config                                    = each.value.site_config
+  private_endpoints_inherit_lock           = each.value.private_endpoints_inherit_lock
+  private_endpoints_manage_dns_zone_group  = each.value.private_endpoints_manage_dns_zone_group
+  public_network_access_enabled            = each.value.public_network_access_enabled
+  redundancy_mode                          = each.value.redundancy_mode
+  resource_config                          = each.value.resource_config
+  role_assignments                         = each.value.role_assignments
+  scm_publish_basic_authentication_enabled = each.value.scm_publish_basic_authentication_enabled
+  scm_site_also_stopped                    = each.value.scm_site_also_stopped
+  site_config = local.container_registry_effectively_enabled && each.value.managed_identity_enabled ? merge(each.value.site_config, {
+    container_registry_use_managed_identity       = true
+    container_registry_managed_identity_client_id = module.web_app_managed_identity[each.key].client_id
+  }) : each.value.site_config
   slot_sensitive_app_settings                    = try(var.web_app_slot_sensitive_app_settings[each.key], {})
   slots_storage_shares_to_mount_sensitive_values = try(var.web_app_slots_storage_shares_to_mount_sensitive_values[each.key], {})
   ssh_enabled                                    = each.value.ssh_enabled
@@ -126,7 +148,7 @@ module "web_app" {
   virtual_network_subnet_id                      = each.value.virtual_network_subnet_id != null ? each.value.virtual_network_subnet_id : (var.app_service_environment_enabled || var.app_service_plan_os_type == "WindowsManagedInstance" ? null : local.app_service_subnet_id)
   vnet_application_traffic_enabled               = each.value.vnet_application_traffic_enabled
   vnet_content_share_enabled                     = each.value.vnet_content_share_enabled != null ? each.value.vnet_content_share_enabled : (var.app_service_environment_enabled ? true : false)
-  vnet_image_pull_enabled                        = each.value.vnet_image_pull_enabled != null ? each.value.vnet_image_pull_enabled : (var.app_service_environment_enabled ? true : false)
+  vnet_image_pull_enabled                        = each.value.vnet_image_pull_enabled != null ? each.value.vnet_image_pull_enabled : (var.app_service_environment_enabled || (local.container_registry_effectively_enabled && local.virtual_network_enabled) ? true : false)
   vnet_route_all_traffic                         = each.value.vnet_route_all_traffic
   workload_profile_name                          = each.value.workload_profile_name
   zip_deploy_file                                = each.value.zip_deploy_file

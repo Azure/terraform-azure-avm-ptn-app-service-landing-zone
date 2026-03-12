@@ -56,7 +56,50 @@ module "log_analytics_workspace" {
   enable_telemetry    = var.enable_telemetry
 }
 
-# App Service Environment v3 - Windows with .NET 8
+# ------------------------------------------------------------------
+# Upload the sample app zip to a public storage account so the
+# extensions/zipdeploy ARM API can fetch it via HTTPS URL.
+# ------------------------------------------------------------------
+
+resource "azurerm_storage_account" "zip_deploy" {
+  name                     = module.naming.storage_account.name_unique
+  resource_group_name      = module.resource_group.name
+  location                 = module.resource_group.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_container" "zip_deploy" {
+  name                 = "zip-deploy"
+  storage_account_id   = azurerm_storage_account.zip_deploy.id
+}
+
+resource "azurerm_storage_blob" "zip_deploy" {
+  name                   = "app.zip"
+  storage_account_name   = azurerm_storage_account.zip_deploy.name
+  storage_container_name = azurerm_storage_container.zip_deploy.name
+  type                   = "Block"
+  source                 = "${path.module}/app.zip"
+  content_md5            = filemd5("${path.module}/app.zip")
+}
+
+data "azurerm_storage_account_blob_container_sas" "zip_deploy" {
+  connection_string = azurerm_storage_account.zip_deploy.primary_connection_string
+  container_name    = azurerm_storage_container.zip_deploy.name
+  start             = "2024-01-01T00:00:00Z"
+  expiry            = "2099-01-01T00:00:00Z"
+
+  permissions {
+    read   = true
+    add    = false
+    create = false
+    write  = false
+    delete = false
+    list   = false
+  }
+}
+
+# App Service Environment v3 - Windows with .NET 10
 # ASE provides a fully isolated, dedicated hosting environment.
 # The App Service Plan SKU is automatically set to Isolated v2 tier.
 module "test" {
@@ -66,16 +109,18 @@ module "test" {
   parent_id = module.resource_group.resource_id
   # Enable App Service Environment v3
   app_service_environment_enabled     = true
+  app_service_environment_name        = module.naming.app_service_environment.name_unique
   app_service_plan_os_type            = "Windows"
   enable_telemetry                    = var.enable_telemetry
   log_analytics_workspace_resource_id = module.log_analytics_workspace.resource_id
   web_apps = {
     app1 = {
-      name = module.naming.app_service.name_unique
+      name            = module.naming.app_service.name_unique
+      zip_deploy_file = nonsensitive("${azurerm_storage_blob.zip_deploy.url}${data.azurerm_storage_account_blob_container_sas.zip_deploy.sas}")
       site_config = {
         application_stack = {
           dotnet = {
-            dotnet_version = "v8.0"
+            dotnet_version = "v10.0"
             current_stack  = "dotnet"
           }
         }

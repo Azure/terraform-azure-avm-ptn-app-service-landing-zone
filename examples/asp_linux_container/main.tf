@@ -67,16 +67,33 @@ module "test" {
 
   location                            = module.resource_group.location
   parent_id                           = module.resource_group.resource_id
+  container_registry_enabled          = true
   container_registry_name             = local.container_registry_name
   enable_telemetry                    = var.enable_telemetry
   log_analytics_workspace_resource_id = module.log_analytics_workspace.resource_id
+  # Import a pre-built image from MCR for use in deployment slots
+  container_registry_image_imports = {
+    aspnetapp_imported = {
+      source_registry_uri = "mcr.microsoft.com"
+      source_image        = "dotnet/samples:aspnetapp"
+      image_names         = ["aspnetapp-imported:latest"]
+    }
+  }
+  # Build a Docker image from source for use in the production slot
+  container_registry_docker_builds = {
+    aspnetapp_build = {
+      dockerfile_path = "Dockerfile"
+      source_location = "https://github.com/dotnet/dotnet-docker.git#main:samples/aspnetapp"
+      image_names     = ["aspnetapp-build:latest"]
+    }
+  }
   web_apps = {
     app1 = {
       name = module.naming.app_service.name_unique
       site_config = {
         application_stack = {
           docker = {
-            docker_image_name   = "aspnetapp:latest"
+            docker_image_name   = "aspnetapp-build:latest"
             docker_registry_url = "https://${local.container_registry_login_server}"
           }
         }
@@ -87,7 +104,7 @@ module "test" {
           site_config = {
             application_stack = {
               docker = {
-                docker_image_name   = "aspnetapp:latest"
+                docker_image_name   = "aspnetapp-imported:latest"
                 docker_registry_url = "https://${local.container_registry_login_server}"
               }
             }
@@ -98,7 +115,7 @@ module "test" {
           site_config = {
             application_stack = {
               docker = {
-                docker_image_name   = "aspnetapp:latest"
+                docker_image_name   = "aspnetapp-imported:latest"
                 docker_registry_url = "https://${local.container_registry_login_server}"
               }
             }
@@ -106,16 +123,5 @@ module "test" {
         }
       }
     }
-  }
-}
-
-# Import the sample container image into the Container Registry
-resource "terraform_data" "acr_import" {
-  depends_on = [module.test]
-
-  input = local.container_registry_name
-
-  provisioner "local-exec" {
-    command = "az acr import --name ${local.container_registry_name} --source mcr.microsoft.com/dotnet/samples:aspnetapp --image aspnetapp:latest --force"
   }
 }

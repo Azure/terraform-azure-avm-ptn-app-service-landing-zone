@@ -39,6 +39,14 @@ locals {
           days    = 0
           enabled = false
         }
+        }, {
+        category       = null
+        category_group = "audit"
+        enabled        = false
+        retention_policy = {
+          days    = 0
+          enabled = false
+        }
       }])
       metrics = toset([{
         category = "AllMetrics"
@@ -78,7 +86,7 @@ locals {
   } : {}
   _diag_default_old = var.default_diagnostic_settings_enabled ? {
     default = {
-      name                                     = null
+      name                                     = "default-diagnostic-setting"
       log_categories                           = toset([])
       log_groups                               = toset(["allLogs"])
       metric_categories                        = toset(["AllMetrics"])
@@ -92,7 +100,7 @@ locals {
   } : {}
   _diag_default_old_metrics_only = var.default_diagnostic_settings_enabled ? {
     default = {
-      name                                     = null
+      name                                     = "default-diagnostic-setting"
       metric_categories                        = toset(["AllMetrics"])
       log_analytics_destination_type           = "Dedicated"
       workspace_resource_id                    = var.log_analytics_workspace_resource_id
