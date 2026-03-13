@@ -43,6 +43,8 @@ provider "azurerm" {
 
 data "azapi_client_config" "this" {}
 
+data "azurerm_client_config" "current" {}
+
 resource "random_integer" "region_index" {
   max = length(local.azure_regions) - 1
   min = 0
@@ -60,16 +62,6 @@ module "resource_group" {
   location         = local.azure_regions[random_integer.region_index.result]
   name             = "${module.naming.resource_group.name_unique}-managed-instance"
   enable_telemetry = var.enable_telemetry
-}
-
-module "log_analytics_workspace" {
-  source  = "Azure/avm-res-operationalinsights-workspace/azurerm"
-  version = "0.5.1"
-
-  location            = module.resource_group.location
-  name                = module.naming.log_analytics_workspace.name_unique
-  resource_group_name = module.resource_group.name
-  enable_telemetry    = var.enable_telemetry
 }
 
 # Archive the install scripts into a zip file
@@ -99,6 +91,12 @@ module "storage_account_zip_deploy" {
   containers = {
     zip-deploy = {
       name = "zip-deploy"
+      role_assignments = {
+        storage_blob_data_contributor = {
+          role_definition_id_or_name = "Storage Blob Data Contributor"
+          principal_id               = data.azurerm_client_config.current.object_id
+        }
+      }
     }
   }
   enable_telemetry          = var.enable_telemetry
@@ -112,8 +110,6 @@ resource "azurerm_storage_blob" "zip_deploy" {
   type                   = "Block"
   source                 = "${path.module}/app.zip"
   content_md5            = filemd5("${path.module}/app.zip")
-
-  depends_on = [module.storage_account_zip_deploy]
 }
 
 data "azurerm_storage_account_blob_container_sas" "zip_deploy" {
@@ -164,7 +160,6 @@ module "test" {
       principal_id               = data.azapi_client_config.this.object_id
     }
   }
-  log_analytics_workspace_resource_id = module.log_analytics_workspace.resource_id
   # Install scripts - just provide the name and path; the module handles container, blob, and ASP config
   managed_instance_install_scripts = [
     {

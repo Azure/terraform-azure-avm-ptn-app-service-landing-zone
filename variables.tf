@@ -29,19 +29,19 @@ DESCRIPTION
 variable "default_diagnostic_settings_enabled" {
   type        = bool
   default     = true
-  description = "(Optional) When true and no custom diagnostic settings are provided, default diagnostic settings will be created that send logs and metrics to the Log Analytics workspace specified by `log_analytics_workspace_resource_id`. Set to `false` to disable default diagnostic settings."
+  description = "(Optional) When true and no custom diagnostic settings are provided, default diagnostic settings will be created that send logs and metrics to the Log Analytics workspace. A workspace is created by default when `log_analytics_workspace_enabled = true`, or you can supply an existing one via `log_analytics_workspace_resource_id`. Set to `false` to disable default diagnostic settings."
   nullable    = false
 
   validation {
-    condition     = !var.default_diagnostic_settings_enabled || var.log_analytics_workspace_resource_id != null
-    error_message = "`log_analytics_workspace_resource_id` must be set when `default_diagnostic_settings_enabled` is `true`."
+    condition     = !var.default_diagnostic_settings_enabled || var.log_analytics_workspace_enabled || var.log_analytics_workspace_resource_id != null
+    error_message = "Either `log_analytics_workspace_enabled` must be `true` or `log_analytics_workspace_resource_id` must be set when `default_diagnostic_settings_enabled` is `true`."
   }
 }
 
 variable "log_analytics_workspace_resource_id" {
   type        = string
   default     = null
-  description = "(Optional) The resource ID of the Log Analytics workspace. When set along with `default_diagnostic_settings_enabled = true`, diagnostic settings on created resources will be configured to send logs and metrics to this workspace."
+  description = "(Optional) The resource ID of an existing Log Analytics workspace (BYO). When set, the module will use this workspace instead of creating one. When set along with `default_diagnostic_settings_enabled = true`, diagnostic settings on created resources will be configured to send logs and metrics to this workspace."
 }
 
 variable "tags" {

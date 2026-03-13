@@ -35,8 +35,11 @@ locals {
   application_gateway_routing_rule_names = {
     for key in local.sorted_web_app_keys : key => templatestring(local.templates["application_gateway_routing_rule"], local.web_app_template_vars[key])
   }
-  application_insights_name = templatestring(local.templates["application_insights"], local.single_template_vars)
-  bastion_host_name         = templatestring(local.templates["bastion_host"], local.single_template_vars)
+  application_insights_name    = templatestring(local.templates["application_insights"], local.single_template_vars)
+  ampls_appinsights_scoped_service_name = templatestring(local.templates["ampls_appinsights_scoped_service"], local.single_template_vars)
+  ampls_law_scoped_service_name          = templatestring(local.templates["ampls_law_scoped_service"], local.single_template_vars)
+  azure_monitor_private_link_scope_name = templatestring(local.templates["azure_monitor_private_link_scope"], local.single_template_vars)
+  bastion_host_name            = templatestring(local.templates["bastion_host"], local.single_template_vars)
   container_registry_name   = templatestring(local.templates["container_registry"], local.single_template_vars)
   front_door_endpoint_names = {
     for key in local.sorted_web_app_keys : key => templatestring(local.templates["front_door_endpoint"], local.web_app_template_vars[key])
@@ -54,6 +57,7 @@ locals {
   front_door_security_policy_name = templatestring(local.templates["front_door_security_policy"], local.single_template_vars)
   front_door_waf_policy_name      = templatestring(local.templates["front_door_waf_policy"], local.single_template_vars)
   key_vault_name                  = templatestring(local.templates["key_vault"], local.single_template_vars)
+  log_analytics_workspace_name    = templatestring(local.templates["log_analytics_workspace"], local.single_template_vars)
   managed_identity_name           = templatestring(local.templates["managed_identity"], local.single_template_vars)
   peer_from_hub_name              = templatestring(local.templates["peer_from_hub"], local.single_template_vars)
   peer_to_hub_name                = templatestring(local.templates["peer_to_hub"], local.single_template_vars)
@@ -103,6 +107,10 @@ locals {
   virtual_network_name              = templatestring(local.templates["virtual_network"], local.single_template_vars)
   vnet_link_container_registry_name = templatestring(local.templates["vnet_link_container_registry"], local.single_template_vars)
   vnet_link_key_vault_name          = templatestring(local.templates["vnet_link_key_vault"], local.single_template_vars)
+  vnet_link_monitor_name            = templatestring(local.templates["vnet_link_monitor"], local.single_template_vars)
+  vnet_link_oms_name                = templatestring(local.templates["vnet_link_oms"], local.single_template_vars)
+  vnet_link_ods_name                = templatestring(local.templates["vnet_link_ods"], local.single_template_vars)
+  vnet_link_agentsvc_name           = templatestring(local.templates["vnet_link_agentsvc"], local.single_template_vars)
   vnet_link_storage_blob_name       = templatestring(local.templates["vnet_link_storage_blob"], local.single_template_vars)
   vnet_link_storage_file_name       = templatestring(local.templates["vnet_link_storage_file"], local.single_template_vars)
   vnet_link_web_name                = templatestring(local.templates["vnet_link_web"], local.single_template_vars)

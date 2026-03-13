@@ -32,6 +32,8 @@ provider "azurerm" {
   storage_use_azuread = true
 }
 
+data "azurerm_client_config" "current" {}
+
 resource "random_integer" "region_index" {
   max = length(local.azure_regions) - 1
   min = 0
@@ -49,18 +51,6 @@ module "resource_group" {
   location         = local.azure_regions[random_integer.region_index.result]
   name             = "${module.naming.resource_group.name_unique}-byo-asp-linux"
   enable_telemetry = var.enable_telemetry
-}
-
-# --- Pre-existing (BYO) resources ---
-
-module "log_analytics_workspace" {
-  source  = "Azure/avm-res-operationalinsights-workspace/azurerm"
-  version = "0.5.1"
-
-  location            = module.resource_group.location
-  name                = module.naming.log_analytics_workspace.name_unique
-  resource_group_name = module.resource_group.name
-  enable_telemetry    = var.enable_telemetry
 }
 
 # Virtual Network with subnets
@@ -144,6 +134,12 @@ module "storage_account_zip_deploy" {
   containers = {
     zip-deploy = {
       name = "zip-deploy"
+      role_assignments = {
+        storage_blob_data_contributor = {
+          role_definition_id_or_name = "Storage Blob Data Contributor"
+          principal_id               = data.azurerm_client_config.current.object_id
+        }
+      }
     }
   }
   enable_telemetry          = var.enable_telemetry
@@ -157,8 +153,6 @@ resource "azurerm_storage_blob" "zip_deploy" {
   type                   = "Block"
   source                 = "${path.module}/app.zip"
   content_md5            = filemd5("${path.module}/app.zip")
-
-  depends_on = [module.storage_account_zip_deploy]
 }
 
 data "azurerm_storage_account_blob_container_sas" "zip_deploy" {
@@ -191,7 +185,6 @@ module "test" {
   enable_telemetry               = var.enable_telemetry
   # Front Door (created by the module)
   front_door_enabled                  = true
-  log_analytics_workspace_resource_id = module.log_analytics_workspace.resource_id
   # BYO Private DNS Zone - disable creation, provide existing resource ID
   private_dns_zone_web_resource_id    = module.private_dns_zone_web.resource_id
   private_dns_zones_enabled           = false

@@ -61,8 +61,6 @@ resource "azurerm_storage_blob" "managed_instance" {
   storage_container_name = each.value.container_name
   type                   = each.value.type
   source                 = each.value.source
-
-  depends_on = [module.storage_account]
 }
 
 # Store the storage account connection string in Key Vault for AzureFiles storage mounts.
@@ -80,8 +78,6 @@ resource "azapi_resource" "managed_instance_storage_connection_string" {
       value = "DefaultEndpointsProtocol=https;AccountName=${module.storage_account[0].name};AccountKey=${data.azapi_resource_action.managed_instance_storage_account_keys[0].output.keys[0].value};EndpointSuffix=core.windows.net"
     }
   }
-
-  depends_on = [module.key_vault]
 }
 
 # Retrieve the storage account keys when AzureFiles mounts are configured.

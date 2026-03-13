@@ -51,15 +51,6 @@ module "resource_group" {
   enable_telemetry = var.enable_telemetry
 }
 
-module "log_analytics_workspace" {
-  source  = "Azure/avm-res-operationalinsights-workspace/azurerm"
-  version = "0.5.1"
-
-  location            = module.resource_group.location
-  name                = module.naming.log_analytics_workspace.name_unique
-  resource_group_name = module.resource_group.name
-  enable_telemetry    = var.enable_telemetry
-}
 
 locals {
   container_registry_login_server = "${local.container_registry_name}.azurecr.io"
@@ -75,7 +66,6 @@ module "test" {
   container_registry_enabled          = true
   container_registry_name             = local.container_registry_name
   enable_telemetry                    = var.enable_telemetry
-  log_analytics_workspace_resource_id = module.log_analytics_workspace.resource_id
   # Import a pre-built image from MCR for use in deployment slots
   container_registry_image_imports = {
     aspnetapp_imported = {

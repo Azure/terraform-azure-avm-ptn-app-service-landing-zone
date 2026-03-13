@@ -6,7 +6,7 @@ module "application_insights" {
   location                              = var.location
   name                                  = coalesce(var.application_insights_name, module.naming.resource_names.application_insights)
   resource_group_name                   = local.resource_group_name
-  workspace_id                          = var.log_analytics_workspace_resource_id
+  workspace_id                          = local.log_analytics_workspace_resource_id
   application_type                      = var.application_insights_application_type
   daily_data_cap_in_gb                  = var.application_insights_daily_data_cap_in_gb
   daily_data_cap_notifications_disabled = var.application_insights_daily_data_cap_notifications_disabled

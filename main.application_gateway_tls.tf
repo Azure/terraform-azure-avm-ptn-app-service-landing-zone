@@ -67,6 +67,4 @@ resource "azurerm_key_vault_certificate" "application_gateway_default" {
       validity_in_months = 12
     }
   }
-
-  depends_on = [module.key_vault]
 }

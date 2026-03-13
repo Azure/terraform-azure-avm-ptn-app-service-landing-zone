@@ -20,7 +20,7 @@ locals {
           for m in dv.metrics : m.category if m.category != null && m.enabled
         ])
         log_analytics_destination_type           = dv.log_analytics_destination_type
-        workspace_resource_id                    = dv.workspace_resource_id != null ? dv.workspace_resource_id : var.log_analytics_workspace_resource_id
+        workspace_resource_id                    = dv.workspace_resource_id != null ? dv.workspace_resource_id : local.log_analytics_workspace_resource_id
         storage_account_resource_id              = dv.storage_account_resource_id
         event_hub_authorization_rule_resource_id = dv.event_hub_authorization_rule_resource_id
         event_hub_name                           = dv.event_hub_name
@@ -57,7 +57,7 @@ locals {
         }
       }])
       log_analytics_destination_type           = "Dedicated"
-      workspace_resource_id                    = var.log_analytics_workspace_resource_id
+      workspace_resource_id                    = local.log_analytics_workspace_resource_id
       storage_account_resource_id              = null
       event_hub_authorization_rule_resource_id = null
       event_hub_name                           = null
@@ -77,7 +77,7 @@ locals {
         }
       }])
       log_analytics_destination_type           = "Dedicated"
-      workspace_resource_id                    = var.log_analytics_workspace_resource_id
+      workspace_resource_id                    = local.log_analytics_workspace_resource_id
       storage_account_resource_id              = null
       event_hub_authorization_rule_resource_id = null
       event_hub_name                           = null
@@ -91,7 +91,7 @@ locals {
       log_groups                               = toset(["allLogs"])
       metric_categories                        = toset(["AllMetrics"])
       log_analytics_destination_type           = "Dedicated"
-      workspace_resource_id                    = var.log_analytics_workspace_resource_id
+      workspace_resource_id                    = local.log_analytics_workspace_resource_id
       storage_account_resource_id              = null
       event_hub_authorization_rule_resource_id = null
       event_hub_name                           = null
@@ -103,7 +103,7 @@ locals {
       name                                     = "default-diagnostic-setting"
       metric_categories                        = toset(["AllMetrics"])
       log_analytics_destination_type           = "Dedicated"
-      workspace_resource_id                    = var.log_analytics_workspace_resource_id
+      workspace_resource_id                    = local.log_analytics_workspace_resource_id
       storage_account_resource_id              = null
       event_hub_authorization_rule_resource_id = null
       event_hub_name                           = null
@@ -116,7 +116,7 @@ locals {
       "app_service_plan"        = var.app_service_plan_diagnostic_settings,
       } : resource_key => {
       for k, v in resource_var : k => merge(v, {
-        workspace_resource_id = v.workspace_resource_id != null ? v.workspace_resource_id : var.log_analytics_workspace_resource_id
+        workspace_resource_id = v.workspace_resource_id != null ? v.workspace_resource_id : local.log_analytics_workspace_resource_id
       })
     }
   }
@@ -134,7 +134,7 @@ locals {
           for m in v.metrics : m.category if m.category != null && m.enabled
         ])
         log_analytics_destination_type           = v.log_analytics_destination_type
-        workspace_resource_id                    = v.workspace_resource_id != null ? v.workspace_resource_id : var.log_analytics_workspace_resource_id
+        workspace_resource_id                    = v.workspace_resource_id != null ? v.workspace_resource_id : local.log_analytics_workspace_resource_id
         storage_account_resource_id              = v.storage_account_resource_id
         event_hub_authorization_rule_resource_id = v.event_hub_authorization_rule_resource_id
         event_hub_name                           = v.event_hub_name
@@ -162,7 +162,7 @@ locals {
         for m in v.metrics : m.category if m.category != null && m.enabled
       ])
       log_analytics_destination_type           = v.log_analytics_destination_type
-      workspace_resource_id                    = v.workspace_resource_id != null ? v.workspace_resource_id : var.log_analytics_workspace_resource_id
+      workspace_resource_id                    = v.workspace_resource_id != null ? v.workspace_resource_id : local.log_analytics_workspace_resource_id
       storage_account_resource_id              = v.storage_account_resource_id
       event_hub_authorization_rule_resource_id = v.event_hub_authorization_rule_resource_id
       event_hub_name                           = v.event_hub_name
@@ -178,7 +178,7 @@ locals {
     for app_key, app in var.web_apps : app_key => (
       length(app.diagnostic_settings) > 0 ? {
         for k, v in app.diagnostic_settings : k => merge(v, {
-          workspace_resource_id = v.workspace_resource_id != null ? v.workspace_resource_id : var.log_analytics_workspace_resource_id
+          workspace_resource_id = v.workspace_resource_id != null ? v.workspace_resource_id : local.log_analytics_workspace_resource_id
         })
       } : local._diag_default_new
     )

@@ -82,6 +82,8 @@ locals {
       forwarding_protocol    = "HttpsOnly"
     }
   }
+  # Whether Front Door private link to web apps is enabled
+  front_door_private_link_enabled = var.front_door_enabled && var.front_door_sku == "Premium_AzureFrontDoor" && local.virtual_network_enabled && !var.app_service_environment_enabled && length(var.web_apps) > 0
   # Front Door security policies - apply WAF to all endpoints
   front_door_security_policies = var.front_door_waf_enabled && length(var.web_apps) > 0 ? {
     default_security = {

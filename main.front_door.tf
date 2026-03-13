@@ -68,3 +68,35 @@ resource "azapi_resource" "frontdoor_security_policy" {
   read_headers   = var.enable_telemetry ? { "User-Agent" : local.avm_azapi_header } : null
   update_headers = var.enable_telemetry ? { "User-Agent" : local.avm_azapi_header } : null
 }
+
+# Auto-approve private endpoint connections from Front Door to web apps
+data "azapi_resource_list" "front_door_web_app_private_endpoint_connections" {
+  for_each               = local.front_door_private_link_enabled ? var.web_apps : {}
+  type                   = "Microsoft.Web/sites/privateEndpointConnections@2024-04-01"
+  parent_id              = module.web_app[each.key].resource_id
+  response_export_values = ["*"]
+
+  depends_on = [module.front_door]
+}
+
+resource "azapi_update_resource" "front_door_private_endpoint_approval" {
+  for_each    = local.front_door_private_link_enabled ? var.web_apps : {}
+  type        = "Microsoft.Web/sites/privateEndpointConnections@2024-04-01"
+  resource_id = one([
+    for conn in try(data.azapi_resource_list.front_door_web_app_private_endpoint_connections[each.key].output.value, []) :
+    conn.id
+    if try(conn.properties.privateLinkServiceConnectionState.description, "") == "Please approve this private link connection" ||
+    try(conn.properties.privateLinkServiceConnectionState.description, "") == "Auto-approved for Front Door"
+  ])
+  body = {
+    properties = {
+      privateLinkServiceConnectionState = {
+        status          = "Approved"
+        description     = "Auto-approved for Front Door"
+        actionsRequired = "None"
+      }
+    }
+  }
+  read_headers   = var.enable_telemetry ? { "User-Agent" : local.avm_azapi_header } : null
+  update_headers = var.enable_telemetry ? { "User-Agent" : local.avm_azapi_header } : null
+}

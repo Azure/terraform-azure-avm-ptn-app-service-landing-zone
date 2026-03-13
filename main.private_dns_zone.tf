@@ -100,3 +100,75 @@ module "private_dns_zone_container_registry" {
     }
   }
 }
+
+# ============================================================
+# AMPLS Private DNS Zones (for Log Analytics + Application Insights)
+# ============================================================
+
+module "private_dns_zone_monitor" {
+  source  = "Azure/avm-res-network-privatednszone/azurerm"
+  version = "0.5.0"
+  count   = local.create_private_dns_zone_monitor ? 1 : 0
+
+  domain_name      = "privatelink.monitor.azure.com"
+  parent_id        = local.resource_group_id
+  enable_telemetry = var.enable_telemetry
+  tags             = var.tags
+  virtual_network_links = {
+    vnet_link = {
+      name               = module.naming.resource_names.vnet_link_monitor
+      virtual_network_id = local.virtual_network_id
+    }
+  }
+}
+
+module "private_dns_zone_oms" {
+  source  = "Azure/avm-res-network-privatednszone/azurerm"
+  version = "0.5.0"
+  count   = local.create_private_dns_zone_oms ? 1 : 0
+
+  domain_name      = "privatelink.oms.opinsights.azure.com"
+  parent_id        = local.resource_group_id
+  enable_telemetry = var.enable_telemetry
+  tags             = var.tags
+  virtual_network_links = {
+    vnet_link = {
+      name               = module.naming.resource_names.vnet_link_oms
+      virtual_network_id = local.virtual_network_id
+    }
+  }
+}
+
+module "private_dns_zone_ods" {
+  source  = "Azure/avm-res-network-privatednszone/azurerm"
+  version = "0.5.0"
+  count   = local.create_private_dns_zone_ods ? 1 : 0
+
+  domain_name      = "privatelink.ods.opinsights.azure.com"
+  parent_id        = local.resource_group_id
+  enable_telemetry = var.enable_telemetry
+  tags             = var.tags
+  virtual_network_links = {
+    vnet_link = {
+      name               = module.naming.resource_names.vnet_link_ods
+      virtual_network_id = local.virtual_network_id
+    }
+  }
+}
+
+module "private_dns_zone_agentsvc" {
+  source  = "Azure/avm-res-network-privatednszone/azurerm"
+  version = "0.5.0"
+  count   = local.create_private_dns_zone_agentsvc ? 1 : 0
+
+  domain_name      = "privatelink.agentsvc.azure-automation.net"
+  parent_id        = local.resource_group_id
+  enable_telemetry = var.enable_telemetry
+  tags             = var.tags
+  virtual_network_links = {
+    vnet_link = {
+      name               = module.naming.resource_names.vnet_link_agentsvc
+      virtual_network_id = local.virtual_network_id
+    }
+  }
+}

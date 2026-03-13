@@ -42,6 +42,4 @@ module "application_gateway" {
   url_path_map_configurations = var.application_gateway_url_path_maps
   waf_configuration           = var.application_gateway_waf_configuration
   zones                       = var.application_gateway_zones
-
-  depends_on = [module.web_app]
 }

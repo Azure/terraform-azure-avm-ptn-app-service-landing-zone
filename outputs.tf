@@ -55,6 +55,16 @@ output "bastion_host_id" {
   value       = var.bastion_host_resource_id != null ? var.bastion_host_resource_id : (local.bastion_host_effectively_enabled ? module.bastion_host[0].resource_id : null)
 }
 
+output "log_analytics_workspace" {
+  description = "The Log Analytics workspace resource output from the AVM module."
+  value       = local.log_analytics_workspace_creation_enabled ? module.log_analytics_workspace[0] : null
+}
+
+output "log_analytics_workspace_id" {
+  description = "The resource ID of the Log Analytics workspace (created or BYO)."
+  value       = local.log_analytics_workspace_resource_id
+}
+
 output "container_registry" {
   description = "The Container Registry resource output from the AVM module."
   value       = local.container_registry_effectively_enabled ? module.container_registry[0] : null

@@ -2,16 +2,20 @@ variable "resource_name_defaults" {
   type = map(string)
   default = {
     # Single-instance resources (supports hyphens)
-    virtual_network               = "vnet-$${resource_name_workload}-$${resource_name_environment}-$${location}-$${sequence}"
-    app_service_environment       = "ase-$${resource_name_workload}-$${resource_name_environment}-$${location}-$${sequence}"
-    app_service_plan              = "asp-$${resource_name_workload}-$${resource_name_environment}-$${location}-$${sequence}"
-    application_insights          = "ai-$${resource_name_workload}-$${resource_name_environment}-$${location}-$${sequence}"
-    bastion_host                  = "bas-$${resource_name_workload}-$${resource_name_environment}-$${location}-$${sequence}"
-    application_gateway           = "agw-$${resource_name_workload}-$${resource_name_environment}-$${location}-$${sequence}"
-    application_gateway_public_ip = "pip-agw-$${resource_name_workload}-$${resource_name_environment}-$${location}-$${sequence}"
-    front_door                    = "afd-$${resource_name_workload}-$${resource_name_environment}-$${location}-$${sequence}"
-    alz_route_table               = "rt-alz-$${resource_name_workload}-$${resource_name_environment}-$${location}-$${sequence}"
-    managed_identity              = "id-$${resource_name_workload}-$${resource_name_environment}-$${location}-$${sequence}"
+    virtual_network                    = "vnet-$${resource_name_workload}-$${resource_name_environment}-$${location}-$${sequence}"
+    app_service_environment            = "ase-$${resource_name_workload}-$${resource_name_environment}-$${location}-$${sequence}"
+    app_service_plan                   = "asp-$${resource_name_workload}-$${resource_name_environment}-$${location}-$${sequence}"
+    application_insights               = "ai-$${resource_name_workload}-$${resource_name_environment}-$${location}-$${sequence}"
+    bastion_host                       = "bas-$${resource_name_workload}-$${resource_name_environment}-$${location}-$${sequence}"
+    application_gateway                = "agw-$${resource_name_workload}-$${resource_name_environment}-$${location}-$${sequence}"
+    application_gateway_public_ip      = "pip-agw-$${resource_name_workload}-$${resource_name_environment}-$${location}-$${sequence}"
+    front_door                         = "afd-$${resource_name_workload}-$${resource_name_environment}-$${location}-$${sequence}"
+    alz_route_table                    = "rt-alz-$${resource_name_workload}-$${resource_name_environment}-$${location}-$${sequence}"
+    managed_identity                   = "id-$${resource_name_workload}-$${resource_name_environment}-$${location}-$${sequence}"
+    log_analytics_workspace            = "law-$${resource_name_workload}-$${resource_name_environment}-$${location}-$${sequence}"
+    azure_monitor_private_link_scope              = "ampls-$${resource_name_workload}-$${resource_name_environment}-$${location}-$${sequence}"
+    ampls_law_scoped_service                       = "ampls-law-$${resource_name_workload}-$${resource_name_environment}-$${sequence}"
+    ampls_appinsights_scoped_service                = "ampls-ai-$${resource_name_workload}-$${resource_name_environment}-$${sequence}"
 
     # Globally unique resources (with unique_name segment)
     key_vault = "kv-$${resource_name_workload}-$${resource_name_environment}-$${sequence}-$${unique_name}"
@@ -26,6 +30,10 @@ variable "resource_name_defaults" {
     vnet_link_storage_blob       = "vnetlink-blob-$${resource_name_workload}-$${resource_name_environment}-$${sequence}"
     vnet_link_storage_file       = "vnetlink-file-$${resource_name_workload}-$${resource_name_environment}-$${sequence}"
     vnet_link_container_registry = "vnetlink-cr-$${resource_name_workload}-$${resource_name_environment}-$${sequence}"
+    vnet_link_monitor            = "vnetlink-monitor-$${resource_name_workload}-$${resource_name_environment}-$${sequence}"
+    vnet_link_oms                = "vnetlink-oms-$${resource_name_workload}-$${resource_name_environment}-$${sequence}"
+    vnet_link_ods                = "vnetlink-ods-$${resource_name_workload}-$${resource_name_environment}-$${sequence}"
+    vnet_link_agentsvc           = "vnetlink-agentsvc-$${resource_name_workload}-$${resource_name_environment}-$${sequence}"
 
     # Peering names
     peer_to_hub       = "peer-to-hub-$${resource_name_workload}-$${resource_name_environment}-$${sequence}"

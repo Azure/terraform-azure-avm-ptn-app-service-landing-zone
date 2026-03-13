@@ -12,6 +12,10 @@ output "resource_names" {
     front_door                    = local.front_door_name
     alz_route_table               = local.alz_route_table_name
     managed_identity              = local.managed_identity_name
+    log_analytics_workspace       = local.log_analytics_workspace_name
+    ampls_law_scoped_service         = local.ampls_law_scoped_service_name
+    ampls_appinsights_scoped_service  = local.ampls_appinsights_scoped_service_name
+    azure_monitor_private_link_scope = local.azure_monitor_private_link_scope_name
     key_vault                     = local.key_vault_name
     storage_account               = local.storage_account_name
     container_registry            = local.container_registry_name
@@ -20,6 +24,10 @@ output "resource_names" {
     vnet_link_storage_blob        = local.vnet_link_storage_blob_name
     vnet_link_storage_file        = local.vnet_link_storage_file_name
     vnet_link_container_registry  = local.vnet_link_container_registry_name
+    vnet_link_monitor             = local.vnet_link_monitor_name
+    vnet_link_oms                 = local.vnet_link_oms_name
+    vnet_link_ods                 = local.vnet_link_ods_name
+    vnet_link_agentsvc            = local.vnet_link_agentsvc_name
     peer_to_hub                   = local.peer_to_hub_name
     peer_from_hub                 = local.peer_from_hub_name
     alz_peer_to_hub               = local.alz_peer_to_hub_name

@@ -97,7 +97,7 @@ module "web_app" {
   os_type                = coalesce(each.value.os_type, local.web_app_default_os_type)
   # Computed values with user override support
   private_endpoints = each.value.private_endpoints != null ? each.value.private_endpoints : (
-    local.virtual_network_enabled && !var.app_service_environment_enabled ? {
+    local.virtual_network_enabled && !var.app_service_environment_enabled && !local.front_door_private_link_enabled ? {
       default = {
         subnet_resource_id                      = local.private_endpoint_subnet_id
         private_dns_zone_resource_ids           = local.private_dns_zone_web_id != null ? toset([local.private_dns_zone_web_id]) : toset([])
