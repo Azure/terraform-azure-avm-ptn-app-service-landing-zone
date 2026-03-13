@@ -24,7 +24,12 @@ terraform {
 provider "azapi" {}
 
 provider "azurerm" {
-  features {}
+  features {
+    storage {
+      data_plane_available = false
+    }
+  }
+  storage_use_azuread = true
 }
 
 resource "random_integer" "region_index" {

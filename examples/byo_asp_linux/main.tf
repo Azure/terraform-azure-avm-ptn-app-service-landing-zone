@@ -24,7 +24,12 @@ terraform {
 provider "azapi" {}
 
 provider "azurerm" {
-  features {}
+  features {
+    storage {
+      data_plane_available = false
+    }
+  }
+  storage_use_azuread = true
 }
 
 resource "random_integer" "region_index" {
@@ -129,11 +134,13 @@ module "storage_account_zip_deploy" {
   source  = "Azure/avm-res-storage-storageaccount/azurerm"
   version = "0.6.7"
 
-  location                 = module.resource_group.location
-  name                     = module.naming.storage_account.name_unique
-  resource_group_name      = module.resource_group.name
-  account_replication_type = "LRS"
-  account_tier             = "Standard"
+  location                      = module.resource_group.location
+  name                          = module.naming.storage_account.name_unique
+  resource_group_name           = module.resource_group.name
+  account_replication_type      = "LRS"
+  account_tier                  = "Standard"
+  public_network_access_enabled = true
+  network_rules                 = null
   containers = {
     zip-deploy = {
       name = "zip-deploy"
