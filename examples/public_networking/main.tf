@@ -116,6 +116,7 @@ module "test" {
   location                            = module.resource_group.location
   parent_id                           = module.resource_group.resource_id
   enable_telemetry                    = var.enable_telemetry
+  log_analytics_workspace_internet_query_enabled = true
   front_door_enabled                  = false
   private_dns_zones_enabled           = false
   virtual_network_enabled             = false

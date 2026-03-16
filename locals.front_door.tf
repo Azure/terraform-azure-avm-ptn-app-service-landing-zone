@@ -1,4 +1,5 @@
 locals {
+  private_link_request_message = "Please approve this private link connection for Front Door to access the web app securely over the Microsoft backbone network."
   # Front Door endpoints - one per web app
   front_door_endpoints = {
     for key, app in var.web_apps : key => {
@@ -61,7 +62,7 @@ locals {
       weight                         = 1000
       private_link = var.front_door_sku == "Premium_AzureFrontDoor" && local.virtual_network_enabled && !var.app_service_environment_enabled ? {
         pl = {
-          request_message        = "Please approve this private link connection"
+          request_message        = local.private_link_request_message
           target_type            = "sites"
           location               = var.location
           private_link_target_id = module.web_app[key].resource_id

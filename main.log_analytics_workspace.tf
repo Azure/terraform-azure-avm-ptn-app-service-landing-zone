@@ -11,7 +11,7 @@ module "log_analytics_workspace" {
 
   log_analytics_workspace_internet_ingestion_enabled     = local.virtual_network_enabled ? "false" : "true"
   monitor_private_link_scoped_service_name               = module.naming.resource_names.ampls_law_scoped_service
-  log_analytics_workspace_internet_query_enabled     = local.virtual_network_enabled ? "false" : "true"
+  log_analytics_workspace_internet_query_enabled     = var.log_analytics_workspace_internet_query_enabled
 
   monitor_private_link_scope = local.virtual_network_enabled ? {
     default = {

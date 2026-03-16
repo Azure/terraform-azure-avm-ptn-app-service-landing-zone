@@ -5,6 +5,13 @@ variable "log_analytics_workspace_enabled" {
   nullable    = false
 }
 
+variable "log_analytics_workspace_internet_query_enabled" {
+  type        = bool
+  default     = false
+  description = "(Optional) Whether internet query is enabled for the Log Analytics workspace. Defaults to `false`."
+  nullable    = false
+}
+
 variable "log_analytics_workspace_name" {
   type        = string
   default     = null

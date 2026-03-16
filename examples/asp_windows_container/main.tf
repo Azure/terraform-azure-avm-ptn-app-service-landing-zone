@@ -68,6 +68,7 @@ module "test" {
   container_registry_enabled          = true
   container_registry_name             = local.container_registry_name
   enable_telemetry                    = var.enable_telemetry
+  log_analytics_workspace_internet_query_enabled = true
   # Import a pre-built image from MCR for use in deployment slots
   container_registry_image_imports = {
     aspnetapp_imported = {

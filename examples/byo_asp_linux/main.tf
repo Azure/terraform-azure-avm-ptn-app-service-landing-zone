@@ -183,6 +183,7 @@ module "test" {
   app_service_plan_resource_id   = module.app_service_plan.resource_id
   app_service_subnet_resource_id = module.virtual_network.subnets["app_service"].resource_id
   enable_telemetry               = var.enable_telemetry
+  log_analytics_workspace_internet_query_enabled = true
   # Front Door (created by the module)
   front_door_enabled                  = true
   # BYO Private DNS Zone - disable creation, provide existing resource ID

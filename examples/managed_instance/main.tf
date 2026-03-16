@@ -150,6 +150,7 @@ module "test" {
   # RDP access enabled
   app_service_plan_rdp_enabled = true
   enable_telemetry             = var.enable_telemetry
+  log_analytics_workspace_internet_query_enabled = true
   # Key Vault settings - the module auto-creates a key vault for registry adapters and storage mounts
   key_vault_purge_protection_enabled   = false
   key_vault_sku_name                   = "standard"

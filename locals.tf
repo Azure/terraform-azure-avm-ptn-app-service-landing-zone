@@ -88,7 +88,7 @@ locals {
     var.container_registry_resource_id != null ? null : null
   )
   create_private_dns_zone_container_registry = var.private_dns_zones_enabled && var.virtual_network_enabled && local.container_registry_effectively_enabled && !var.alz_platform_landing_zone_private_dns_zone_mode_enabled
-  create_private_dns_zone_key_vault          = var.private_dns_zones_enabled && var.virtual_network_enabled && (var.key_vault_enabled || local.application_gateway_default_ssl_enabled || local.managed_instance_key_vault_needed) && !var.alz_platform_landing_zone_private_dns_zone_mode_enabled
+  create_private_dns_zone_key_vault          = var.private_dns_zones_enabled && var.virtual_network_enabled && (var.key_vault_enabled || local.managed_instance_key_vault_needed) && !var.alz_platform_landing_zone_private_dns_zone_mode_enabled
   create_private_dns_zone_storage_blob       = var.private_dns_zones_enabled && var.virtual_network_enabled && (var.storage_account_enabled || local.managed_instance_storage_account_needed) && !var.alz_platform_landing_zone_private_dns_zone_mode_enabled
   create_private_dns_zone_storage_file       = var.private_dns_zones_enabled && var.virtual_network_enabled && (var.storage_account_enabled || local.managed_instance_storage_account_needed) && length(merge(var.storage_account_shares, local.managed_instance_shares)) > 0 && !var.alz_platform_landing_zone_private_dns_zone_mode_enabled
   # Private DNS Zone

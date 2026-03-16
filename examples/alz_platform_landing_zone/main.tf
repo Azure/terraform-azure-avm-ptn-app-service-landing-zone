@@ -223,6 +223,7 @@ module "test" {
   alz_platform_landing_zone_route_table_enabled                          = true
   alz_platform_landing_zone_route_table_hub_virtual_appliance_ip_address = module.firewall.resource.ip_configuration[0].private_ip_address
   enable_telemetry                                                       = var.enable_telemetry
+  log_analytics_workspace_internet_query_enabled                          = true
   # Networking
   virtual_network_address_space          = ["10.1.0.0/16"]
   app_service_subnet_address_prefix      = "10.1.0.0/24"

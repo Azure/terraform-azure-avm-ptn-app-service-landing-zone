@@ -120,6 +120,7 @@ module "test" {
   # Enable App Service Environment v3
   app_service_environment_enabled     = true
   enable_telemetry                    = var.enable_telemetry
+  log_analytics_workspace_internet_query_enabled = true
   web_apps = {
     app1 = {
       name            = module.naming.app_service.name_unique

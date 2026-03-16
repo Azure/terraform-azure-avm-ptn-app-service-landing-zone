@@ -117,6 +117,7 @@ module "test" {
   parent_id                           = module.resource_group.resource_id
   app_service_plan_os_type            = "Windows"
   enable_telemetry                    = var.enable_telemetry
+  log_analytics_workspace_internet_query_enabled = true
   web_apps = {
     app1 = {
       name            = module.naming.app_service.name_unique

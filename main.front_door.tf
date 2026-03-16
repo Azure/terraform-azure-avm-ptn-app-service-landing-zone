@@ -85,14 +85,13 @@ resource "azapi_update_resource" "front_door_private_endpoint_approval" {
   resource_id = one([
     for conn in try(data.azapi_resource_list.front_door_web_app_private_endpoint_connections[each.key].output.value, []) :
     conn.id
-    if try(conn.properties.privateLinkServiceConnectionState.description, "") == "Please approve this private link connection" ||
-    try(conn.properties.privateLinkServiceConnectionState.description, "") == "Auto-approved for Front Door"
+    if conn.properties.privateLinkServiceConnectionState.description == local.private_link_request_message
   ])
   body = {
     properties = {
       privateLinkServiceConnectionState = {
         status          = "Approved"
-        description     = "Auto-approved for Front Door"
+        description     = local.private_link_request_message
         actionsRequired = "None"
       }
     }

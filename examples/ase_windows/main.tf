@@ -122,6 +122,7 @@ module "test" {
   app_service_environment_name        = module.naming.app_service_environment.name_unique
   app_service_plan_os_type            = "Windows"
   enable_telemetry                    = var.enable_telemetry
+  log_analytics_workspace_internet_query_enabled = true
   web_apps = {
     app1 = {
       name            = module.naming.app_service.name_unique

@@ -116,6 +116,7 @@ module "test" {
   location                            = module.resource_group.location
   parent_id                           = module.resource_group.resource_id
   enable_telemetry                    = var.enable_telemetry
+  log_analytics_workspace_internet_query_enabled = true
   web_apps = {
     app1 = {
       name            = module.naming.app_service.name_unique

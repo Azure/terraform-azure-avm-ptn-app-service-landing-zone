@@ -1,7 +1,7 @@
 module "key_vault" {
   source  = "Azure/avm-res-keyvault-vault/azurerm"
   version = "0.10.2"
-  count   = var.key_vault_enabled || local.application_gateway_default_ssl_enabled || local.managed_instance_key_vault_needed ? 1 : 0
+  count   = var.key_vault_enabled || local.managed_instance_key_vault_needed ? 1 : 0
 
   location                       = var.location
   name                           = coalesce(var.key_vault_name, module.naming.resource_names.key_vault)
@@ -18,22 +18,10 @@ module "key_vault" {
       private_dns_zone_resource_ids = local.create_private_dns_zone_key_vault ? toset([module.private_dns_zone_key_vault[0].resource_id]) : toset([])
     }
   } : {}
-  public_network_access_enabled = local.application_gateway_default_ssl_enabled ? true : var.key_vault_public_network_access_enabled
+  public_network_access_enabled = var.key_vault_public_network_access_enabled
   purge_protection_enabled      = var.key_vault_purge_protection_enabled
-  role_assignments = merge(
+  role_assignments = nonsensitive(merge(
     var.key_vault_role_assignments,
-    local.application_gateway_default_ssl_enabled ? {
-      appgw_cert_officer = {
-        role_definition_id_or_name = "Key Vault Certificates Officer"
-        principal_id               = data.azapi_client_config.this.object_id
-      }
-      appgw_secrets_user = {
-        role_definition_id_or_name       = "Key Vault Secrets User"
-        principal_id                     = module.application_gateway_managed_identity[0].principal_id
-        skip_service_principal_aad_check = true
-        principal_type                   = "ServicePrincipal"
-      }
-    } : {},
     var.app_service_plan_os_type == "WindowsManagedInstance" && var.managed_instance_managed_identity_enabled ? {
       managed_instance_secrets_user = {
         role_definition_id_or_name       = "Key Vault Secrets User"
@@ -42,8 +30,8 @@ module "key_vault" {
         principal_type                   = "ServicePrincipal"
       }
     } : {}
-  )
-  secrets                    = merge(var.key_vault_secrets, local.managed_instance_registry_adapter_secrets)
+  ))
+  secrets                    = nonsensitive(merge(var.key_vault_secrets, local.managed_instance_registry_adapter_secrets))
   secrets_value              = var.key_vault_secrets_value != null ? merge(var.key_vault_secrets_value, local.managed_instance_registry_adapter_secrets_value) : (length(local.managed_instance_registry_adapter_secrets_value) > 0 ? local.managed_instance_registry_adapter_secrets_value : null)
   sku_name                   = var.key_vault_sku_name
   soft_delete_retention_days = var.key_vault_soft_delete_retention_days

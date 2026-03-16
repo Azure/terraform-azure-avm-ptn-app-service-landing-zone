@@ -30,13 +30,11 @@ locals {
   application_gateway_http_listeners = var.application_gateway_http_listeners != null ? var.application_gateway_http_listeners : {
     for key, app in var.web_apps : key => merge({
       name               = module.naming.resource_names.application_gateway_listener[key]
-      frontend_port_name = local.application_gateway_default_ssl_enabled || var.application_gateway_ssl_certificates != null ? "port-443" : "port-80"
+      frontend_port_name = var.application_gateway_ssl_certificates != null ? "port-443" : "port-80"
       host_name          = null
-      }, local.application_gateway_default_ssl_enabled ? {
-      ssl_certificate_name = local.application_gateway_default_ssl_cert_name
-      } : (var.application_gateway_ssl_certificates != null ? {
+      }, var.application_gateway_ssl_certificates != null ? {
         ssl_certificate_name = values(var.application_gateway_ssl_certificates)[0].name
-    } : {}))
+    } : {})
   }
   application_gateway_probe_configurations = var.application_gateway_probe_configurations != null ? var.application_gateway_probe_configurations : {
     for key, app in var.web_apps : key => {
@@ -72,4 +70,14 @@ locals {
       module.virtual_network[0].subnets["application_gateway"].resource_id
     ) : null
   )
+}
+
+# Application Gateway TLS configuration.
+# SSL certificates and managed identities for Key Vault access must be created
+# outside the module and passed in via variables. See the application_gateway
+# example for a complete working pattern with a self-signed certificate.
+
+locals {
+  application_gateway_effective_ssl_certificates   = var.application_gateway_ssl_certificates
+  application_gateway_effective_managed_identities = var.application_gateway_managed_identities
 }

@@ -109,9 +109,88 @@ data "azurerm_storage_account_blob_container_sas" "zip_deploy" {
   }
 }
 
-# App Service Plan - Linux with .NET 10 and Application Gateway (WAF_v2).
-# The module auto-creates a self-signed TLS certificate in Key Vault for HTTPS.
-# For production, provide your own certificate via application_gateway_ssl_certificates.
+# ------------------------------------------------------------------
+# Key Vault + self-signed TLS certificate for Application Gateway HTTPS.
+# In production, replace with a real certificate.
+# ------------------------------------------------------------------
+
+module "appgw_managed_identity" {
+  source  = "Azure/avm-res-managedidentity-userassignedidentity/azurerm"
+  version = "0.4.0"
+
+  location            = module.resource_group.location
+  name                = "id-appgw-${module.naming.user_assigned_identity.name_unique}"
+  resource_group_name = module.resource_group.name
+  enable_telemetry    = var.enable_telemetry
+}
+
+module "appgw_key_vault" {
+  source  = "Azure/avm-res-keyvault-vault/azurerm"
+  version = "0.10.2"
+
+  location                      = module.resource_group.location
+  name                          = "kv-agw-${module.naming.key_vault.name_unique}"
+  resource_group_name           = module.resource_group.name
+  tenant_id                     = data.azurerm_client_config.current.tenant_id
+  enable_telemetry              = var.enable_telemetry
+  public_network_access_enabled = true
+  purge_protection_enabled      = false
+  soft_delete_retention_days    = 7
+  network_acls = {
+    bypass         = "AzureServices"
+    default_action = "Allow"
+  }
+  role_assignments = {
+    deployer_cert_officer = {
+      role_definition_id_or_name = "Key Vault Certificates Officer"
+      principal_id               = data.azurerm_client_config.current.object_id
+    }
+    appgw_secrets_user = {
+      role_definition_id_or_name       = "Key Vault Secrets User"
+      principal_id                     = module.appgw_managed_identity.principal_id
+      skip_service_principal_aad_check = true
+      principal_type                   = "ServicePrincipal"
+    }
+  }
+  wait_for_rbac_before_secret_operations = {
+    create = "60s"
+  }
+}
+
+# Self-signed certificate - no AVM module exists for KV certificates (data plane operation)
+resource "azurerm_key_vault_certificate" "appgw_self_signed" {
+  name         = "appgw-self-signed"
+  key_vault_id = module.appgw_key_vault.resource_id
+
+  certificate_policy {
+    issuer_parameters {
+      name = "Self"
+    }
+    key_properties {
+      exportable = true
+      key_size   = 4096
+      key_type   = "RSA"
+      reuse_key  = false
+    }
+    secret_properties {
+      content_type = "application/x-pkcs12"
+    }
+    x509_certificate_properties {
+      key_usage = [
+        "digitalSignature",
+        "keyEncipherment",
+      ]
+      subject            = "CN=appgateway.local"
+      validity_in_months = 12
+    }
+  }
+}
+
+# ------------------------------------------------------------------
+# App Service Landing Zone with Application Gateway (WAF_v2).
+# SSL certificate and managed identity are created above and passed in.
+# ------------------------------------------------------------------
+
 module "test" {
   source = "../../"
 
@@ -119,7 +198,18 @@ module "test" {
   parent_id                           = module.resource_group.resource_id
   application_gateway_enabled         = true
   enable_telemetry                    = var.enable_telemetry
+  log_analytics_workspace_internet_query_enabled = true
   front_door_enabled                  = false
+  # Pass the SSL certificate and managed identity for Application Gateway
+  application_gateway_ssl_certificates = {
+    default = {
+      name                = "appgw-self-signed"
+      key_vault_secret_id = azurerm_key_vault_certificate.appgw_self_signed.versionless_secret_id
+    }
+  }
+  application_gateway_managed_identities = {
+    user_assigned_resource_ids = [module.appgw_managed_identity.resource_id]
+  }
   web_apps = {
     app1 = {
       name            = module.naming.app_service.name_unique
