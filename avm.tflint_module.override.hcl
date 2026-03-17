@@ -1,3 +1,3 @@
-rule "terraform_module_pinned_source" {
+rule "required_output_rmfr7" {
   enabled = false
 }

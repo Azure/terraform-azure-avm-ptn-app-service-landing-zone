@@ -4611,7 +4611,7 @@ map(object({
         default_documents              = optional(list(string))
         detailed_error_logging_enabled = optional(bool)
         document_root                  = optional(string)
-        dotnet_framework_version       = optional(string, "v4.0")
+        dotnet_framework_version       = optional(string)
         elastic_instance_minimum       = optional(number)
         elastic_web_app_scale_limit    = optional(number)
         experiments = optional(object({
@@ -4999,7 +4999,7 @@ map(object({
       default_documents              = optional(list(string))
       detailed_error_logging_enabled = optional(bool)
       document_root                  = optional(string)
-      dotnet_framework_version       = optional(string, "v4.0")
+      dotnet_framework_version       = optional(string)
       elastic_instance_minimum       = optional(number)
       elastic_web_app_scale_limit    = optional(number)
       experiments = optional(object({
@@ -5482,7 +5482,7 @@ Version: 0.17.1
 
 Source: Azure/avm-res-web-site/azurerm
 
-Version: 0.21.3
+Version: 0.21.6
 
 ### <a name="module_web_app_managed_identity"></a> [web\_app\_managed\_identity](#module\_web\_app\_managed\_identity)
 

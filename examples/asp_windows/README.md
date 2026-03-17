@@ -137,7 +137,7 @@ module "test" {
       site_config = {
         application_stack = {
           dotnet = {
-            dotnet_version = "10.0"
+            dotnet_version = "v10.0"
             current_stack  = "dotnet"
           }
         }
@@ -148,7 +148,7 @@ module "test" {
           site_config = {
             application_stack = {
               dotnet = {
-                dotnet_version = "10.0"
+                dotnet_version = "v10.0"
                 current_stack  = "dotnet"
               }
             }
@@ -159,7 +159,7 @@ module "test" {
           site_config = {
             application_stack = {
               dotnet = {
-                dotnet_version = "10.0"
+                dotnet_version = "v10.0"
                 current_stack  = "dotnet"
               }
             }

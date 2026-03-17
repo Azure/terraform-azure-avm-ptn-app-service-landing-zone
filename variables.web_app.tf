@@ -436,7 +436,7 @@ variable "web_apps" {
         default_documents              = optional(list(string))
         detailed_error_logging_enabled = optional(bool)
         document_root                  = optional(string)
-        dotnet_framework_version       = optional(string, "v4.0")
+        dotnet_framework_version       = optional(string)
         elastic_instance_minimum       = optional(number)
         elastic_web_app_scale_limit    = optional(number)
         experiments = optional(object({
@@ -824,7 +824,7 @@ variable "web_apps" {
       default_documents              = optional(list(string))
       detailed_error_logging_enabled = optional(bool)
       document_root                  = optional(string)
-      dotnet_framework_version       = optional(string, "v4.0")
+      dotnet_framework_version       = optional(string)
       elastic_instance_minimum       = optional(number)
       elastic_web_app_scale_limit    = optional(number)
       experiments = optional(object({
