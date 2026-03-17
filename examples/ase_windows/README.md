@@ -4,6 +4,8 @@
 
 This example deploys the module with an App Service Environment v3 (ASEv3), a Windows App Service Plan on Isolated v2 tier, a Windows web app running .NET 8, VNet integration, private endpoints, private DNS, and Azure Front Door (Premium with WAF).
 
+> **Note:** Azure Front Door can take upwards of 30 minutes to replicate globally. During that time, you may see a "Page Not Found" error when navigating to the Front Door endpoint.
+
 ```hcl
 terraform {
   required_version = ">= 1.9, < 2.0"
@@ -31,8 +33,18 @@ terraform {
 provider "azapi" {}
 
 provider "azurerm" {
-  features {}
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+    storage {
+      data_plane_available = false
+    }
+  }
+  storage_use_azuread = true
 }
+
+data "azurerm_client_config" "current" {}
 
 resource "random_integer" "region_index" {
   max = length(local.azure_regions) - 1
@@ -53,17 +65,65 @@ module "resource_group" {
   enable_telemetry = var.enable_telemetry
 }
 
-module "log_analytics_workspace" {
-  source  = "Azure/avm-res-operationalinsights-workspace/azurerm"
-  version = "0.5.1"
+# ------------------------------------------------------------------
+# Upload the sample app zip to a public storage account so the
+# extensions/zipdeploy ARM API can fetch it via HTTPS URL.
+# ------------------------------------------------------------------
 
-  location            = module.resource_group.location
-  name                = module.naming.log_analytics_workspace.name_unique
-  resource_group_name = module.resource_group.name
-  enable_telemetry    = var.enable_telemetry
+module "storage_account_zip_deploy" {
+  source  = "Azure/avm-res-storage-storageaccount/azurerm"
+  version = "0.6.7"
+
+  location                 = module.resource_group.location
+  name                     = module.naming.storage_account.name_unique
+  resource_group_name      = module.resource_group.name
+  account_replication_type = "LRS"
+  account_tier             = "Standard"
+  containers = {
+    zip-deploy = {
+      name = "zip-deploy"
+      role_assignments = {
+        storage_blob_data_contributor = {
+          role_definition_id_or_name = "Storage Blob Data Contributor"
+          principal_id               = data.azurerm_client_config.current.object_id
+        }
+      }
+    }
+  }
+  enable_telemetry              = var.enable_telemetry
+  network_rules                 = null
+  public_network_access_enabled = true
+  shared_access_key_enabled     = true
 }
 
-# App Service Environment v3 - Windows with .NET 8
+resource "azurerm_storage_blob" "zip_deploy" {
+  name                   = "app.zip"
+  storage_account_name   = module.storage_account_zip_deploy.name
+  storage_container_name = "zip-deploy"
+  type                   = "Block"
+  content_md5            = filemd5("${path.module}/app.zip")
+  source                 = "${path.module}/app.zip"
+
+  depends_on = [module.storage_account_zip_deploy]
+}
+
+data "azurerm_storage_account_blob_container_sas" "zip_deploy" {
+  connection_string = module.storage_account_zip_deploy.resource.primary_connection_string
+  container_name    = "zip-deploy"
+  expiry            = "2099-01-01T00:00:00Z"
+  start             = "2024-01-01T00:00:00Z"
+
+  permissions {
+    add    = false
+    create = false
+    delete = false
+    list   = false
+    read   = true
+    write  = false
+  }
+}
+
+# App Service Environment v3 - Windows with .NET 10
 # ASE provides a fully isolated, dedicated hosting environment.
 # The App Service Plan SKU is automatically set to Isolated v2 tier.
 module "test" {
@@ -72,17 +132,21 @@ module "test" {
   location  = module.resource_group.location
   parent_id = module.resource_group.resource_id
   # Enable App Service Environment v3
-  app_service_environment_enabled     = true
-  app_service_plan_os_type            = "Windows"
-  enable_telemetry                    = var.enable_telemetry
-  log_analytics_workspace_resource_id = module.log_analytics_workspace.resource_id
+  app_service_environment_enabled                = true
+  app_service_environment_name                   = module.naming.app_service_environment.name_unique
+  app_service_plan_os_type                       = "Windows"
+  enable_telemetry                               = var.enable_telemetry
+  log_analytics_workspace_internet_query_enabled = true
   web_apps = {
     app1 = {
-      name = module.naming.app_service.name_unique
+      zip_deploy_file = nonsensitive("${azurerm_storage_blob.zip_deploy.url}${data.azurerm_storage_account_blob_container_sas.zip_deploy.sas}")
+      app_settings = {
+        SCM_DO_BUILD_DURING_DEPLOYMENT = "true"
+      }
       site_config = {
         application_stack = {
           dotnet = {
-            dotnet_version = "v8.0"
+            dotnet_version = "10.0"
             current_stack  = "dotnet"
           }
         }
@@ -93,7 +157,7 @@ module "test" {
           site_config = {
             application_stack = {
               dotnet = {
-                dotnet_version = "v10.0"
+                dotnet_version = "10.0"
                 current_stack  = "dotnet"
               }
             }
@@ -104,7 +168,7 @@ module "test" {
           site_config = {
             application_stack = {
               dotnet = {
-                dotnet_version = "v10.0"
+                dotnet_version = "10.0"
                 current_stack  = "dotnet"
               }
             }
@@ -135,7 +199,10 @@ The following requirements are needed by this module:
 
 The following resources are used by this module:
 
+- [azurerm_storage_blob.zip_deploy](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/storage_blob) (resource)
 - [random_integer.region_index](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/integer) (resource)
+- [azurerm_client_config.current](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/client_config) (data source)
+- [azurerm_storage_account_blob_container_sas.zip_deploy](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/storage_account_blob_container_sas) (data source)
 
 <!-- markdownlint-disable MD013 -->
 ## Required Inputs
@@ -164,12 +231,6 @@ No outputs.
 
 The following Modules are called:
 
-### <a name="module_log_analytics_workspace"></a> [log\_analytics\_workspace](#module\_log\_analytics\_workspace)
-
-Source: Azure/avm-res-operationalinsights-workspace/azurerm
-
-Version: 0.5.1
-
 ### <a name="module_naming"></a> [naming](#module\_naming)
 
 Source: Azure/naming/azurerm
@@ -181,6 +242,12 @@ Version: ~> 0.4
 Source: Azure/avm-res-resources-resourcegroup/azurerm
 
 Version: 0.2.2
+
+### <a name="module_storage_account_zip_deploy"></a> [storage\_account\_zip\_deploy](#module\_storage\_account\_zip\_deploy)
+
+Source: Azure/avm-res-storage-storageaccount/azurerm
+
+Version: 0.6.7
 
 ### <a name="module_test"></a> [test](#module\_test)
 

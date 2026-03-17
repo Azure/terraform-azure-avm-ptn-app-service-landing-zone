@@ -515,6 +515,13 @@ variable "front_door_name" {
   description = "(Optional) The name of the Azure Front Door profile. Defaults to 'afd-{name}'."
 }
 
+variable "front_door_private_link_enabled" {
+  type        = bool
+  default     = true
+  description = "(Optional) Whether to configure Front Door origins with private link connections to web apps. Requires Premium_AzureFrontDoor SKU. Defaults to true."
+  nullable    = false
+}
+
 variable "front_door_resource_id" {
   type        = string
   default     = null
@@ -530,6 +537,17 @@ variable "front_door_response_timeout_seconds" {
     condition     = var.front_door_response_timeout_seconds >= 16 && var.front_door_response_timeout_seconds <= 240
     error_message = "The response timeout must be between 16 and 240 seconds."
   }
+}
+
+variable "front_door_retry" {
+  type = object({
+    error_message_regex  = optional(list(string), ["AnotherOperationInProgress"])
+    interval_seconds     = optional(number, 10)
+    max_interval_seconds = optional(number, 180)
+  })
+  default     = {}
+  description = "(Optional) Retry configuration for transient errors on Front Door azapi resources."
+  nullable    = false
 }
 
 variable "front_door_role_assignments" {

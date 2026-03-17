@@ -17,3 +17,14 @@ variable "log_analytics_workspace_name" {
   default     = null
   description = "(Optional) The name of the Log Analytics workspace. If not provided, a name will be generated using the naming module."
 }
+
+variable "log_analytics_workspace_retry" {
+  type = object({
+    error_message_regex  = optional(list(string), ["AnotherOperationInProgress"])
+    interval_seconds     = optional(number, 10)
+    max_interval_seconds = optional(number, 180)
+  })
+  default     = {}
+  description = "(Optional) Retry configuration for the Log Analytics Workspace private endpoint operations."
+  nullable    = false
+}

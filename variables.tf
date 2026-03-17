@@ -15,17 +15,6 @@ variable "parent_id" {
   }
 }
 
-variable "enable_telemetry" {
-  type        = bool
-  default     = true
-  description = <<DESCRIPTION
-This variable controls whether or not telemetry is enabled for the module.
-For more information see <https://aka.ms/avm/telemetryinfo>.
-If it is set to false, then no telemetry will be collected.
-DESCRIPTION
-  nullable    = false
-}
-
 variable "default_diagnostic_settings_enabled" {
   type        = bool
   default     = true
@@ -36,6 +25,17 @@ variable "default_diagnostic_settings_enabled" {
     condition     = !var.default_diagnostic_settings_enabled || var.log_analytics_workspace_enabled || var.log_analytics_workspace_resource_id != null
     error_message = "Either `log_analytics_workspace_enabled` must be `true` or `log_analytics_workspace_resource_id` must be set when `default_diagnostic_settings_enabled` is `true`."
   }
+}
+
+variable "enable_telemetry" {
+  type        = bool
+  default     = true
+  description = <<DESCRIPTION
+This variable controls whether or not telemetry is enabled for the module.
+For more information see <https://aka.ms/avm/telemetryinfo>.
+If it is set to false, then no telemetry will be collected.
+DESCRIPTION
+  nullable    = false
 }
 
 variable "log_analytics_workspace_resource_id" {

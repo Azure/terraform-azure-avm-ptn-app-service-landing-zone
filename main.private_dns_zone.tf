@@ -41,6 +41,7 @@ module "private_dns_zone_key_vault" {
   domain_name      = "privatelink.vaultcore.azure.net"
   parent_id        = local.resource_group_id
   enable_telemetry = var.enable_telemetry
+  retry            = var.private_dns_zone_retry
   tags             = var.tags
   virtual_network_links = {
     vnet_link = {
@@ -58,6 +59,7 @@ module "private_dns_zone_storage_blob" {
   domain_name      = "privatelink.blob.core.windows.net"
   parent_id        = local.resource_group_id
   enable_telemetry = var.enable_telemetry
+  retry            = var.private_dns_zone_retry
   tags             = var.tags
   virtual_network_links = {
     vnet_link = {
@@ -75,6 +77,7 @@ module "private_dns_zone_storage_file" {
   domain_name      = "privatelink.file.core.windows.net"
   parent_id        = local.resource_group_id
   enable_telemetry = var.enable_telemetry
+  retry            = var.private_dns_zone_retry
   tags             = var.tags
   virtual_network_links = {
     vnet_link = {
@@ -92,6 +95,7 @@ module "private_dns_zone_container_registry" {
   domain_name      = "privatelink.azurecr.io"
   parent_id        = local.resource_group_id
   enable_telemetry = var.enable_telemetry
+  retry            = var.private_dns_zone_retry
   tags             = var.tags
   virtual_network_links = {
     vnet_link = {
@@ -113,6 +117,7 @@ module "private_dns_zone_monitor" {
   domain_name      = "privatelink.monitor.azure.com"
   parent_id        = local.resource_group_id
   enable_telemetry = var.enable_telemetry
+  retry            = var.private_dns_zone_retry
   tags             = var.tags
   virtual_network_links = {
     vnet_link = {
@@ -130,6 +135,7 @@ module "private_dns_zone_oms" {
   domain_name      = "privatelink.oms.opinsights.azure.com"
   parent_id        = local.resource_group_id
   enable_telemetry = var.enable_telemetry
+  retry            = var.private_dns_zone_retry
   tags             = var.tags
   virtual_network_links = {
     vnet_link = {
@@ -147,6 +153,7 @@ module "private_dns_zone_ods" {
   domain_name      = "privatelink.ods.opinsights.azure.com"
   parent_id        = local.resource_group_id
   enable_telemetry = var.enable_telemetry
+  retry            = var.private_dns_zone_retry
   tags             = var.tags
   virtual_network_links = {
     vnet_link = {
@@ -164,6 +171,7 @@ module "private_dns_zone_agentsvc" {
   domain_name      = "privatelink.agentsvc.azure-automation.net"
   parent_id        = local.resource_group_id
   enable_telemetry = var.enable_telemetry
+  retry            = var.private_dns_zone_retry
   tags             = var.tags
   virtual_network_links = {
     vnet_link = {

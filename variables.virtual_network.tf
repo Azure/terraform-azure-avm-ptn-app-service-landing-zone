@@ -193,7 +193,7 @@ variable "virtual_network_resource_id" {
 
 variable "virtual_network_retry" {
   type = object({
-    error_message_regex  = optional(list(string), ["ReferencedResourceNotProvisioned"])
+    error_message_regex  = optional(list(string), ["ReferencedResourceNotProvisioned", "AnotherOperationInProgress"])
     interval_seconds     = optional(number, 10)
     max_interval_seconds = optional(number, 180)
   })

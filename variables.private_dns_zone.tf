@@ -110,7 +110,7 @@ variable "private_dns_zone_ptr_records" {
 
 variable "private_dns_zone_retry" {
   type = object({
-    error_message_regex  = optional(list(string), ["ReferencedResourceNotProvisioned", "CannotDeleteResource"])
+    error_message_regex  = optional(list(string), ["ReferencedResourceNotProvisioned", "CannotDeleteResource", "AnotherOperationInProgress"])
     interval_seconds     = optional(number, 10)
     max_interval_seconds = optional(number, 180)
     multiplier           = optional(number, 1.5)

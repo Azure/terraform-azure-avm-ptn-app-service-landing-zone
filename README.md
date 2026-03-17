@@ -38,11 +38,22 @@ The following requirements are needed by this module:
 
 The following resources are used by this module:
 
+- [azapi_resource.application_insights_ampls_scoped_service](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
 - [azapi_resource.frontdoor_security_policy](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
+- [azapi_resource.log_analytics_workspace_private_endpoint](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
+- [azapi_resource.log_analytics_workspace_private_endpoint_dns_zone_group](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
+- [azapi_resource.managed_instance_storage_connection_string](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
+- [azapi_resource_action.container_registry_docker_build](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource_action) (resource)
+- [azapi_resource_action.container_registry_image_import](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource_action) (resource)
+- [azapi_update_resource.front_door_private_endpoint_approval](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/update_resource) (resource)
+- [azurerm_storage_blob.managed_instance](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/storage_blob) (resource)
 - [modtm_telemetry.telemetry](https://registry.terraform.io/providers/azure/modtm/latest/docs/resources/telemetry) (resource)
 - [random_uuid.telemetry](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/uuid) (resource)
 - [azapi_client_config.telemetry](https://registry.terraform.io/providers/Azure/azapi/latest/docs/data-sources/client_config) (data source)
 - [azapi_client_config.this](https://registry.terraform.io/providers/Azure/azapi/latest/docs/data-sources/client_config) (data source)
+- [azapi_resource.log_analytics_workspace_ampls](https://registry.terraform.io/providers/Azure/azapi/latest/docs/data-sources/resource) (data source)
+- [azapi_resource_action.managed_instance_storage_account_keys](https://registry.terraform.io/providers/Azure/azapi/latest/docs/data-sources/resource_action) (data source)
+- [azapi_resource_list.front_door_web_app_private_endpoint_connections](https://registry.terraform.io/providers/Azure/azapi/latest/docs/data-sources/resource_list) (data source)
 - [modtm_module_source.telemetry](https://registry.terraform.io/providers/azure/modtm/latest/docs/data-sources/module_source) (data source)
 
 <!-- markdownlint-disable MD013 -->
@@ -369,7 +380,7 @@ Type:
 
 ```hcl
 object({
-    error_message_regex  = optional(list(string), ["ScopeLocked"])
+    error_message_regex  = optional(list(string), ["ScopeLocked", "AnotherOperationInProgress"])
     interval_seconds     = optional(number, null)
     max_interval_seconds = optional(number, null)
   })
@@ -572,7 +583,7 @@ Default: `null`
 
 ### <a name="input_app_service_plan_os_type"></a> [app\_service\_plan\_os\_type](#input\_app\_service\_plan\_os\_type)
 
-Description: The OS type for the App Service Plan. Possible values are 'Linux', 'Windows', or 'WindowsManagedInstance'. Defaults to 'Linux'.
+Description: The OS type for the App Service Plan. Possible values are 'Linux', 'Windows', 'WindowsContainer', or 'WindowsManagedInstance'. Defaults to 'Linux'.
 
 Type: `string`
 
@@ -659,7 +670,7 @@ Type:
 
 ```hcl
 object({
-    error_message_regex  = optional(list(string), ["ScopeLocked"])
+    error_message_regex  = optional(list(string), ["ScopeLocked", "AnotherOperationInProgress"])
     interval_seconds     = optional(number, null)
     max_interval_seconds = optional(number, null)
   })
@@ -992,6 +1003,14 @@ map(object({
     }))
   }))
 ```
+
+Default: `null`
+
+### <a name="input_application_gateway_public_ip_domain_name_label"></a> [application\_gateway\_public\_ip\_domain\_name\_label](#input\_application\_gateway\_public\_ip\_domain\_name\_label)
+
+Description: (Optional) The domain name label for the public IP of the Application Gateway. If not set, defaults to the same pattern as the web app name. If set, an A DNS record is created for the public IP in the Microsoft Azure DNS system, resulting in an FQDN of `<label>.<region>.cloudapp.azure.com`.
+
+Type: `string`
 
 Default: `null`
 
@@ -1631,6 +1650,26 @@ map(object({
 
 Default: `{}`
 
+### <a name="input_container_registry_docker_builds"></a> [container\_registry\_docker\_builds](#input\_container\_registry\_docker\_builds)
+
+Description: (Optional) A map of Docker builds to run in the Container Registry using ACR Tasks. Each entry triggers a build from a Dockerfile at the specified source location.
+
+Type:
+
+```hcl
+map(object({
+    dockerfile_path = string
+    source_location = string
+    image_names     = list(string)
+    platform = optional(object({
+      os           = optional(string, "Linux")
+      architecture = optional(string, "amd64")
+    }), {})
+  }))
+```
+
+Default: `{}`
+
 ### <a name="input_container_registry_enabled"></a> [container\_registry\_enabled](#input\_container\_registry\_enabled)
 
 Description: (Optional) Whether to create an Azure Container Registry. Defaults to false.
@@ -1638,6 +1677,23 @@ Description: (Optional) Whether to create an Azure Container Registry. Defaults 
 Type: `bool`
 
 Default: `false`
+
+### <a name="input_container_registry_image_imports"></a> [container\_registry\_image\_imports](#input\_container\_registry\_image\_imports)
+
+Description: (Optional) A map of container images to import into the Container Registry from external registries.
+
+Type:
+
+```hcl
+map(object({
+    source_registry_uri = string
+    source_image        = string
+    image_names         = list(string)
+    mode                = optional(string, "Force")
+  }))
+```
+
+Default: `{}`
 
 ### <a name="input_container_registry_lock"></a> [container\_registry\_lock](#input\_container\_registry\_lock)
 
@@ -1696,6 +1752,22 @@ Type: `string`
 
 Default: `null`
 
+### <a name="input_container_registry_retry"></a> [container\_registry\_retry](#input\_container\_registry\_retry)
+
+Description: (Optional) Retry configuration for transient errors on Container Registry image operations.
+
+Type:
+
+```hcl
+object({
+    error_message_regex  = optional(list(string), ["AnotherOperationInProgress"])
+    interval_seconds     = optional(number, 10)
+    max_interval_seconds = optional(number, 180)
+  })
+```
+
+Default: `{}`
+
 ### <a name="input_container_registry_role_assignments"></a> [container\_registry\_role\_assignments](#input\_container\_registry\_role\_assignments)
 
 Description: (Optional) A map of role assignments to create on the Container Registry.
@@ -1736,6 +1808,14 @@ Default: `null`
 ### <a name="input_container_registry_zone_redundancy_enabled"></a> [container\_registry\_zone\_redundancy\_enabled](#input\_container\_registry\_zone\_redundancy\_enabled)
 
 Description: (Optional) Whether zone redundancy is enabled for the Container Registry. Requires Premium SKU. Defaults to true.
+
+Type: `bool`
+
+Default: `true`
+
+### <a name="input_default_diagnostic_settings_enabled"></a> [default\_diagnostic\_settings\_enabled](#input\_default\_diagnostic\_settings\_enabled)
+
+Description: (Optional) When true and no custom diagnostic settings are provided, default diagnostic settings will be created that send logs and metrics to the Log Analytics workspace. A workspace is created by default when `log_analytics_workspace_enabled = true`, or you can supply an existing one via `log_analytics_workspace_resource_id`. Set to `false` to disable default diagnostic settings.
 
 Type: `bool`
 
@@ -2337,6 +2417,14 @@ Type: `string`
 
 Default: `null`
 
+### <a name="input_front_door_private_link_enabled"></a> [front\_door\_private\_link\_enabled](#input\_front\_door\_private\_link\_enabled)
+
+Description: (Optional) Whether to configure Front Door origins with private link connections to web apps. Requires Premium\_AzureFrontDoor SKU. Defaults to true.
+
+Type: `bool`
+
+Default: `true`
+
 ### <a name="input_front_door_resource_id"></a> [front\_door\_resource\_id](#input\_front\_door\_resource\_id)
 
 Description: (Optional) The resource ID of an existing Azure Front Door profile. When set, the module will not create a Front Door profile.
@@ -2352,6 +2440,22 @@ Description: (Optional) The maximum response timeout in seconds for the Front Do
 Type: `number`
 
 Default: `120`
+
+### <a name="input_front_door_retry"></a> [front\_door\_retry](#input\_front\_door\_retry)
+
+Description: (Optional) Retry configuration for transient errors on Front Door azapi resources.
+
+Type:
+
+```hcl
+object({
+    error_message_regex  = optional(list(string), ["AnotherOperationInProgress"])
+    interval_seconds     = optional(number, 10)
+    max_interval_seconds = optional(number, 180)
+  })
+```
+
+Default: `{}`
 
 ### <a name="input_front_door_role_assignments"></a> [front\_door\_role\_assignments](#input\_front\_door\_role\_assignments)
 
@@ -2789,13 +2893,77 @@ Type: `map(string)`
 
 Default: `null`
 
-### <a name="input_log_analytics_workspace_resource_id"></a> [log\_analytics\_workspace\_resource\_id](#input\_log\_analytics\_workspace\_resource\_id)
+### <a name="input_log_analytics_workspace_enabled"></a> [log\_analytics\_workspace\_enabled](#input\_log\_analytics\_workspace\_enabled)
 
-Description: (Optional) The resource ID of the Log Analytics workspace. When set, diagnostic settings on created resources will be configured to send logs and metrics to this workspace.
+Description: (Optional) Whether to create a Log Analytics workspace. Set to `false` when providing `log_analytics_workspace_resource_id` to use an existing workspace. Defaults to `true`.
+
+Type: `bool`
+
+Default: `true`
+
+### <a name="input_log_analytics_workspace_internet_query_enabled"></a> [log\_analytics\_workspace\_internet\_query\_enabled](#input\_log\_analytics\_workspace\_internet\_query\_enabled)
+
+Description: (Optional) Whether internet query is enabled for the Log Analytics workspace. Defaults to `false`.
+
+Type: `bool`
+
+Default: `false`
+
+### <a name="input_log_analytics_workspace_name"></a> [log\_analytics\_workspace\_name](#input\_log\_analytics\_workspace\_name)
+
+Description: (Optional) The name of the Log Analytics workspace. If not provided, a name will be generated using the naming module.
 
 Type: `string`
 
 Default: `null`
+
+### <a name="input_log_analytics_workspace_resource_id"></a> [log\_analytics\_workspace\_resource\_id](#input\_log\_analytics\_workspace\_resource\_id)
+
+Description: (Optional) The resource ID of an existing Log Analytics workspace (BYO). When set, the module will use this workspace instead of creating one. When set along with `default_diagnostic_settings_enabled = true`, diagnostic settings on created resources will be configured to send logs and metrics to this workspace.
+
+Type: `string`
+
+Default: `null`
+
+### <a name="input_log_analytics_workspace_retry"></a> [log\_analytics\_workspace\_retry](#input\_log\_analytics\_workspace\_retry)
+
+Description: (Optional) Retry configuration for the Log Analytics Workspace private endpoint operations.
+
+Type:
+
+```hcl
+object({
+    error_message_regex  = optional(list(string), ["AnotherOperationInProgress"])
+    interval_seconds     = optional(number, 10)
+    max_interval_seconds = optional(number, 180)
+  })
+```
+
+Default: `{}`
+
+### <a name="input_managed_instance_install_scripts"></a> [managed\_instance\_install\_scripts](#input\_managed\_instance\_install\_scripts)
+
+Description: (Optional) A convenience variable to configure install scripts for the Managed Instance App Service Plan.  
+The module automatically creates the storage account container, uploads the script zip blob, and configures  
+the `app_service_plan_install_scripts` input. Only applicable when `app_service_plan_os_type` is `WindowsManagedInstance`.
+
+When set, the module automatically enables the storage account and key vault if not already enabled.
+
+- `name` - (Required) The name of the install script (e.g. "CustomInstaller").
+- `source` - (Required) The local file path to the zip file to upload.
+
+For more granular control, use the existing `app_service_plan_install_scripts`, `storage_account_*`, and `key_vault_*` variables instead.
+
+Type:
+
+```hcl
+list(object({
+    name   = string
+    source = string
+  }))
+```
+
+Default: `[]`
 
 ### <a name="input_managed_instance_managed_identity_enabled"></a> [managed\_instance\_managed\_identity\_enabled](#input\_managed\_instance\_managed\_identity\_enabled)
 
@@ -2812,6 +2980,64 @@ Description: (Optional) The name of the User-Assigned Managed Identity for the A
 Type: `string`
 
 Default: `null`
+
+### <a name="input_managed_instance_registry_adapters"></a> [managed\_instance\_registry\_adapters](#input\_managed\_instance\_registry\_adapters)
+
+Description: (Optional) A convenience variable to configure Windows registry adapters for the Managed Instance App Service Plan.  
+The module automatically creates Key Vault secrets and configures the `app_service_plan_registry_adapters` input  
+with Key Vault secret references. Only applicable when `app_service_plan_os_type` is `WindowsManagedInstance`.
+
+When set, the module automatically enables the key vault if not already enabled.
+
+- `registry_key` - (Required) The Windows registry key path (e.g. "HKEY\_LOCAL\_MACHINE/SOFTWARE/MyApp1/Setting").
+- `type` - (Required) The registry value type. Possible values are "String" or "DWORD".
+- `value` - (Required) The value to store in the registry key.
+
+For more granular control, use the existing `app_service_plan_registry_adapters` and `key_vault_*` variables instead.
+
+Type:
+
+```hcl
+list(object({
+    registry_key = string
+    type         = string
+    value        = string
+  }))
+```
+
+Default: `[]`
+
+### <a name="input_managed_instance_storage_mounts"></a> [managed\_instance\_storage\_mounts](#input\_managed\_instance\_storage\_mounts)
+
+Description: (Optional) A convenience variable to configure storage mounts for the Managed Instance App Service Plan.  
+The module automatically creates Azure Files shares, Key Vault secrets for connection strings, and configures  
+the `app_service_plan_storage_mounts` input. Only applicable when `app_service_plan_os_type` is `WindowsManagedInstance`.
+
+When set with AzureFiles mounts, the module automatically enables the storage account (with shared access keys)  
+and key vault if not already enabled, creates the file shares, and stores the storage account connection string  
+in Key Vault.
+
+- `name` - (Required) The name of the storage mount (e.g. "g-drive").
+- `destination_path` - (Required) The drive letter / mount path (e.g. "G:\\").
+- `type` - (Optional) The mount type. Possible values are "LocalStorage" or "AzureFiles". Defaults to "LocalStorage".
+- `share_name` - (Required for AzureFiles) The name of the Azure Files share to create.
+- `share_quota` - (Optional) The quota in GB for the Azure Files share. Defaults to 5. Only used when `type` is "AzureFiles".
+
+For more granular control, use the existing `app_service_plan_storage_mounts`, `storage_account_*`, and `key_vault_*` variables instead.
+
+Type:
+
+```hcl
+list(object({
+    name             = string
+    destination_path = string
+    type             = optional(string, "LocalStorage")
+    share_name       = optional(string, null)
+    share_quota      = optional(number, 5)
+  }))
+```
+
+Default: `[]`
 
 ### <a name="input_private_dns_zone_a_records"></a> [private\_dns\_zone\_a\_records](#input\_private\_dns\_zone\_a\_records)
 
@@ -2964,7 +3190,7 @@ Type:
 
 ```hcl
 object({
-    error_message_regex  = optional(list(string), ["ReferencedResourceNotProvisioned", "CannotDeleteResource"])
+    error_message_regex  = optional(list(string), ["ReferencedResourceNotProvisioned", "CannotDeleteResource", "AnotherOperationInProgress"])
     interval_seconds     = optional(number, 10)
     max_interval_seconds = optional(number, 180)
     multiplier           = optional(number, 1.5)
@@ -3047,6 +3273,14 @@ Default: `{}`
 ### <a name="input_private_dns_zone_storage_blob_resource_id"></a> [private\_dns\_zone\_storage\_blob\_resource\_id](#input\_private\_dns\_zone\_storage\_blob\_resource\_id)
 
 Description: (Optional) The resource ID of an existing private DNS zone for 'privatelink.blob.core.windows.net'. When set, the module will not create this DNS zone for Storage Account private endpoints.
+
+Type: `string`
+
+Default: `null`
+
+### <a name="input_private_dns_zone_storage_file_resource_id"></a> [private\_dns\_zone\_storage\_file\_resource\_id](#input\_private\_dns\_zone\_storage\_file\_resource\_id)
+
+Description: (Optional) The resource ID of an existing private DNS zone for 'privatelink.file.core.windows.net'. When set, the module will not create this DNS zone for Storage Account file share private endpoints.
 
 Type: `string`
 
@@ -3156,6 +3390,8 @@ Default:
   "alz_peer_from_hub": "peer-from-alz-hub-${resource_name_workload}-${resource_name_environment}-${sequence}",
   "alz_peer_to_hub": "peer-to-alz-hub-${resource_name_workload}-${resource_name_environment}-${sequence}",
   "alz_route_table": "rt-alz-${resource_name_workload}-${resource_name_environment}-${location}-${sequence}",
+  "ampls_appinsights_scoped_service": "ampls-ai-${resource_name_workload}-${resource_name_environment}-${sequence}",
+  "ampls_law_scoped_service": "ampls-law-${resource_name_workload}-${resource_name_environment}-${sequence}",
   "app_service_environment": "ase-${resource_name_workload}-${resource_name_environment}-${location}-${sequence}",
   "app_service_plan": "asp-${resource_name_workload}-${resource_name_environment}-${location}-${sequence}",
   "application_gateway": "agw-${resource_name_workload}-${resource_name_environment}-${location}-${sequence}",
@@ -3164,26 +3400,34 @@ Default:
   "application_gateway_listener": "listener-${resource_name_workload}-${resource_name_environment}-${sequence}",
   "application_gateway_probe": "probe-${resource_name_workload}-${resource_name_environment}-${sequence}",
   "application_gateway_public_ip": "pip-agw-${resource_name_workload}-${resource_name_environment}-${location}-${sequence}",
+  "application_gateway_public_ip_domain_name_label": "app-${resource_name_workload}-${resource_name_environment}-${location}-${unique_name}-${sequence}",
   "application_gateway_routing_rule": "rule-${resource_name_workload}-${resource_name_environment}-${sequence}",
   "application_insights": "ai-${resource_name_workload}-${resource_name_environment}-${location}-${sequence}",
+  "azure_monitor_private_link_scope": "ampls-${resource_name_workload}-${resource_name_environment}-${location}-${sequence}",
   "bastion_host": "bas-${resource_name_workload}-${resource_name_environment}-${location}-${sequence}",
   "container_registry": "cr${resource_name_workload}${resource_name_environment}${short_location}${unique_name}${sequence}",
   "front_door": "afd-${resource_name_workload}-${resource_name_environment}-${location}-${sequence}",
-  "front_door_endpoint": "fde-${resource_name_workload}-${resource_name_environment}-${sequence}",
+  "front_door_endpoint": "fde-${resource_name_workload}-${resource_name_environment}-${unique_name}-${sequence}",
   "front_door_origin": "fdo-${resource_name_workload}-${resource_name_environment}-${sequence}",
   "front_door_origin_group": "fdog-${resource_name_workload}-${resource_name_environment}-${sequence}",
   "front_door_route": "fdr-${resource_name_workload}-${resource_name_environment}-${sequence}",
   "front_door_security_policy": "secpol${resource_name_workload}${resource_name_environment}${sequence}",
   "front_door_waf_policy": "wafpol${resource_name_workload}${resource_name_environment}${sequence}",
   "key_vault": "kv-${resource_name_workload}-${resource_name_environment}-${sequence}-${unique_name}",
+  "log_analytics_workspace": "law-${resource_name_workload}-${resource_name_environment}-${location}-${sequence}",
   "managed_identity": "id-${resource_name_workload}-${resource_name_environment}-${location}-${sequence}",
   "peer_from_hub": "peer-from-hub-${resource_name_workload}-${resource_name_environment}-${sequence}",
   "peer_to_hub": "peer-to-hub-${resource_name_workload}-${resource_name_environment}-${sequence}",
   "storage_account": "st${resource_name_workload}${resource_name_environment}${short_location}${unique_name}${sequence}",
   "virtual_network": "vnet-${resource_name_workload}-${resource_name_environment}-${location}-${sequence}",
+  "vnet_link_agentsvc": "vnetlink-agentsvc-${resource_name_workload}-${resource_name_environment}-${sequence}",
   "vnet_link_container_registry": "vnetlink-cr-${resource_name_workload}-${resource_name_environment}-${sequence}",
   "vnet_link_key_vault": "vnetlink-kv-${resource_name_workload}-${resource_name_environment}-${sequence}",
+  "vnet_link_monitor": "vnetlink-monitor-${resource_name_workload}-${resource_name_environment}-${sequence}",
+  "vnet_link_ods": "vnetlink-ods-${resource_name_workload}-${resource_name_environment}-${sequence}",
+  "vnet_link_oms": "vnetlink-oms-${resource_name_workload}-${resource_name_environment}-${sequence}",
   "vnet_link_storage_blob": "vnetlink-blob-${resource_name_workload}-${resource_name_environment}-${sequence}",
+  "vnet_link_storage_file": "vnetlink-file-${resource_name_workload}-${resource_name_environment}-${sequence}",
   "vnet_link_web": "vnetlink-${resource_name_workload}-${resource_name_environment}-${sequence}",
   "web_app": "app-${resource_name_workload}-${resource_name_environment}-${location}-${unique_name}-${sequence}",
   "web_app_managed_identity": "id-app-${resource_name_workload}-${resource_name_environment}-${location}-${sequence}",
@@ -3474,6 +3718,14 @@ object({
 
 Default: `{}`
 
+### <a name="input_storage_account_public_network_access_enabled"></a> [storage\_account\_public\_network\_access\_enabled](#input\_storage\_account\_public\_network\_access\_enabled)
+
+Description: (Optional) Whether public network access is enabled for the storage account. Defaults to false.
+
+Type: `bool`
+
+Default: `false`
+
 ### <a name="input_storage_account_resource_id"></a> [storage\_account\_resource\_id](#input\_storage\_account\_resource\_id)
 
 Description: (Optional) The resource ID of an existing storage account. When set, the module will not create a storage account.
@@ -3481,6 +3733,22 @@ Description: (Optional) The resource ID of an existing storage account. When set
 Type: `string`
 
 Default: `null`
+
+### <a name="input_storage_account_retry"></a> [storage\_account\_retry](#input\_storage\_account\_retry)
+
+Description: (Optional) Retry configuration for transient errors on storage account azapi resources.
+
+Type:
+
+```hcl
+object({
+    error_message_regex  = optional(list(string), ["AnotherOperationInProgress"])
+    interval_seconds     = optional(number, 10)
+    max_interval_seconds = optional(number, 180)
+  })
+```
+
+Default: `{}`
 
 ### <a name="input_storage_account_role_assignments"></a> [storage\_account\_role\_assignments](#input\_storage\_account\_role\_assignments)
 
@@ -3768,7 +4036,7 @@ Type:
 
 ```hcl
 object({
-    error_message_regex  = optional(list(string), ["ReferencedResourceNotProvisioned"])
+    error_message_regex  = optional(list(string), ["ReferencedResourceNotProvisioned", "AnotherOperationInProgress"])
     interval_seconds     = optional(number, 10)
     max_interval_seconds = optional(number, 180)
   })
@@ -3836,7 +4104,7 @@ Default: `{}`
 
 Description: A map of web apps to create on the App Service Plan. The map key is used as a unique identifier.
 
-- `name` - (Required) The name of the web app.
+- `name` - (Optional) The name of the web app. Defaults to the name generated by the naming module.
 - `kind` - (Optional) The kind of web app. Possible values are 'webapp', 'functionapp', or 'logicapp'. Defaults to 'webapp'.
 - `os_type` - (Optional) The OS type for the web app. Defaults to the App Service Plan's OS type.
 - `all_child_resources_inherit_tags` - (Optional) Should child resources inherit tags? Defaults to true.
@@ -3921,12 +4189,13 @@ Description: A map of web apps to create on the App Service Plan. The map key is
 - `vnet_route_all_traffic` - (Optional) Should all outbound traffic use VNet? Defaults to false.
 - `workload_profile_name` - (Optional) The workload profile name for Container Apps.
 - `zip_deploy_file` - (Optional) The path to the zip file to deploy.
+- `zip_deploy_wait_duration` - (Optional) The duration to wait for the zip deploy to complete. Defaults to '120s'.
 
 Type:
 
 ```hcl
 map(object({
-    name    = string
+    name    = optional(string, null)
     kind    = optional(string, "webapp")
     os_type = optional(string, null)
 
@@ -4258,8 +4527,12 @@ map(object({
       ip_mode                                  = optional(string)
       key_vault_reference_identity             = optional(string, null)
       managed_environment_id                   = optional(string)
-      public_network_access_enabled            = optional(bool, false)
-      redundancy_mode                          = optional(string)
+      managed_identities = optional(object({
+        system_assigned            = optional(bool, false)
+        user_assigned_resource_ids = optional(set(string), [])
+      }), {})
+      public_network_access_enabled = optional(bool, false)
+      redundancy_mode               = optional(string)
       resource_config = optional(object({
         cpu    = optional(number)
         memory = optional(string)
@@ -4897,6 +5170,7 @@ map(object({
     vnet_route_all_traffic                 = optional(bool, false)
     workload_profile_name                  = optional(string, null)
     zip_deploy_file                        = optional(string, null)
+    zip_deploy_wait_duration               = optional(string, "120s")
   }))
 ```
 
@@ -4929,6 +5203,10 @@ Description: The resource ID of the App Service Plan (created or BYO).
 ### <a name="output_application_gateway"></a> [application\_gateway](#output\_application\_gateway)
 
 Description: The Application Gateway resource output from the AVM module.
+
+### <a name="output_application_gateway_url"></a> [application\_gateway\_url](#output\_application\_gateway\_url)
+
+Description: The FQDN URL of the Application Gateway public IP.
 
 ### <a name="output_application_insights"></a> [application\_insights](#output\_application\_insights)
 
@@ -4982,6 +5260,14 @@ Description: The resource ID of the Key Vault (created or BYO).
 
 Description: The name of the Key Vault.
 
+### <a name="output_log_analytics_workspace"></a> [log\_analytics\_workspace](#output\_log\_analytics\_workspace)
+
+Description: The Log Analytics workspace resource output from the AVM module.
+
+### <a name="output_log_analytics_workspace_id"></a> [log\_analytics\_workspace\_id](#output\_log\_analytics\_workspace\_id)
+
+Description: The resource ID of the Log Analytics workspace (created or BYO).
+
 ### <a name="output_managed_instance_managed_identity_client_id"></a> [managed\_instance\_managed\_identity\_client\_id](#output\_managed\_instance\_managed\_identity\_client\_id)
 
 Description: The client ID of the User-Assigned Managed Identity for the App Service Managed Instance plan default identity.
@@ -5017,6 +5303,10 @@ Description: The Storage Account resource output from the AVM module.
 ### <a name="output_storage_account_id"></a> [storage\_account\_id](#output\_storage\_account\_id)
 
 Description: The resource ID of the Storage Account (created or BYO).
+
+### <a name="output_storage_account_name"></a> [storage\_account\_name](#output\_storage\_account\_name)
+
+Description: The name of the Storage Account.
 
 ### <a name="output_virtual_network"></a> [virtual\_network](#output\_virtual\_network)
 
@@ -5100,6 +5390,12 @@ Source: Azure/avm-res-keyvault-vault/azurerm
 
 Version: 0.10.2
 
+### <a name="module_log_analytics_workspace"></a> [log\_analytics\_workspace](#module\_log\_analytics\_workspace)
+
+Source: Azure/avm-res-operationalinsights-workspace/azurerm
+
+Version: 0.5.1
+
 ### <a name="module_managed_instance_managed_identity"></a> [managed\_instance\_managed\_identity](#module\_managed\_instance\_managed\_identity)
 
 Source: Azure/avm-res-managedidentity-userassignedidentity/azurerm
@@ -5111,6 +5407,12 @@ Version: 0.4.0
 Source: ./modules/naming
 
 Version:
+
+### <a name="module_private_dns_zone_agentsvc"></a> [private\_dns\_zone\_agentsvc](#module\_private\_dns\_zone\_agentsvc)
+
+Source: Azure/avm-res-network-privatednszone/azurerm
+
+Version: 0.5.0
 
 ### <a name="module_private_dns_zone_container_registry"></a> [private\_dns\_zone\_container\_registry](#module\_private\_dns\_zone\_container\_registry)
 
@@ -5124,7 +5426,31 @@ Source: Azure/avm-res-network-privatednszone/azurerm
 
 Version: 0.5.0
 
+### <a name="module_private_dns_zone_monitor"></a> [private\_dns\_zone\_monitor](#module\_private\_dns\_zone\_monitor)
+
+Source: Azure/avm-res-network-privatednszone/azurerm
+
+Version: 0.5.0
+
+### <a name="module_private_dns_zone_ods"></a> [private\_dns\_zone\_ods](#module\_private\_dns\_zone\_ods)
+
+Source: Azure/avm-res-network-privatednszone/azurerm
+
+Version: 0.5.0
+
+### <a name="module_private_dns_zone_oms"></a> [private\_dns\_zone\_oms](#module\_private\_dns\_zone\_oms)
+
+Source: Azure/avm-res-network-privatednszone/azurerm
+
+Version: 0.5.0
+
 ### <a name="module_private_dns_zone_storage_blob"></a> [private\_dns\_zone\_storage\_blob](#module\_private\_dns\_zone\_storage\_blob)
+
+Source: Azure/avm-res-network-privatednszone/azurerm
+
+Version: 0.5.0
+
+### <a name="module_private_dns_zone_storage_file"></a> [private\_dns\_zone\_storage\_file](#module\_private\_dns\_zone\_storage\_file)
 
 Source: Azure/avm-res-network-privatednszone/azurerm
 
@@ -5152,7 +5478,7 @@ Version: 0.17.1
 
 Source: Azure/avm-res-web-site/azurerm
 
-Version: 0.21.0
+Version: 0.21.3
 
 ### <a name="module_web_app_managed_identity"></a> [web\_app\_managed\_identity](#module\_web\_app\_managed\_identity)
 

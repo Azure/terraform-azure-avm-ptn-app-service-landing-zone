@@ -25,6 +25,9 @@ provider "azapi" {}
 
 provider "azurerm" {
   features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
     storage {
       data_plane_available = false
     }
@@ -62,13 +65,11 @@ module "storage_account_zip_deploy" {
   source  = "Azure/avm-res-storage-storageaccount/azurerm"
   version = "0.6.7"
 
-  location                      = module.resource_group.location
-  name                          = module.naming.storage_account.name_unique
-  resource_group_name           = module.resource_group.name
-  account_replication_type      = "LRS"
-  account_tier                  = "Standard"
-  public_network_access_enabled = true
-  network_rules                 = null
+  location                 = module.resource_group.location
+  name                     = module.naming.storage_account.name_unique
+  resource_group_name      = module.resource_group.name
+  account_replication_type = "LRS"
+  account_tier             = "Standard"
   containers = {
     zip-deploy = {
       name = "zip-deploy"
@@ -80,8 +81,10 @@ module "storage_account_zip_deploy" {
       }
     }
   }
-  enable_telemetry          = var.enable_telemetry
-  shared_access_key_enabled = true
+  enable_telemetry              = var.enable_telemetry
+  network_rules                 = null
+  public_network_access_enabled = true
+  shared_access_key_enabled     = true
 }
 
 resource "azurerm_storage_blob" "zip_deploy" {
@@ -89,29 +92,35 @@ resource "azurerm_storage_blob" "zip_deploy" {
   storage_account_name   = module.storage_account_zip_deploy.name
   storage_container_name = "zip-deploy"
   type                   = "Block"
-  source                 = "${path.module}/app.zip"
   content_md5            = filemd5("${path.module}/app.zip")
+  source                 = "${path.module}/app.zip"
+
+  depends_on = [module.storage_account_zip_deploy]
 }
 
 data "azurerm_storage_account_blob_container_sas" "zip_deploy" {
   connection_string = module.storage_account_zip_deploy.resource.primary_connection_string
   container_name    = "zip-deploy"
-  start             = "2024-01-01T00:00:00Z"
   expiry            = "2099-01-01T00:00:00Z"
+  start             = "2024-01-01T00:00:00Z"
 
   permissions {
-    read   = true
     add    = false
     create = false
-    write  = false
     delete = false
     list   = false
+    read   = true
+    write  = false
   }
 }
 
 # ------------------------------------------------------------------
 # Key Vault + self-signed TLS certificate for Application Gateway HTTPS.
 # In production, replace with a real certificate.
+#
+# NOTE: This example uses a self-signed certificate, so browsers will
+# show a security warning. You can bypass this in the browser to view
+# the example application.
 # ------------------------------------------------------------------
 
 module "appgw_managed_identity" {
@@ -128,18 +137,17 @@ module "appgw_key_vault" {
   source  = "Azure/avm-res-keyvault-vault/azurerm"
   version = "0.10.2"
 
-  location                      = module.resource_group.location
-  name                          = "kv-agw-${module.naming.key_vault.name_unique}"
-  resource_group_name           = module.resource_group.name
-  tenant_id                     = data.azurerm_client_config.current.tenant_id
-  enable_telemetry              = var.enable_telemetry
-  public_network_access_enabled = true
-  purge_protection_enabled      = false
-  soft_delete_retention_days    = 7
+  location            = module.resource_group.location
+  name                = "kv-agw-${module.naming.key_vault.name_unique}"
+  resource_group_name = module.resource_group.name
+  tenant_id           = data.azurerm_client_config.current.tenant_id
+  enable_telemetry    = var.enable_telemetry
   network_acls = {
     bypass         = "AzureServices"
     default_action = "Allow"
   }
+  public_network_access_enabled = true
+  purge_protection_enabled      = false
   role_assignments = {
     deployer_cert_officer = {
       role_definition_id_or_name = "Key Vault Certificates Officer"
@@ -152,6 +160,7 @@ module "appgw_key_vault" {
       principal_type                   = "ServicePrincipal"
     }
   }
+  soft_delete_retention_days = 7
   wait_for_rbac_before_secret_operations = {
     create = "60s"
   }
@@ -159,8 +168,8 @@ module "appgw_key_vault" {
 
 # Self-signed certificate - no AVM module exists for KV certificates (data plane operation)
 resource "azurerm_key_vault_certificate" "appgw_self_signed" {
-  name         = "appgw-self-signed"
   key_vault_id = module.appgw_key_vault.resource_id
+  name         = "appgw-self-signed"
 
   certificate_policy {
     issuer_parameters {
@@ -168,9 +177,9 @@ resource "azurerm_key_vault_certificate" "appgw_self_signed" {
     }
     key_properties {
       exportable = true
-      key_size   = 4096
       key_type   = "RSA"
       reuse_key  = false
+      key_size   = 4096
     }
     secret_properties {
       content_type = "application/x-pkcs12"
@@ -184,6 +193,8 @@ resource "azurerm_key_vault_certificate" "appgw_self_signed" {
       validity_in_months = 12
     }
   }
+
+  depends_on = [module.appgw_key_vault]
 }
 
 # ------------------------------------------------------------------
@@ -194,12 +205,12 @@ resource "azurerm_key_vault_certificate" "appgw_self_signed" {
 module "test" {
   source = "../../"
 
-  location                            = module.resource_group.location
-  parent_id                           = module.resource_group.resource_id
-  application_gateway_enabled         = true
-  enable_telemetry                    = var.enable_telemetry
-  log_analytics_workspace_internet_query_enabled = true
-  front_door_enabled                  = false
+  location                    = module.resource_group.location
+  parent_id                   = module.resource_group.resource_id
+  application_gateway_enabled = true
+  application_gateway_managed_identities = {
+    user_assigned_resource_ids = [module.appgw_managed_identity.resource_id]
+  }
   # Pass the SSL certificate and managed identity for Application Gateway
   application_gateway_ssl_certificates = {
     default = {
@@ -207,12 +218,11 @@ module "test" {
       key_vault_secret_id = azurerm_key_vault_certificate.appgw_self_signed.versionless_secret_id
     }
   }
-  application_gateway_managed_identities = {
-    user_assigned_resource_ids = [module.appgw_managed_identity.resource_id]
-  }
+  enable_telemetry                               = var.enable_telemetry
+  front_door_enabled                             = false
+  log_analytics_workspace_internet_query_enabled = true
   web_apps = {
     app1 = {
-      name            = module.naming.app_service.name_unique
       zip_deploy_file = nonsensitive("${azurerm_storage_blob.zip_deploy.url}${data.azurerm_storage_account_blob_container_sas.zip_deploy.sas}")
       app_settings = {
         SCM_DO_BUILD_DURING_DEPLOYMENT = "true"

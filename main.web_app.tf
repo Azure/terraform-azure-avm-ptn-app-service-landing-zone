@@ -1,18 +1,18 @@
 module "web_app" {
   source   = "Azure/avm-res-web-site/azurerm"
-  version  = "0.21.1"
+  version  = "0.21.3"
   for_each = var.web_apps
 
   # Required
   location                 = var.location
-  name                     = each.value.name
+  name                     = coalesce(each.value.name, module.naming.resource_names.web_app[each.key])
   parent_id                = local.resource_group_id
   service_plan_resource_id = local.app_service_plan_id
   # Pass-through from web_apps map
   all_child_resources_inherit_tags       = each.value.all_child_resources_inherit_tags
   always_ready                           = each.value.always_ready
   app_service_active_slot                = each.value.app_service_active_slot
-  app_settings                           = each.value.app_settings
+  app_settings                           = merge(local.application_insights_default_app_settings, each.value.app_settings)
   application_insights_connection_string = try(coalesce(each.value.application_insights_connection_string, local.application_insights_connection_string), null)
   application_insights_key               = try(coalesce(each.value.application_insights_key, local.application_insights_key), null)
   auth_settings                          = each.value.auth_settings
@@ -97,7 +97,7 @@ module "web_app" {
   os_type                = coalesce(each.value.os_type, local.web_app_default_os_type)
   # Computed values with user override support
   private_endpoints = each.value.private_endpoints != null ? each.value.private_endpoints : (
-    local.virtual_network_enabled && !var.app_service_environment_enabled && !local.front_door_private_link_enabled ? {
+    local.virtual_network_enabled && !var.app_service_environment_enabled && !local.front_door_private_link_effectively_enabled ? {
       default = {
         subnet_resource_id                      = local.private_endpoint_subnet_id
         private_dns_zone_resource_ids           = local.private_dns_zone_web_id != null ? toset([local.private_dns_zone_web_id]) : toset([])
@@ -130,7 +130,7 @@ module "web_app" {
   slot_sensitive_app_settings                    = try(var.web_app_slot_sensitive_app_settings[each.key], {})
   slots_storage_shares_to_mount_sensitive_values = try(var.web_app_slots_storage_shares_to_mount_sensitive_values[each.key], {})
   ssh_enabled                                    = each.value.ssh_enabled
-  sticky_settings                                = each.value.sticky_settings
+  sticky_settings                                = merge(local.application_insights_default_sticky_settings, each.value.sticky_settings)
   storage_account_access_key                     = each.value.storage_account_access_key
   storage_account_name                           = each.value.storage_account_name
   storage_account_required                       = each.value.storage_account_required
@@ -152,4 +152,5 @@ module "web_app" {
   vnet_route_all_traffic                         = each.value.vnet_route_all_traffic
   workload_profile_name                          = each.value.workload_profile_name
   zip_deploy_file                                = each.value.zip_deploy_file
+  zip_deploy_wait_duration                       = each.value.zip_deploy_wait_duration
 }

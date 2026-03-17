@@ -226,6 +226,17 @@ variable "storage_account_resource_id" {
   description = "(Optional) The resource ID of an existing storage account. When set, the module will not create a storage account."
 }
 
+variable "storage_account_retry" {
+  type = object({
+    error_message_regex  = optional(list(string), ["AnotherOperationInProgress"])
+    interval_seconds     = optional(number, 10)
+    max_interval_seconds = optional(number, 180)
+  })
+  default     = {}
+  description = "(Optional) Retry configuration for transient errors on storage account azapi resources."
+  nullable    = false
+}
+
 variable "storage_account_role_assignments" {
   type = map(object({
     role_definition_id_or_name             = string

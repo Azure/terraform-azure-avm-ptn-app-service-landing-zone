@@ -34,6 +34,9 @@ provider "azurerm" {
       purge_soft_deleted_keys_on_destroy    = false
       purge_soft_deleted_secrets_on_destroy = false
     }
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
     storage {
       data_plane_available = false
     }
@@ -81,13 +84,11 @@ module "storage_account_zip_deploy" {
   source  = "Azure/avm-res-storage-storageaccount/azurerm"
   version = "0.6.7"
 
-  location                      = module.resource_group.location
-  name                          = module.naming.storage_account.name_unique
-  resource_group_name           = module.resource_group.name
-  account_replication_type      = "LRS"
-  account_tier                  = "Standard"
-  public_network_access_enabled = true
-  network_rules                 = null
+  location                 = module.resource_group.location
+  name                     = module.naming.storage_account.name_unique
+  resource_group_name      = module.resource_group.name
+  account_replication_type = "LRS"
+  account_tier             = "Standard"
   containers = {
     zip-deploy = {
       name = "zip-deploy"
@@ -99,8 +100,10 @@ module "storage_account_zip_deploy" {
       }
     }
   }
-  enable_telemetry          = var.enable_telemetry
-  shared_access_key_enabled = true
+  enable_telemetry              = var.enable_telemetry
+  network_rules                 = null
+  public_network_access_enabled = true
+  shared_access_key_enabled     = true
 }
 
 resource "azurerm_storage_blob" "zip_deploy" {
@@ -108,23 +111,25 @@ resource "azurerm_storage_blob" "zip_deploy" {
   storage_account_name   = module.storage_account_zip_deploy.name
   storage_container_name = "zip-deploy"
   type                   = "Block"
-  source                 = "${path.module}/app.zip"
   content_md5            = filemd5("${path.module}/app.zip")
+  source                 = "${path.module}/app.zip"
+
+  depends_on = [module.storage_account_zip_deploy]
 }
 
 data "azurerm_storage_account_blob_container_sas" "zip_deploy" {
   connection_string = module.storage_account_zip_deploy.resource.primary_connection_string
   container_name    = "zip-deploy"
-  start             = "2024-01-01T00:00:00Z"
   expiry            = "2099-01-01T00:00:00Z"
+  start             = "2024-01-01T00:00:00Z"
 
   permissions {
-    read   = true
     add    = false
     create = false
-    write  = false
     delete = false
     list   = false
+    read   = true
+    write  = false
   }
 }
 
@@ -145,22 +150,22 @@ module "test" {
   location  = module.resource_group.location
   parent_id = module.resource_group.resource_id
   # App Service Plan - WindowsManagedInstance with V4 SKU
-  app_service_plan_os_type  = "WindowsManagedInstance"
-  app_service_plan_sku_name = "P1v4"
+  app_service_plan_os_type = "WindowsManagedInstance"
   # RDP access enabled
   app_service_plan_rdp_enabled = true
+  app_service_plan_sku_name    = "P1v4"
   enable_telemetry             = var.enable_telemetry
-  log_analytics_workspace_internet_query_enabled = true
   # Key Vault settings - the module auto-creates a key vault for registry adapters and storage mounts
-  key_vault_purge_protection_enabled   = false
-  key_vault_sku_name                   = "standard"
-  key_vault_soft_delete_retention_days = 7
+  key_vault_purge_protection_enabled = false
   key_vault_role_assignments = {
     secrets_officer = {
       role_definition_id_or_name = "Key Vault Secrets Officer"
       principal_id               = data.azapi_client_config.this.object_id
     }
   }
+  key_vault_sku_name                             = "standard"
+  key_vault_soft_delete_retention_days           = 7
+  log_analytics_workspace_internet_query_enabled = true
   # Install scripts - just provide the name and path; the module handles container, blob, and ASP config
   managed_instance_install_scripts = [
     {
@@ -206,7 +211,6 @@ module "test" {
   # Web apps
   web_apps = {
     app1 = {
-      name            = module.naming.app_service.name_unique
       zip_deploy_file = nonsensitive("${azurerm_storage_blob.zip_deploy.url}${data.azurerm_storage_account_blob_container_sas.zip_deploy.sas}")
       app_settings = {
         SCM_DO_BUILD_DURING_DEPLOYMENT = "true"

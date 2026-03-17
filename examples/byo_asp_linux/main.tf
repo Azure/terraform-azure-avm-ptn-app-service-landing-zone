@@ -25,6 +25,9 @@ provider "azapi" {}
 
 provider "azurerm" {
   features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
     storage {
       data_plane_available = false
     }
@@ -124,13 +127,11 @@ module "storage_account_zip_deploy" {
   source  = "Azure/avm-res-storage-storageaccount/azurerm"
   version = "0.6.7"
 
-  location                      = module.resource_group.location
-  name                          = module.naming.storage_account.name_unique
-  resource_group_name           = module.resource_group.name
-  account_replication_type      = "LRS"
-  account_tier                  = "Standard"
-  public_network_access_enabled = true
-  network_rules                 = null
+  location                 = module.resource_group.location
+  name                     = module.naming.storage_account.name_unique
+  resource_group_name      = module.resource_group.name
+  account_replication_type = "LRS"
+  account_tier             = "Standard"
   containers = {
     zip-deploy = {
       name = "zip-deploy"
@@ -142,8 +143,10 @@ module "storage_account_zip_deploy" {
       }
     }
   }
-  enable_telemetry          = var.enable_telemetry
-  shared_access_key_enabled = true
+  enable_telemetry              = var.enable_telemetry
+  network_rules                 = null
+  public_network_access_enabled = true
+  shared_access_key_enabled     = true
 }
 
 resource "azurerm_storage_blob" "zip_deploy" {
@@ -151,23 +154,25 @@ resource "azurerm_storage_blob" "zip_deploy" {
   storage_account_name   = module.storage_account_zip_deploy.name
   storage_container_name = "zip-deploy"
   type                   = "Block"
-  source                 = "${path.module}/app.zip"
   content_md5            = filemd5("${path.module}/app.zip")
+  source                 = "${path.module}/app.zip"
+
+  depends_on = [module.storage_account_zip_deploy]
 }
 
 data "azurerm_storage_account_blob_container_sas" "zip_deploy" {
   connection_string = module.storage_account_zip_deploy.resource.primary_connection_string
   container_name    = "zip-deploy"
-  start             = "2024-01-01T00:00:00Z"
   expiry            = "2099-01-01T00:00:00Z"
+  start             = "2024-01-01T00:00:00Z"
 
   permissions {
-    read   = true
     add    = false
     create = false
-    write  = false
     delete = false
     list   = false
+    read   = true
+    write  = false
   }
 }
 
@@ -183,9 +188,9 @@ module "test" {
   app_service_plan_resource_id   = module.app_service_plan.resource_id
   app_service_subnet_resource_id = module.virtual_network.subnets["app_service"].resource_id
   enable_telemetry               = var.enable_telemetry
-  log_analytics_workspace_internet_query_enabled = true
   # Front Door (created by the module)
-  front_door_enabled                  = true
+  front_door_enabled                             = true
+  log_analytics_workspace_internet_query_enabled = true
   # BYO Private DNS Zone - disable creation, provide existing resource ID
   private_dns_zone_web_resource_id    = module.private_dns_zone_web.resource_id
   private_dns_zones_enabled           = false
@@ -195,7 +200,6 @@ module "test" {
   virtual_network_resource_id = module.virtual_network.resource_id
   web_apps = {
     app1 = {
-      name            = module.naming.app_service.name_unique
       zip_deploy_file = nonsensitive("${azurerm_storage_blob.zip_deploy.url}${data.azurerm_storage_account_blob_container_sas.zip_deploy.sas}")
       app_settings = {
         SCM_DO_BUILD_DURING_DEPLOYMENT = "true"

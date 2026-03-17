@@ -77,6 +77,17 @@ variable "container_registry_resource_id" {
   description = "(Optional) The resource ID of an existing Container Registry. When set, the module will not create a Container Registry."
 }
 
+variable "container_registry_retry" {
+  type = object({
+    error_message_regex  = optional(list(string), ["AnotherOperationInProgress"])
+    interval_seconds     = optional(number, 10)
+    max_interval_seconds = optional(number, 180)
+  })
+  default     = {}
+  description = "(Optional) Retry configuration for transient errors on Container Registry image operations."
+  nullable    = false
+}
+
 variable "container_registry_role_assignments" {
   type = map(object({
     role_definition_id_or_name             = string

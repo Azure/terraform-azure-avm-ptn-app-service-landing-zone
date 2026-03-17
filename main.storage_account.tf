@@ -69,15 +69,20 @@ resource "azurerm_storage_blob" "managed_instance" {
 resource "azapi_resource" "managed_instance_storage_connection_string" {
   count = local.managed_instance_shared_access_key_needed ? 1 : 0
 
-  type      = "Microsoft.KeyVault/vaults/secrets@2023-07-01"
   name      = "mi-storage-connection-string"
   parent_id = module.key_vault[0].resource_id
-
+  type      = "Microsoft.KeyVault/vaults/secrets@2023-07-01"
   body = {
     properties = {
       value = "DefaultEndpointsProtocol=https;AccountName=${module.storage_account[0].name};AccountKey=${data.azapi_resource_action.managed_instance_storage_account_keys[0].output.keys[0].value};EndpointSuffix=core.windows.net"
     }
   }
+  create_headers         = var.enable_telemetry ? { "User-Agent" : local.avm_azapi_header } : null
+  delete_headers         = var.enable_telemetry ? { "User-Agent" : local.avm_azapi_header } : null
+  read_headers           = var.enable_telemetry ? { "User-Agent" : local.avm_azapi_header } : null
+  response_export_values = []
+  retry                  = var.storage_account_retry
+  update_headers         = var.enable_telemetry ? { "User-Agent" : local.avm_azapi_header } : null
 }
 
 # Retrieve the storage account keys when AzureFiles mounts are configured.

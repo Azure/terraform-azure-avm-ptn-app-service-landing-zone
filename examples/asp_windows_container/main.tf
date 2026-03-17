@@ -25,6 +25,9 @@ provider "azapi" {}
 
 provider "azurerm" {
   features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
     storage {
       data_plane_available = false
     }
@@ -62,21 +65,9 @@ locals {
 module "test" {
   source = "../../"
 
-  location                            = module.resource_group.location
-  parent_id                           = module.resource_group.resource_id
-  app_service_plan_os_type            = "WindowsContainer"
-  container_registry_enabled          = true
-  container_registry_name             = local.container_registry_name
-  enable_telemetry                    = var.enable_telemetry
-  log_analytics_workspace_internet_query_enabled = true
-  # Import a pre-built image from MCR for use in deployment slots
-  container_registry_image_imports = {
-    aspnetapp_imported = {
-      source_registry_uri = "mcr.microsoft.com"
-      source_image        = "dotnet/samples:aspnetapp-nanoserver-ltsc2022"
-      image_names         = ["aspnetapp-imported:latest"]
-    }
-  }
+  location                 = module.resource_group.location
+  parent_id                = module.resource_group.resource_id
+  app_service_plan_os_type = "WindowsContainer"
   # Build a Docker image from source for use in the production slot
   container_registry_docker_builds = {
     aspnetapp_build = {
@@ -88,9 +79,20 @@ module "test" {
       }
     }
   }
+  container_registry_enabled = true
+  # Import a pre-built image from MCR for use in deployment slots
+  container_registry_image_imports = {
+    aspnetapp_imported = {
+      source_registry_uri = "mcr.microsoft.com"
+      source_image        = "dotnet/samples:aspnetapp-nanoserver-ltsc2022"
+      image_names         = ["aspnetapp-imported:latest"]
+    }
+  }
+  container_registry_name                        = local.container_registry_name
+  enable_telemetry                               = var.enable_telemetry
+  log_analytics_workspace_internet_query_enabled = true
   web_apps = {
     app1 = {
-      name = module.naming.app_service.name_unique
       site_config = {
         application_stack = {
           docker = {

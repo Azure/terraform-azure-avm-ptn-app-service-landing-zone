@@ -27,6 +27,7 @@ module "application_gateway" {
   public_ip_address_configuration = {
     public_ip_name    = coalesce(var.application_gateway_public_ip_name, module.naming.resource_names.application_gateway_public_ip)
     allocation_method = "Static"
+    domain_name_label = coalesce(var.application_gateway_public_ip_domain_name_label, module.naming.resource_names.application_gateway_public_ip_domain_name_label)
     sku               = "Standard"
     sku_tier          = "Regional"
     zones             = var.application_gateway_zones

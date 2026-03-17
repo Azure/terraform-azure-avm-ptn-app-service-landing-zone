@@ -164,6 +164,12 @@ variable "application_gateway_probe_configurations" {
   description = "(Optional) Health probe configurations for the Application Gateway. If not set, auto-generated."
 }
 
+variable "application_gateway_public_ip_domain_name_label" {
+  type        = string
+  default     = null
+  description = "(Optional) The domain name label for the public IP of the Application Gateway. If not set, defaults to the same pattern as the web app name. If set, an A DNS record is created for the public IP in the Microsoft Azure DNS system, resulting in an FQDN of `<label>.<region>.cloudapp.azure.com`."
+}
+
 variable "application_gateway_public_ip_name" {
   type        = string
   default     = null

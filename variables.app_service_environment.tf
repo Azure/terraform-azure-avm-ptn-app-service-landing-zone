@@ -174,7 +174,7 @@ variable "app_service_environment_resource_id" {
 
 variable "app_service_environment_retry" {
   type = object({
-    error_message_regex  = optional(list(string), ["ScopeLocked"])
+    error_message_regex  = optional(list(string), ["ScopeLocked", "AnotherOperationInProgress"])
     interval_seconds     = optional(number, null)
     max_interval_seconds = optional(number, null)
   })

@@ -8,10 +8,9 @@ locals {
 resource "azapi_resource_action" "container_registry_image_import" {
   for_each = local.container_registry_images_enabled ? var.container_registry_image_imports : {}
 
-  type        = "Microsoft.ContainerRegistry/registries@2023-11-01-preview"
-  resource_id = local.container_registry_id
   action      = "importImage"
-
+  resource_id = local.container_registry_id
+  type        = "Microsoft.ContainerRegistry/registries@2023-11-01-preview"
   body = {
     source = {
       registryUri = each.value.source_registry_uri
@@ -20,15 +19,16 @@ resource "azapi_resource_action" "container_registry_image_import" {
     targetTags = each.value.image_names
     mode       = each.value.mode
   }
+  response_export_values = []
+  retry                  = var.container_registry_retry
 }
 
 resource "azapi_resource_action" "container_registry_docker_build" {
   for_each = local.container_registry_images_enabled ? var.container_registry_docker_builds : {}
 
-  type        = "Microsoft.ContainerRegistry/registries@2019-06-01-preview"
-  resource_id = local.container_registry_id
   action      = "scheduleRun"
-
+  resource_id = local.container_registry_id
+  type        = "Microsoft.ContainerRegistry/registries@2019-06-01-preview"
   body = {
     type           = "DockerBuildRequest"
     dockerFilePath = each.value.dockerfile_path
@@ -41,6 +41,8 @@ resource "azapi_resource_action" "container_registry_docker_build" {
       architecture = each.value.platform.architecture
     }
   }
+  response_export_values = []
+  retry                  = var.container_registry_retry
 
   timeouts {
     create = "30m"

@@ -28,6 +28,14 @@ output "application_gateway" {
   value       = var.application_gateway_enabled && length(var.web_apps) > 0 ? module.application_gateway[0] : null
 }
 
+output "application_gateway_url" {
+  description = "The FQDN URL of the Application Gateway public IP."
+  value = var.application_gateway_enabled && length(var.web_apps) > 0 ? "https://${coalesce(
+    var.application_gateway_public_ip_domain_name_label,
+    module.naming.resource_names.application_gateway_public_ip_domain_name_label
+  )}.${var.location}.cloudapp.azure.com" : null
+}
+
 output "application_insights" {
   description = "The Application Insights resource output from the AVM module."
   value       = var.application_insights_enabled && var.application_insights_resource_id == null ? module.application_insights[0] : null
@@ -53,16 +61,6 @@ output "bastion_host" {
 output "bastion_host_id" {
   description = "The resource ID of the Bastion Host (created or BYO)."
   value       = var.bastion_host_resource_id != null ? var.bastion_host_resource_id : (local.bastion_host_effectively_enabled ? module.bastion_host[0].resource_id : null)
-}
-
-output "log_analytics_workspace" {
-  description = "The Log Analytics workspace resource output from the AVM module."
-  value       = local.log_analytics_workspace_creation_enabled ? module.log_analytics_workspace[0] : null
-}
-
-output "log_analytics_workspace_id" {
-  description = "The resource ID of the Log Analytics workspace (created or BYO)."
-  value       = local.log_analytics_workspace_resource_id
 }
 
 output "container_registry" {
@@ -103,6 +101,16 @@ output "key_vault_id" {
 output "key_vault_name" {
   description = "The name of the Key Vault."
   value       = length(module.key_vault) > 0 && var.key_vault_resource_id == null ? module.key_vault[0].name : null
+}
+
+output "log_analytics_workspace" {
+  description = "The Log Analytics workspace resource output from the AVM module."
+  value       = local.log_analytics_workspace_creation_enabled ? module.log_analytics_workspace[0] : null
+}
+
+output "log_analytics_workspace_id" {
+  description = "The resource ID of the Log Analytics workspace (created or BYO)."
+  value       = local.log_analytics_workspace_resource_id
 }
 
 output "managed_instance_managed_identity_client_id" {

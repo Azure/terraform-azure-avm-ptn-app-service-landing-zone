@@ -4,6 +4,8 @@
 
 This example deploys the module with a Linux App Service Plan, a Linux web app running a custom Docker container, VNet integration, private endpoints, private DNS, and Azure Front Door (Premium with WAF).
 
+> **Note:** Azure Front Door can take upwards of 30 minutes to replicate globally. During that time, you may see a "Page Not Found" error when navigating to the Front Door endpoint.
+
 ```hcl
 terraform {
   required_version = ">= 1.9, < 2.0"
@@ -31,7 +33,15 @@ terraform {
 provider "azapi" {}
 
 provider "azurerm" {
-  features {}
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+    storage {
+      data_plane_available = false
+    }
+  }
+  storage_use_azuread = true
 }
 
 resource "random_integer" "region_index" {
@@ -53,15 +63,6 @@ module "resource_group" {
   enable_telemetry = var.enable_telemetry
 }
 
-module "log_analytics_workspace" {
-  source  = "Azure/avm-res-operationalinsights-workspace/azurerm"
-  version = "0.5.1"
-
-  location            = module.resource_group.location
-  name                = module.naming.log_analytics_workspace.name_unique
-  resource_group_name = module.resource_group.name
-  enable_telemetry    = var.enable_telemetry
-}
 
 locals {
   container_registry_login_server = "${local.container_registry_name}.azurecr.io"
@@ -72,18 +73,34 @@ locals {
 module "test" {
   source = "../../"
 
-  location                            = module.resource_group.location
-  parent_id                           = module.resource_group.resource_id
-  container_registry_name             = local.container_registry_name
-  enable_telemetry                    = var.enable_telemetry
-  log_analytics_workspace_resource_id = module.log_analytics_workspace.resource_id
+  location  = module.resource_group.location
+  parent_id = module.resource_group.resource_id
+  # Build a Docker image from source for use in the production slot
+  container_registry_docker_builds = {
+    aspnetapp_build = {
+      dockerfile_path = "Dockerfile"
+      source_location = "https://github.com/dotnet/dotnet-docker.git#main:samples/aspnetapp"
+      image_names     = ["aspnetapp-build:latest"]
+    }
+  }
+  container_registry_enabled = true
+  # Import a pre-built image from MCR for use in deployment slots
+  container_registry_image_imports = {
+    aspnetapp_imported = {
+      source_registry_uri = "mcr.microsoft.com"
+      source_image        = "dotnet/samples:aspnetapp"
+      image_names         = ["aspnetapp-imported:latest"]
+    }
+  }
+  container_registry_name                        = local.container_registry_name
+  enable_telemetry                               = var.enable_telemetry
+  log_analytics_workspace_internet_query_enabled = true
   web_apps = {
     app1 = {
-      name = module.naming.app_service.name_unique
       site_config = {
         application_stack = {
           docker = {
-            docker_image_name   = "aspnetapp:latest"
+            docker_image_name   = "aspnetapp-build:latest"
             docker_registry_url = "https://${local.container_registry_login_server}"
           }
         }
@@ -94,7 +111,7 @@ module "test" {
           site_config = {
             application_stack = {
               docker = {
-                docker_image_name   = "aspnetapp:latest"
+                docker_image_name   = "aspnetapp-imported:latest"
                 docker_registry_url = "https://${local.container_registry_login_server}"
               }
             }
@@ -105,7 +122,7 @@ module "test" {
           site_config = {
             application_stack = {
               docker = {
-                docker_image_name   = "aspnetapp:latest"
+                docker_image_name   = "aspnetapp-imported:latest"
                 docker_registry_url = "https://${local.container_registry_login_server}"
               }
             }
@@ -113,17 +130,6 @@ module "test" {
         }
       }
     }
-  }
-}
-
-# Import the sample container image into the Container Registry
-resource "terraform_data" "acr_import" {
-  depends_on = [module.test]
-
-  input = local.container_registry_name
-
-  provisioner "local-exec" {
-    command = "az acr import --name ${local.container_registry_name} --source mcr.microsoft.com/dotnet/samples:aspnetapp --image aspnetapp:latest --force"
   }
 }
 ```
@@ -148,7 +154,6 @@ The following requirements are needed by this module:
 The following resources are used by this module:
 
 - [random_integer.region_index](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/integer) (resource)
-- [terraform_data.acr_import](https://registry.terraform.io/providers/hashicorp/terraform/latest/docs/resources/data) (resource)
 
 <!-- markdownlint-disable MD013 -->
 ## Required Inputs
@@ -176,12 +181,6 @@ No outputs.
 ## Modules
 
 The following Modules are called:
-
-### <a name="module_log_analytics_workspace"></a> [log\_analytics\_workspace](#module\_log\_analytics\_workspace)
-
-Source: Azure/avm-res-operationalinsights-workspace/azurerm
-
-Version: 0.5.1
 
 ### <a name="module_naming"></a> [naming](#module\_naming)
 

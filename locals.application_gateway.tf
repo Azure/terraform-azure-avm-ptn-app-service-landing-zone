@@ -33,7 +33,7 @@ locals {
       frontend_port_name = var.application_gateway_ssl_certificates != null ? "port-443" : "port-80"
       host_name          = null
       }, var.application_gateway_ssl_certificates != null ? {
-        ssl_certificate_name = values(var.application_gateway_ssl_certificates)[0].name
+      ssl_certificate_name = values(var.application_gateway_ssl_certificates)[0].name
     } : {})
   }
   application_gateway_probe_configurations = var.application_gateway_probe_configurations != null ? var.application_gateway_probe_configurations : {
@@ -78,6 +78,6 @@ locals {
 # example for a complete working pattern with a self-signed certificate.
 
 locals {
-  application_gateway_effective_ssl_certificates   = var.application_gateway_ssl_certificates
   application_gateway_effective_managed_identities = var.application_gateway_managed_identities
+  application_gateway_effective_ssl_certificates   = var.application_gateway_ssl_certificates
 }

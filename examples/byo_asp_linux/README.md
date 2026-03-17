@@ -4,6 +4,8 @@
 
 This example demonstrates using the module with pre-existing (Bring Your Own) resources: a virtual network with subnets, an App Service Plan, and a private DNS zone. The module creates only the web app, private endpoints, and Azure Front Door, wiring them into your existing infrastructure.
 
+> **Note:** Azure Front Door can take upwards of 30 minutes to replicate globally. During that time, you may see a "Page Not Found" error when navigating to the Front Door endpoint.
+
 ```hcl
 terraform {
   required_version = ">= 1.9, < 2.0"
@@ -31,8 +33,18 @@ terraform {
 provider "azapi" {}
 
 provider "azurerm" {
-  features {}
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+    storage {
+      data_plane_available = false
+    }
+  }
+  storage_use_azuread = true
 }
+
+data "azurerm_client_config" "current" {}
 
 resource "random_integer" "region_index" {
   max = length(local.azure_regions) - 1
@@ -51,18 +63,6 @@ module "resource_group" {
   location         = local.azure_regions[random_integer.region_index.result]
   name             = "${module.naming.resource_group.name_unique}-byo-asp-linux"
   enable_telemetry = var.enable_telemetry
-}
-
-# --- Pre-existing (BYO) resources ---
-
-module "log_analytics_workspace" {
-  source  = "Azure/avm-res-operationalinsights-workspace/azurerm"
-  version = "0.5.1"
-
-  location            = module.resource_group.location
-  name                = module.naming.log_analytics_workspace.name_unique
-  resource_group_name = module.resource_group.name
-  enable_telemetry    = var.enable_telemetry
 }
 
 # Virtual Network with subnets
@@ -127,6 +127,64 @@ module "private_dns_zone_web" {
   }
 }
 
+# ------------------------------------------------------------------
+# Upload the sample app zip to a public storage account so the
+# extensions/zipdeploy ARM API can fetch it via HTTPS URL.
+# ------------------------------------------------------------------
+
+module "storage_account_zip_deploy" {
+  source  = "Azure/avm-res-storage-storageaccount/azurerm"
+  version = "0.6.7"
+
+  location                 = module.resource_group.location
+  name                     = module.naming.storage_account.name_unique
+  resource_group_name      = module.resource_group.name
+  account_replication_type = "LRS"
+  account_tier             = "Standard"
+  containers = {
+    zip-deploy = {
+      name = "zip-deploy"
+      role_assignments = {
+        storage_blob_data_contributor = {
+          role_definition_id_or_name = "Storage Blob Data Contributor"
+          principal_id               = data.azurerm_client_config.current.object_id
+        }
+      }
+    }
+  }
+  enable_telemetry              = var.enable_telemetry
+  network_rules                 = null
+  public_network_access_enabled = true
+  shared_access_key_enabled     = true
+}
+
+resource "azurerm_storage_blob" "zip_deploy" {
+  name                   = "app.zip"
+  storage_account_name   = module.storage_account_zip_deploy.name
+  storage_container_name = "zip-deploy"
+  type                   = "Block"
+  content_md5            = filemd5("${path.module}/app.zip")
+  source                 = "${path.module}/app.zip"
+
+  depends_on = [module.storage_account_zip_deploy]
+}
+
+data "azurerm_storage_account_blob_container_sas" "zip_deploy" {
+  connection_string = module.storage_account_zip_deploy.resource.primary_connection_string
+  container_name    = "zip-deploy"
+  expiry            = "2099-01-01T00:00:00Z"
+  start             = "2024-01-01T00:00:00Z"
+
+  permissions {
+    add    = false
+    create = false
+    delete = false
+    list   = false
+    read   = true
+    write  = false
+  }
+}
+
 # --- Module deployment using BYO resources ---
 
 module "test" {
@@ -140,8 +198,8 @@ module "test" {
   app_service_subnet_resource_id = module.virtual_network.subnets["app_service"].resource_id
   enable_telemetry               = var.enable_telemetry
   # Front Door (created by the module)
-  front_door_enabled                  = true
-  log_analytics_workspace_resource_id = module.log_analytics_workspace.resource_id
+  front_door_enabled                             = true
+  log_analytics_workspace_internet_query_enabled = true
   # BYO Private DNS Zone - disable creation, provide existing resource ID
   private_dns_zone_web_resource_id    = module.private_dns_zone_web.resource_id
   private_dns_zones_enabled           = false
@@ -151,11 +209,15 @@ module "test" {
   virtual_network_resource_id = module.virtual_network.resource_id
   web_apps = {
     app1 = {
-      name = module.naming.app_service.name_unique
+      zip_deploy_file = nonsensitive("${azurerm_storage_blob.zip_deploy.url}${data.azurerm_storage_account_blob_container_sas.zip_deploy.sas}")
+      app_settings = {
+        SCM_DO_BUILD_DURING_DEPLOYMENT = "true"
+      }
       site_config = {
         application_stack = {
-          node = {
-            node_version = "20-lts"
+          dotnet = {
+            dotnet_version = "10.0"
+            current_stack  = "dotnet"
           }
         }
       }
@@ -174,7 +236,7 @@ module "test" {
           site_config = {
             application_stack = {
               dotnet = {
-                dotnet_version = "v10.0"
+                dotnet_version = "10.0"
                 current_stack  = "dotnet"
               }
             }
@@ -185,7 +247,7 @@ module "test" {
           site_config = {
             application_stack = {
               dotnet = {
-                dotnet_version = "v10.0"
+                dotnet_version = "10.0"
                 current_stack  = "dotnet"
               }
             }
@@ -216,7 +278,10 @@ The following requirements are needed by this module:
 
 The following resources are used by this module:
 
+- [azurerm_storage_blob.zip_deploy](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/storage_blob) (resource)
 - [random_integer.region_index](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/integer) (resource)
+- [azurerm_client_config.current](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/client_config) (data source)
+- [azurerm_storage_account_blob_container_sas.zip_deploy](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/storage_account_blob_container_sas) (data source)
 
 <!-- markdownlint-disable MD013 -->
 ## Required Inputs
@@ -251,12 +316,6 @@ Source: Azure/avm-res-web-serverfarm/azurerm
 
 Version: 2.0.1
 
-### <a name="module_log_analytics_workspace"></a> [log\_analytics\_workspace](#module\_log\_analytics\_workspace)
-
-Source: Azure/avm-res-operationalinsights-workspace/azurerm
-
-Version: 0.5.1
-
 ### <a name="module_naming"></a> [naming](#module\_naming)
 
 Source: Azure/naming/azurerm
@@ -274,6 +333,12 @@ Version: 0.5.0
 Source: Azure/avm-res-resources-resourcegroup/azurerm
 
 Version: 0.2.2
+
+### <a name="module_storage_account_zip_deploy"></a> [storage\_account\_zip\_deploy](#module\_storage\_account\_zip\_deploy)
+
+Source: Azure/avm-res-storage-storageaccount/azurerm
+
+Version: 0.6.7
 
 ### <a name="module_test"></a> [test](#module\_test)
 

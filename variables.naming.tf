@@ -2,19 +2,20 @@ variable "resource_name_defaults" {
   type = map(string)
   default = {
     # Single-instance resources (supports hyphens)
-    virtual_network                    = "vnet-$${resource_name_workload}-$${resource_name_environment}-$${location}-$${sequence}"
-    app_service_environment            = "ase-$${resource_name_workload}-$${resource_name_environment}-$${location}-$${sequence}"
-    app_service_plan                   = "asp-$${resource_name_workload}-$${resource_name_environment}-$${location}-$${sequence}"
-    application_insights               = "ai-$${resource_name_workload}-$${resource_name_environment}-$${location}-$${sequence}"
-    bastion_host                       = "bas-$${resource_name_workload}-$${resource_name_environment}-$${location}-$${sequence}"
-    application_gateway                = "agw-$${resource_name_workload}-$${resource_name_environment}-$${location}-$${sequence}"
-    application_gateway_public_ip      = "pip-agw-$${resource_name_workload}-$${resource_name_environment}-$${location}-$${sequence}"
-    front_door                         = "afd-$${resource_name_workload}-$${resource_name_environment}-$${location}-$${sequence}"
-    alz_route_table                    = "rt-alz-$${resource_name_workload}-$${resource_name_environment}-$${location}-$${sequence}"
-    managed_identity                   = "id-$${resource_name_workload}-$${resource_name_environment}-$${location}-$${sequence}"
-    log_analytics_workspace            = "law-$${resource_name_workload}-$${resource_name_environment}-$${location}-$${sequence}"
-    azure_monitor_private_link_scope              = "ampls-$${resource_name_workload}-$${resource_name_environment}-$${location}-$${sequence}"
-    ampls_law_scoped_service                       = "ampls-law-$${resource_name_workload}-$${resource_name_environment}-$${sequence}"
+    virtual_network                                 = "vnet-$${resource_name_workload}-$${resource_name_environment}-$${location}-$${sequence}"
+    app_service_environment                         = "ase-$${resource_name_workload}-$${resource_name_environment}-$${location}-$${sequence}"
+    app_service_plan                                = "asp-$${resource_name_workload}-$${resource_name_environment}-$${location}-$${sequence}"
+    application_insights                            = "ai-$${resource_name_workload}-$${resource_name_environment}-$${location}-$${sequence}"
+    bastion_host                                    = "bas-$${resource_name_workload}-$${resource_name_environment}-$${location}-$${sequence}"
+    application_gateway                             = "agw-$${resource_name_workload}-$${resource_name_environment}-$${location}-$${sequence}"
+    application_gateway_public_ip                   = "pip-agw-$${resource_name_workload}-$${resource_name_environment}-$${location}-$${sequence}"
+    application_gateway_public_ip_domain_name_label = "app-$${resource_name_workload}-$${resource_name_environment}-$${location}-$${unique_name}-$${sequence}"
+    front_door                                      = "afd-$${resource_name_workload}-$${resource_name_environment}-$${location}-$${sequence}"
+    alz_route_table                                 = "rt-alz-$${resource_name_workload}-$${resource_name_environment}-$${location}-$${sequence}"
+    managed_identity                                = "id-$${resource_name_workload}-$${resource_name_environment}-$${location}-$${sequence}"
+    log_analytics_workspace                         = "law-$${resource_name_workload}-$${resource_name_environment}-$${location}-$${sequence}"
+    azure_monitor_private_link_scope                = "ampls-$${resource_name_workload}-$${resource_name_environment}-$${location}-$${sequence}"
+    ampls_law_scoped_service                        = "ampls-law-$${resource_name_workload}-$${resource_name_environment}-$${sequence}"
     ampls_appinsights_scoped_service                = "ampls-ai-$${resource_name_workload}-$${resource_name_environment}-$${sequence}"
 
     # Globally unique resources (with unique_name segment)
