@@ -22,14 +22,14 @@ module "storage_account" {
       blob = {
         subresource_name              = "blob"
         subnet_resource_id            = local.private_endpoint_subnet_id
-        private_dns_zone_resource_ids = local.create_private_dns_zone_storage_blob ? toset([module.private_dns_zone_storage_blob[0].resource_id]) : toset([])
+        private_dns_zone_resource_ids = local.private_dns_zone_storage_blob_id != null ? toset([local.private_dns_zone_storage_blob_id]) : toset([])
       }
     },
     length(merge(var.storage_account_shares, local.managed_instance_shares)) > 0 ? {
       file = {
         subresource_name              = "file"
         subnet_resource_id            = local.private_endpoint_subnet_id
-        private_dns_zone_resource_ids = local.create_private_dns_zone_storage_file ? toset([module.private_dns_zone_storage_file[0].resource_id]) : toset([])
+        private_dns_zone_resource_ids = local.private_dns_zone_storage_file_id != null ? toset([local.private_dns_zone_storage_file_id]) : toset([])
       }
     } : {}
   ) : {}

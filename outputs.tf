@@ -138,6 +138,11 @@ output "resource_group_name" {
   value       = local.resource_group_name
 }
 
+output "resource_id" {
+  description = "The resource ID of the App Service Plan, which is the primary resource of this pattern module."
+  value       = local.app_service_plan_id
+}
+
 output "route_table" {
   description = "The ALZ route table resource output from the AVM module. Returns null when using a BYO route table."
   value       = var.alz_platform_landing_zone_route_table_resource_id == null && var.alz_platform_landing_zone_route_table_enabled ? module.alz_route_table[0] : null
@@ -155,7 +160,7 @@ output "storage_account" {
 
 output "storage_account_id" {
   description = "The resource ID of the Storage Account (created or BYO)."
-  value       = length(module.storage_account) > 0 ? module.storage_account[0].resource_id : null
+  value       = local.storage_account_id
 }
 
 output "storage_account_name" {

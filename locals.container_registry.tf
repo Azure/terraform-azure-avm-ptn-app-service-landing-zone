@@ -1,11 +1,4 @@
 locals {
-  # Container Registry - auto-detect when any web app uses a container configuration
-  container_apps_detected = anytrue([
-    for _, app in var.web_apps : (
-      try(app.site_config.application_stack.docker, null) != null ||
-      try(app.site_config.windows_fx_version, null) != null
-    )
-  ])
   # AcrPull role assignments for all web app and slot managed identities
   container_registry_acr_pull_role_assignments = merge(
     {
@@ -35,9 +28,6 @@ locals {
       }
     }
   )
-  container_registry_effectively_enabled = var.container_registry_resource_id == null && var.container_registry_enabled
-  container_registry_login_server = local.container_registry_effectively_enabled ? module.container_registry[0].resource.login_server : (
-    var.container_registry_resource_id != null ? null : null
-  )
-  create_private_dns_zone_container_registry = var.private_dns_zones_enabled && var.virtual_network_enabled && local.container_registry_effectively_enabled && !var.alz_platform_landing_zone_private_dns_zone_mode_enabled
+  container_registry_effectively_enabled     = var.container_registry_resource_id == null && var.container_registry_enabled
+  create_private_dns_zone_container_registry = var.private_dns_zone_container_registry_resource_id == null && var.private_dns_zones_enabled && var.virtual_network_enabled && local.container_registry_effectively_enabled && !var.alz_platform_landing_zone_private_dns_zone_mode_enabled
 }

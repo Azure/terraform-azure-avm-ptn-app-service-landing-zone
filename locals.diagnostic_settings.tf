@@ -1,5 +1,10 @@
 locals {
-  _coerce_old = {
+  app_service_environment_diagnostic_settings = length(var.app_service_environment_diagnostic_settings) > 0 ? local.diag_new_law_default["app_service_environment"] : local.diag_default_new
+  app_service_plan_diagnostic_settings        = length(var.app_service_plan_diagnostic_settings) > 0 ? local.diag_new_law_default["app_service_plan"] : local.diag_default_new_metrics_only
+  application_gateway_diagnostic_settings     = length(var.application_gateway_diagnostic_settings) > 0 ? local.diag_coerce_old["application_gateway"] : local.diag_default_old
+  bastion_host_diagnostic_settings            = length(var.bastion_host_diagnostic_settings) > 0 ? local.diag_coerce_old["bastion_host"] : local.diag_default_old
+  container_registry_diagnostic_settings      = length(var.container_registry_diagnostic_settings) > 0 ? local.diag_coerce_old["container_registry"] : local.diag_default_old
+  diag_coerce_old = {
     for k, v in {
       "application_gateway" = var.application_gateway_diagnostic_settings,
       "bastion_host"        = var.bastion_host_diagnostic_settings,
@@ -28,7 +33,7 @@ locals {
       }
     }
   }
-  _diag_default_new = var.default_diagnostic_settings_enabled ? {
+  diag_default_new = var.default_diagnostic_settings_enabled ? {
     default = {
       name = "default-diagnostic-setting"
       logs = toset([{
@@ -64,7 +69,7 @@ locals {
       marketplace_partner_resource_id          = null
     }
   } : {}
-  _diag_default_new_metrics_only = var.default_diagnostic_settings_enabled ? {
+  diag_default_new_metrics_only = var.default_diagnostic_settings_enabled ? {
     default = {
       name = "default-diagnostic-setting"
       logs = toset([])
@@ -84,7 +89,7 @@ locals {
       marketplace_partner_resource_id          = null
     }
   } : {}
-  _diag_default_old = var.default_diagnostic_settings_enabled ? {
+  diag_default_old = var.default_diagnostic_settings_enabled ? {
     default = {
       name                                     = "default-diagnostic-setting"
       log_categories                           = toset([])
@@ -98,7 +103,7 @@ locals {
       marketplace_partner_resource_id          = null
     }
   } : {}
-  _diag_default_old_metrics_only = var.default_diagnostic_settings_enabled ? {
+  diag_default_old_metrics_only = var.default_diagnostic_settings_enabled ? {
     default = {
       name                                     = "default-diagnostic-setting"
       metric_categories                        = toset(["AllMetrics"])
@@ -110,7 +115,7 @@ locals {
       marketplace_partner_resource_id          = null
     }
   } : {}
-  _new_law_default = {
+  diag_new_law_default = {
     for resource_key, resource_var in {
       "app_service_environment" = var.app_service_environment_diagnostic_settings,
       "app_service_plan"        = var.app_service_plan_diagnostic_settings,
@@ -120,8 +125,8 @@ locals {
       })
     }
   }
-  _storage_sub_coerced = {
-    for sub_key, sub_var in local._storage_sub_vars : sub_key => {
+  diag_storage_sub_coerced = {
+    for sub_key, sub_var in local.diag_storage_sub_vars : sub_key => {
       for k, v in sub_var : k => {
         name = v.name
         log_categories = toset([
@@ -142,19 +147,14 @@ locals {
       }
     }
   }
-  _storage_sub_vars = {
+  diag_storage_sub_vars = {
     "blob"  = var.storage_account_diagnostic_settings_blob,
     "file"  = var.storage_account_diagnostic_settings_file,
     "queue" = var.storage_account_diagnostic_settings_queue,
     "table" = var.storage_account_diagnostic_settings_table,
   }
-  app_service_environment_diagnostic_settings = length(var.app_service_environment_diagnostic_settings) > 0 ? local._new_law_default["app_service_environment"] : local._diag_default_new
-  app_service_plan_diagnostic_settings        = length(var.app_service_plan_diagnostic_settings) > 0 ? local._new_law_default["app_service_plan"] : local._diag_default_new_metrics_only
-  application_gateway_diagnostic_settings     = length(var.application_gateway_diagnostic_settings) > 0 ? local._coerce_old["application_gateway"] : local._diag_default_old
-  bastion_host_diagnostic_settings            = length(var.bastion_host_diagnostic_settings) > 0 ? local._coerce_old["bastion_host"] : local._diag_default_old
-  container_registry_diagnostic_settings      = length(var.container_registry_diagnostic_settings) > 0 ? local._coerce_old["container_registry"] : local._diag_default_old
-  front_door_diagnostic_settings              = length(var.front_door_diagnostic_settings) > 0 ? local._coerce_old["front_door"] : local._diag_default_old
-  key_vault_diagnostic_settings               = length(var.key_vault_diagnostic_settings) > 0 ? local._coerce_old["key_vault"] : local._diag_default_old
+  front_door_diagnostic_settings = length(var.front_door_diagnostic_settings) > 0 ? local.diag_coerce_old["front_door"] : local.diag_default_old
+  key_vault_diagnostic_settings  = length(var.key_vault_diagnostic_settings) > 0 ? local.diag_coerce_old["key_vault"] : local.diag_default_old
   storage_account_diagnostic_settings = length(var.storage_account_diagnostic_settings) > 0 ? {
     for k, v in var.storage_account_diagnostic_settings : k => {
       name = v.name
@@ -168,19 +168,19 @@ locals {
       event_hub_name                           = v.event_hub_name
       marketplace_partner_resource_id          = v.marketplace_partner_resource_id
     }
-  } : local._diag_default_old_metrics_only
-  storage_account_diagnostic_settings_blob  = length(var.storage_account_diagnostic_settings_blob) > 0 ? local._storage_sub_coerced["blob"] : local._diag_default_old
-  storage_account_diagnostic_settings_file  = length(var.storage_account_diagnostic_settings_file) > 0 ? local._storage_sub_coerced["file"] : local._diag_default_old
-  storage_account_diagnostic_settings_queue = length(var.storage_account_diagnostic_settings_queue) > 0 ? local._storage_sub_coerced["queue"] : local._diag_default_old
-  storage_account_diagnostic_settings_table = length(var.storage_account_diagnostic_settings_table) > 0 ? local._storage_sub_coerced["table"] : local._diag_default_old
-  virtual_network_diagnostic_settings       = length(var.virtual_network_diagnostic_settings) > 0 ? local._coerce_old["virtual_network"] : local._diag_default_old
+  } : local.diag_default_old_metrics_only
+  storage_account_diagnostic_settings_blob  = length(var.storage_account_diagnostic_settings_blob) > 0 ? local.diag_storage_sub_coerced["blob"] : local.diag_default_old
+  storage_account_diagnostic_settings_file  = length(var.storage_account_diagnostic_settings_file) > 0 ? local.diag_storage_sub_coerced["file"] : local.diag_default_old
+  storage_account_diagnostic_settings_queue = length(var.storage_account_diagnostic_settings_queue) > 0 ? local.diag_storage_sub_coerced["queue"] : local.diag_default_old
+  storage_account_diagnostic_settings_table = length(var.storage_account_diagnostic_settings_table) > 0 ? local.diag_storage_sub_coerced["table"] : local.diag_default_old
+  virtual_network_diagnostic_settings       = length(var.virtual_network_diagnostic_settings) > 0 ? local.diag_coerce_old["virtual_network"] : local.diag_default_old
   web_app_diagnostic_settings = {
     for app_key, app in var.web_apps : app_key => (
       length(app.diagnostic_settings) > 0 ? {
         for k, v in app.diagnostic_settings : k => merge(v, {
           workspace_resource_id = v.workspace_resource_id != null ? v.workspace_resource_id : local.log_analytics_workspace_resource_id
         })
-      } : local._diag_default_new
+      } : local.diag_default_new
     )
   }
 }

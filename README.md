@@ -5288,6 +5288,10 @@ Description: The private DNS zone for web apps (privatelink.azurewebsites.net) r
 
 Description: The name of the resource group.
 
+### <a name="output_resource_id"></a> [resource\_id](#output\_resource\_id)
+
+Description: The resource ID of the App Service Plan, which is the primary resource of this pattern module.
+
 ### <a name="output_route_table"></a> [route\_table](#output\_route\_table)
 
 Description: The ALZ route table resource output from the AVM module. Returns null when using a BYO route table.

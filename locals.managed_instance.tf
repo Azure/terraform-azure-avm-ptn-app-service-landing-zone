@@ -17,12 +17,6 @@ locals {
       public_access = "None"
     }
   }
-  # Whether any convenience variables are in use
-  managed_instance_convenience_enabled = var.app_service_plan_os_type == "WindowsManagedInstance" && (
-    length(var.managed_instance_install_scripts) > 0 ||
-    length(var.managed_instance_registry_adapters) > 0 ||
-    length(var.managed_instance_storage_mounts) > 0
-  )
   # --- Install scripts config for the ASP ---
   managed_instance_install_scripts_config = [
     for idx, script in var.managed_instance_install_scripts : {
@@ -73,8 +67,8 @@ locals {
     }
     if mount.type == "AzureFiles" && mount.share_name != null
   }
-  # Storage account name - computed once, used when building URIs at plan time
-  managed_instance_storage_account_name = coalesce(var.storage_account_name, module.naming.resource_names.storage_account)
+  # Storage account name - derived from the storage_account_id local
+  managed_instance_storage_account_name = local.storage_account_id != null ? provider::azapi::parse_resource_id("Microsoft.Storage/storageAccounts", local.storage_account_id).resource_name : null
   # Auto-enable storage account when convenience variables need it
   managed_instance_storage_account_needed = length(var.managed_instance_install_scripts) > 0 || length([
     for m in var.managed_instance_storage_mounts : m if m.type == "AzureFiles"

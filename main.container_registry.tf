@@ -15,7 +15,7 @@ module "container_registry" {
   private_endpoints = local.virtual_network_enabled ? {
     default = {
       subnet_resource_id            = local.private_endpoint_subnet_id
-      private_dns_zone_resource_ids = local.create_private_dns_zone_container_registry ? toset([module.private_dns_zone_container_registry[0].resource_id]) : toset([])
+      private_dns_zone_resource_ids = local.private_dns_zone_container_registry_id != null ? toset([local.private_dns_zone_container_registry_id]) : toset([])
     }
   } : {}
   public_network_access_enabled = local.virtual_network_enabled ? false : var.container_registry_public_network_access_enabled
