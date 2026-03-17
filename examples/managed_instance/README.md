@@ -23,10 +23,6 @@ terraform {
       source  = "hashicorp/azurerm"
       version = "~> 4.0"
     }
-    modtm = {
-      source  = "azure/modtm"
-      version = "~> 0.3"
-    }
     random = {
       source  = "hashicorp/random"
       version = "~> 3.5"
@@ -64,7 +60,7 @@ resource "random_integer" "region_index" {
 
 module "naming" {
   source  = "Azure/naming/azurerm"
-  version = "~> 0.4"
+  version = "0.4.3"
 }
 
 module "resource_group" {
@@ -275,8 +271,6 @@ The following requirements are needed by this module:
 
 - <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (~> 4.0)
 
-- <a name="requirement_modtm"></a> [modtm](#requirement\_modtm) (~> 0.3)
-
 - <a name="requirement_random"></a> [random](#requirement\_random) (~> 3.5)
 
 ## Resources
@@ -321,7 +315,7 @@ The following Modules are called:
 
 Source: Azure/naming/azurerm
 
-Version: ~> 0.4
+Version: 0.4.3
 
 ### <a name="module_resource_group"></a> [resource\_group](#module\_resource\_group)
 
