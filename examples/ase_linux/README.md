@@ -23,6 +23,10 @@ terraform {
       source  = "hashicorp/random"
       version = "~> 3.5"
     }
+    time = {
+      source  = "hashicorp/time"
+      version = "~> 0.9"
+    }
   }
 }
 
@@ -73,7 +77,7 @@ module "storage_account_zip_deploy" {
   location                 = module.resource_group.location
   name                     = module.naming.storage_account.name_unique
   resource_group_name      = module.resource_group.name
-  account_replication_type = "LRS"
+  account_replication_type = "ZRS"
   account_tier             = "Standard"
   containers = {
     zip-deploy = {
@@ -92,6 +96,12 @@ module "storage_account_zip_deploy" {
   shared_access_key_enabled     = true
 }
 
+resource "time_sleep" "wait_for_storage_account" {
+  create_duration = "30s"
+
+  depends_on = [module.storage_account_zip_deploy]
+}
+
 resource "azurerm_storage_blob" "zip_deploy" {
   name                   = "app.zip"
   storage_account_name   = module.storage_account_zip_deploy.name
@@ -100,7 +110,7 @@ resource "azurerm_storage_blob" "zip_deploy" {
   content_md5            = filemd5("${path.module}/app.zip")
   source                 = "${path.module}/app.zip"
 
-  depends_on = [module.storage_account_zip_deploy]
+  depends_on = [time_sleep.wait_for_storage_account]
 }
 
 data "azurerm_storage_account_blob_container_sas" "zip_deploy" {
@@ -187,12 +197,15 @@ The following requirements are needed by this module:
 
 - <a name="requirement_random"></a> [random](#requirement\_random) (~> 3.5)
 
+- <a name="requirement_time"></a> [time](#requirement\_time) (~> 0.9)
+
 ## Resources
 
 The following resources are used by this module:
 
 - [azurerm_storage_blob.zip_deploy](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/storage_blob) (resource)
 - [random_integer.region_index](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/integer) (resource)
+- [time_sleep.wait_for_storage_account](https://registry.terraform.io/providers/hashicorp/time/latest/docs/resources/sleep) (resource)
 - [azurerm_client_config.current](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/client_config) (data source)
 - [azurerm_storage_account_blob_container_sas.zip_deploy](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/storage_account_blob_container_sas) (data source)
 

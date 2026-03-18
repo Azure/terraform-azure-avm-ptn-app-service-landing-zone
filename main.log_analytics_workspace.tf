@@ -71,7 +71,8 @@ resource "azapi_resource" "log_analytics_workspace_private_endpoint" {
     module.private_dns_zone_monitor,
     module.private_dns_zone_oms,
     module.private_dns_zone_ods,
-    module.private_dns_zone_agentsvc
+    module.private_dns_zone_agentsvc,
+    azapi_resource.application_insights_ampls_scoped_service
   ]
 }
 

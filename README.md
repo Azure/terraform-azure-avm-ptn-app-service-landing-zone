@@ -2933,7 +2933,10 @@ Type:
 
 ```hcl
 object({
-    error_message_regex  = optional(list(string), ["AnotherOperationInProgress"])
+    error_message_regex = optional(list(string), [
+      "AnotherOperationInProgress",
+      #"Call to Microsoft.Insights/privateLinkScopes failed. Error message: Mismatching RequiredMembers in Request"
+    ])
     interval_seconds     = optional(number, 10)
     max_interval_seconds = optional(number, 180)
   })
