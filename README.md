@@ -5482,7 +5482,7 @@ Version: 0.17.1
 
 Source: Azure/avm-res-web-site/azurerm
 
-Version: 0.21.6
+Version: 0.21.7
 
 ### <a name="module_web_app_managed_identity"></a> [web\_app\_managed\_identity](#module\_web\_app\_managed\_identity)
 

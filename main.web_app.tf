@@ -1,6 +1,6 @@
 module "web_app" {
   source   = "Azure/avm-res-web-site/azurerm"
-  version  = "0.21.6"
+  version  = "0.21.7"
   for_each = var.web_apps
 
   # Required
