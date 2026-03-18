@@ -3,7 +3,7 @@ variable "application_gateway_autoscale_configuration" {
     min_capacity = optional(number, 1)
     max_capacity = optional(number, 2)
   })
-  default     = null
+  default     = {}
   description = "(Optional) Autoscale configuration for the Application Gateway."
 }
 

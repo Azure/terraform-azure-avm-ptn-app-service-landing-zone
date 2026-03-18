@@ -797,7 +797,7 @@ object({
   })
 ```
 
-Default: `null`
+Default: `{}`
 
 ### <a name="input_application_gateway_backend_address_pools"></a> [application\_gateway\_backend\_address\_pools](#input\_application\_gateway\_backend\_address\_pools)
 

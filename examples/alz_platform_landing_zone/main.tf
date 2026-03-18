@@ -96,7 +96,7 @@ module "firewall_public_ip" {
   allocation_method   = "Static"
   enable_telemetry    = var.enable_telemetry
   sku                 = "Standard"
-  zones               = []
+  zones               = ["1", "2", "3"]
 }
 
 # Public IP for firewall management traffic (required for Basic SKU)
@@ -110,7 +110,7 @@ module "firewall_management_public_ip" {
   allocation_method   = "Static"
   enable_telemetry    = var.enable_telemetry
   sku                 = "Standard"
-  zones               = []
+  zones               = ["1", "2", "3"]
 }
 
 # Firewall Policy (Basic SKU)
@@ -142,7 +142,7 @@ module "firewall" {
     subnet_id            = module.hub_virtual_network.subnets["AzureFirewallManagementSubnet"].resource_id
   }
   firewall_policy_id = module.firewall_policy.resource_id
-  firewall_zones     = []
+  firewall_zones     = ["1", "2", "3"]
   ip_configurations = {
     default = {
       name                 = "fw-ipconfig"
