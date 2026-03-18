@@ -68,7 +68,7 @@ locals {
     if mount.type == "AzureFiles" && mount.share_name != null
   }
   # Storage account name - derived from the storage_account_id local
-  managed_instance_storage_account_name = local.storage_account_id != null ? provider::azapi::parse_resource_id("Microsoft.Storage/storageAccounts", local.storage_account_id).resource_name : null
+  managed_instance_storage_account_name = local.storage_account_id != null ? provider::azapi::parse_resource_id("Microsoft.Storage/storageAccounts", local.storage_account_id).name : null
   # Auto-enable storage account when convenience variables need it
   managed_instance_storage_account_needed = length(var.managed_instance_install_scripts) > 0 || length([
     for m in var.managed_instance_storage_mounts : m if m.type == "AzureFiles"
