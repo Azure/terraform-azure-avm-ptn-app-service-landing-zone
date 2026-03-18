@@ -3,7 +3,7 @@ variable "resource_name_defaults" {
   default = {
     # Single-instance resources (supports hyphens)
     virtual_network                                 = "vnet-$${resource_name_workload}-$${resource_name_environment}-$${location}-$${sequence}"
-    app_service_environment                         = "ase-$${resource_name_workload}-$${resource_name_environment}-$${location}-$${sequence}"
+    app_service_environment                         = "ase-$${resource_name_workload}-$${resource_name_environment}-$${location}-$${unique_name}-$${sequence}"
     app_service_plan                                = "asp-$${resource_name_workload}-$${resource_name_environment}-$${location}-$${sequence}"
     application_insights                            = "ai-$${resource_name_workload}-$${resource_name_environment}-$${location}-$${sequence}"
     bastion_host                                    = "bas-$${resource_name_workload}-$${resource_name_environment}-$${location}-$${sequence}"
