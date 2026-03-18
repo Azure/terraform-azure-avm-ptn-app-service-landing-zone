@@ -1,6 +1,6 @@
 module "app_service_environment" {
   source  = "Azure/avm-res-web-hostingenvironment/azurerm"
-  version = "2.0.0"
+  version = "2.0.1"
   count   = var.app_service_environment_enabled ? 1 : 0
 
   location                               = var.location

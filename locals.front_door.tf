@@ -59,7 +59,7 @@ locals {
       https_port                     = 443
       priority                       = 1
       weight                         = 1000
-      private_link = var.front_door_sku == "Premium_AzureFrontDoor" && var.front_door_private_link_enabled && !var.app_service_environment_enabled ? {
+      private_link = var.front_door_sku == "Premium_AzureFrontDoor" && var.front_door_private_link_enabled ? {
         pl = {
           request_message        = local.private_link_request_message
           target_type            = "sites"
@@ -70,7 +70,7 @@ locals {
     }
   }
   # Whether Front Door private link to web apps is effectively enabled
-  front_door_private_link_effectively_enabled = var.front_door_enabled && var.front_door_sku == "Premium_AzureFrontDoor" && var.front_door_private_link_enabled && !var.app_service_environment_enabled && length(var.web_apps) > 0
+  front_door_private_link_effectively_enabled = var.front_door_enabled && var.front_door_sku == "Premium_AzureFrontDoor" && var.front_door_private_link_enabled && length(var.web_apps) > 0
   # Front Door routes - one per web app
   front_door_routes = {
     for key, app in var.web_apps : key => {

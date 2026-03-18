@@ -5353,7 +5353,7 @@ Version: 0.4.1
 
 Source: Azure/avm-res-web-hostingenvironment/azurerm
 
-Version: 2.0.0
+Version: 2.0.1
 
 ### <a name="module_app_service_plan"></a> [app\_service\_plan](#module\_app\_service\_plan)
 
