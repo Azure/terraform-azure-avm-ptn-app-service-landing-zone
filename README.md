@@ -792,8 +792,8 @@ Type:
 
 ```hcl
 object({
-    min_capacity = optional(number, 1)
-    max_capacity = optional(number, 2)
+    min_capacity = optional(number, 2)
+    max_capacity = optional(number, 3)
   })
 ```
 
