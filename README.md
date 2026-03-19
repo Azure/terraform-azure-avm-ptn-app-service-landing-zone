@@ -34,6 +34,8 @@ The following requirements are needed by this module:
 
 - <a name="requirement_random"></a> [random](#requirement\_random) (~> 3.5)
 
+- <a name="requirement_time"></a> [time](#requirement\_time) (~> 0.12)
+
 ## Resources
 
 The following resources are used by this module:
@@ -42,13 +44,14 @@ The following resources are used by this module:
 - [azapi_resource.frontdoor_security_policy](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
 - [azapi_resource.log_analytics_workspace_private_endpoint](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
 - [azapi_resource.log_analytics_workspace_private_endpoint_dns_zone_group](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
-- [azapi_resource.managed_instance_storage_connection_string](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) (resource)
 - [azapi_resource_action.container_registry_docker_build](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource_action) (resource)
 - [azapi_resource_action.container_registry_image_import](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource_action) (resource)
 - [azapi_update_resource.front_door_private_endpoint_approval](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/update_resource) (resource)
+- [azurerm_key_vault_secret.managed_instance_storage_connection_string](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) (resource)
 - [azurerm_storage_blob.managed_instance](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/storage_blob) (resource)
 - [modtm_telemetry.telemetry](https://registry.terraform.io/providers/azure/modtm/latest/docs/resources/telemetry) (resource)
 - [random_uuid.telemetry](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/uuid) (resource)
+- [time_sleep.wait_for_storage_account](https://registry.terraform.io/providers/hashicorp/time/latest/docs/resources/sleep) (resource)
 - [azapi_client_config.telemetry](https://registry.terraform.io/providers/Azure/azapi/latest/docs/data-sources/client_config) (data source)
 - [azapi_client_config.this](https://registry.terraform.io/providers/Azure/azapi/latest/docs/data-sources/client_config) (data source)
 - [azapi_resource.log_analytics_workspace_ampls](https://registry.terraform.io/providers/Azure/azapi/latest/docs/data-sources/resource) (data source)
@@ -3486,6 +3489,14 @@ Type: `string`
 
 Default: `"Standard"`
 
+### <a name="input_storage_account_blob_wait_duration"></a> [storage\_account\_blob\_wait\_duration](#input\_storage\_account\_blob\_wait\_duration)
+
+Description: (Optional) The duration to wait after uploading blobs to the storage account. Set to null to disable. Defaults to '60s'.
+
+Type: `string`
+
+Default: `"60s"`
+
 ### <a name="input_storage_account_containers"></a> [storage\_account\_containers](#input\_storage\_account\_containers)
 
 Description: (Optional) A map of blob containers to create in the storage account.
@@ -3817,6 +3828,14 @@ Description: (Optional) Tags to apply to the storage account. If null, the modul
 Type: `map(string)`
 
 Default: `null`
+
+### <a name="input_storage_account_wait_duration"></a> [storage\_account\_wait\_duration](#input\_storage\_account\_wait\_duration)
+
+Description: (Optional) The duration to wait after creating the storage account before uploading blobs. Set to null to disable. Defaults to '60s'.
+
+Type: `string`
+
+Default: `"60s"`
 
 ### <a name="input_tags"></a> [tags](#input\_tags)
 
@@ -5485,7 +5504,7 @@ Version: 0.17.1
 
 Source: Azure/avm-res-web-site/azurerm
 
-Version: 0.21.7
+Version: 0.21.8
 
 ### <a name="module_web_app_managed_identity"></a> [web\_app\_managed\_identity](#module\_web\_app\_managed\_identity)
 

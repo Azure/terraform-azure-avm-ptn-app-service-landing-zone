@@ -16,6 +16,12 @@ variable "storage_account_account_tier" {
   description = "(Optional) Defines the tier to use for this storage account. Valid options are Standard and Premium. Defaults to Standard."
 }
 
+variable "storage_account_blob_wait_duration" {
+  type        = string
+  default     = "60s"
+  description = "(Optional) The duration to wait after uploading blobs to the storage account. Set to null to disable. Defaults to '60s'."
+}
+
 variable "storage_account_containers" {
   type = map(object({
     public_access = optional(string, "None")
@@ -210,7 +216,6 @@ variable "storage_account_network_rules" {
   })
   default     = {}
   description = "(Optional) Network rules for the storage account. Defaults to denying all public access with AzureServices bypass."
-  nullable    = false
 }
 
 variable "storage_account_public_network_access_enabled" {
@@ -287,4 +292,10 @@ variable "storage_account_tags" {
   type        = map(string)
   default     = null
   description = "(Optional) Tags to apply to the storage account. If null, the module-level tags are used."
+}
+
+variable "storage_account_wait_duration" {
+  type        = string
+  default     = "60s"
+  description = "(Optional) The duration to wait after creating the storage account before uploading blobs. Set to null to disable. Defaults to '60s'."
 }

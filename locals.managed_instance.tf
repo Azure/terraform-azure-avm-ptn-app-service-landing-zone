@@ -18,17 +18,20 @@ locals {
     }
   }
   # --- Install scripts config for the ASP ---
+  # Uses the blob resource URL output to create an implicit dependency on the
+  # blob upload (and transitively on the storage account and its time_sleep).
   managed_instance_install_scripts_config = [
     for idx, script in var.managed_instance_install_scripts : {
       name = script.name
       source = {
         type       = "RemoteAzureBlob"
-        source_uri = "https://${local.managed_instance_storage_account_name}.blob.core.windows.net/install-scripts-${idx}/${script.name}.zip"
+        source_uri = azurerm_storage_blob.managed_instance["mi_install_${idx}"].url
       }
     }
   ]
-  # Key vault name - computed once, used when building URIs at plan time
-  managed_instance_key_vault_name = coalesce(var.key_vault_name, module.naming.resource_names.key_vault)
+  # Key vault name - derived from the key vault module output when managed
+  # instance features need it, creating an implicit dependency on the key vault.
+  managed_instance_key_vault_name = local.managed_instance_key_vault_needed ? module.key_vault[0].name : coalesce(var.key_vault_name, module.naming.resource_names.key_vault)
   # Auto-enable key vault when convenience variables need it
   managed_instance_key_vault_needed = length(var.managed_instance_registry_adapters) > 0 || length([
     for m in var.managed_instance_storage_mounts : m if m.type == "AzureFiles"
@@ -73,6 +76,9 @@ locals {
   managed_instance_storage_account_needed = length(var.managed_instance_install_scripts) > 0 || length([
     for m in var.managed_instance_storage_mounts : m if m.type == "AzureFiles"
   ]) > 0
+  # Key vault secret name - derived from the secret resource output to create
+  # an implicit dependency ensuring the secret exists before the ASP references it.
+  managed_instance_storage_connection_string_secret_name = local.managed_instance_shared_access_key_needed ? azurerm_key_vault_secret.managed_instance_storage_connection_string[0].name : null
   # --- Storage mounts config for the ASP ---
   managed_instance_storage_mounts_config = [
     for mount in var.managed_instance_storage_mounts : mount.type == "AzureFiles" ? {
@@ -82,7 +88,7 @@ locals {
       destination_path = mount.destination_path
       credentials_key_vault_reference = {
         # NOTE: the double slash after the vault URI is intentional to comply with Key Vault secret URI format for this resource
-        secret_uri = "https://${local.managed_instance_key_vault_name}.vault.azure.net//secrets/mi-storage-connection-string"
+        secret_uri = "https://${local.managed_instance_key_vault_name}.vault.azure.net//secrets/${local.managed_instance_storage_connection_string_secret_name}"
       }
       } : {
       name             = mount.name

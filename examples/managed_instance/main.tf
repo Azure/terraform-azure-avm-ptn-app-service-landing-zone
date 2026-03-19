@@ -140,8 +140,9 @@ data "azurerm_storage_account_blob_container_sas" "zip_deploy" {
 }
 
 # App Service Managed Instance (WindowsManagedInstance)
-# Provides enhanced security and performance features for Windows App Service.
-# Bastion host is automatically enabled for WindowsManagedInstance mode.
+# Deploys apps on dedicated, VNet-integrated Windows instances with support for
+# install scripts, registry adapters, storage mounts, and RDP access.
+# Bastion host can be enabled for RDP access to the managed instance.
 # The os_type is automatically mapped to 'Windows' for web apps.
 #
 # The convenience variables (managed_instance_install_scripts, managed_instance_registry_adapters,
@@ -160,7 +161,15 @@ module "test" {
   # RDP access enabled
   app_service_plan_rdp_enabled = true
   app_service_plan_sku_name    = "P1v4"
-  enable_telemetry             = var.enable_telemetry
+  # Enable Bastion Host for RDP access to the managed instance
+  bastion_host_enabled = true
+  enable_telemetry     = var.enable_telemetry
+  # Public access is enabled so this example works without self-hosted agents / runners.
+  key_vault_network_acls = {
+    bypass         = "AzureServices"
+    default_action = "Allow"
+  }
+  key_vault_public_network_access_enabled = true
   # Key Vault settings - the module auto-creates a key vault for registry adapters and storage mounts
   key_vault_purge_protection_enabled = false
   key_vault_role_assignments = {
@@ -169,8 +178,6 @@ module "test" {
       principal_id               = data.azapi_client_config.this.object_id
     }
   }
-  key_vault_sku_name                             = "standard"
-  key_vault_soft_delete_retention_days           = 7
   log_analytics_workspace_internet_query_enabled = true
   # Install scripts - just provide the name and path; the module handles container, blob, and ASP config
   managed_instance_install_scripts = [
@@ -208,6 +215,9 @@ module "test" {
     }
   ]
   # Storage account settings - the module auto-creates a storage account for install scripts and mounts
+  # Public access is enabled so this example works without self-hosted agents / runners.
+  storage_account_network_rules                 = null
+  storage_account_public_network_access_enabled = true
   storage_account_role_assignments = {
     blob_contributor_current_user = {
       role_definition_id_or_name = "Storage Blob Data Contributor"
