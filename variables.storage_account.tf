@@ -16,12 +16,6 @@ variable "storage_account_account_tier" {
   description = "(Optional) Defines the tier to use for this storage account. Valid options are Standard and Premium. Defaults to Standard."
 }
 
-variable "storage_account_blob_wait_duration" {
-  type        = string
-  default     = "60s"
-  description = "(Optional) The duration to wait after uploading blobs to the storage account. Set to null to disable. Defaults to '60s'."
-}
-
 variable "storage_account_containers" {
   type = map(object({
     public_access = optional(string, "None")
@@ -229,17 +223,6 @@ variable "storage_account_resource_id" {
   type        = string
   default     = null
   description = "(Optional) The resource ID of an existing storage account. When set, the module will not create a storage account."
-}
-
-variable "storage_account_retry" {
-  type = object({
-    error_message_regex  = optional(list(string), ["AnotherOperationInProgress"])
-    interval_seconds     = optional(number, 10)
-    max_interval_seconds = optional(number, 180)
-  })
-  default     = {}
-  description = "(Optional) Retry configuration for transient errors on storage account azapi resources."
-  nullable    = false
 }
 
 variable "storage_account_role_assignments" {

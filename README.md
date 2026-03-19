@@ -3489,14 +3489,6 @@ Type: `string`
 
 Default: `"Standard"`
 
-### <a name="input_storage_account_blob_wait_duration"></a> [storage\_account\_blob\_wait\_duration](#input\_storage\_account\_blob\_wait\_duration)
-
-Description: (Optional) The duration to wait after uploading blobs to the storage account. Set to null to disable. Defaults to '60s'.
-
-Type: `string`
-
-Default: `"60s"`
-
 ### <a name="input_storage_account_containers"></a> [storage\_account\_containers](#input\_storage\_account\_containers)
 
 Description: (Optional) A map of blob containers to create in the storage account.
@@ -3747,22 +3739,6 @@ Description: (Optional) The resource ID of an existing storage account. When set
 Type: `string`
 
 Default: `null`
-
-### <a name="input_storage_account_retry"></a> [storage\_account\_retry](#input\_storage\_account\_retry)
-
-Description: (Optional) Retry configuration for transient errors on storage account azapi resources.
-
-Type:
-
-```hcl
-object({
-    error_message_regex  = optional(list(string), ["AnotherOperationInProgress"])
-    interval_seconds     = optional(number, 10)
-    max_interval_seconds = optional(number, 180)
-  })
-```
-
-Default: `{}`
 
 ### <a name="input_storage_account_role_assignments"></a> [storage\_account\_role\_assignments](#input\_storage\_account\_role\_assignments)
 

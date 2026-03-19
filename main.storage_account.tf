@@ -81,6 +81,7 @@ resource "azurerm_key_vault_secret" "managed_instance_storage_connection_string"
 
   key_vault_id = module.key_vault[0].resource_id
   name         = "mi-storage-connection-string"
+  tags         = try(coalesce(var.storage_account_tags, var.tags), {})
   value        = "DefaultEndpointsProtocol=https;AccountName=${module.storage_account[0].name};AccountKey=${data.azapi_resource_action.managed_instance_storage_account_keys[0].output.keys[0].value};EndpointSuffix=core.windows.net"
 
   depends_on = [module.key_vault]

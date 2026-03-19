@@ -183,11 +183,9 @@ locals {
       marketplace_partner_resource_id          = v.marketplace_partner_resource_id
     }
   } : local.diag_default_old_metrics_only
-  storage_account_diagnostic_settings_blob  = length(var.storage_account_diagnostic_settings_blob) > 0 ? local.diag_storage_sub_coerced["blob"] : local.diag_default_old_storage_sub
-  storage_account_diagnostic_settings_file  = length(var.storage_account_diagnostic_settings_file) > 0 ? local.diag_storage_sub_coerced["file"] : local.diag_default_old_storage_sub
-  storage_account_diagnostic_settings_queue = length(var.storage_account_diagnostic_settings_queue) > 0 ? local.diag_storage_sub_coerced["queue"] : local.diag_default_old_storage_sub
-  storage_account_diagnostic_settings_table = length(var.storage_account_diagnostic_settings_table) > 0 ? local.diag_storage_sub_coerced["table"] : local.diag_default_old_storage_sub
-  virtual_network_diagnostic_settings       = length(var.virtual_network_diagnostic_settings) > 0 ? local.diag_coerce_old["virtual_network"] : local.diag_default_old
+  storage_account_diagnostic_settings_blob = length(var.storage_account_diagnostic_settings_blob) > 0 ? local.diag_storage_sub_coerced["blob"] : local.diag_default_old_storage_sub
+  storage_account_diagnostic_settings_file = length(var.storage_account_diagnostic_settings_file) > 0 ? local.diag_storage_sub_coerced["file"] : local.diag_default_old_storage_sub
+  virtual_network_diagnostic_settings      = length(var.virtual_network_diagnostic_settings) > 0 ? local.diag_coerce_old["virtual_network"] : local.diag_default_old
   web_app_diagnostic_settings = {
     for app_key, app in var.web_apps : app_key => (
       length(app.diagnostic_settings) > 0 ? {
