@@ -128,7 +128,7 @@ module "storage_account_zip_deploy" {
   version = "0.6.7"
 
   location                 = module.resource_group.location
-  name                     = module.naming.storage_account.name_unique
+  name                     = "${module.naming.storage_account.name_unique}test001"
   resource_group_name      = module.resource_group.name
   account_replication_type = "ZRS"
   account_tier             = "Standard"
