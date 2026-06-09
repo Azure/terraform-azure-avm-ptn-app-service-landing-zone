@@ -1,6 +1,6 @@
 module "storage_account" {
   source  = "Azure/avm-res-storage-storageaccount/azurerm"
-  version = "0.6.7"
+  version = "0.7.2"
   count   = var.storage_account_enabled || local.managed_instance_storage_account_needed ? 1 : 0
 
   location                            = var.location
