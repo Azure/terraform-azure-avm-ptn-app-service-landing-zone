@@ -131,7 +131,7 @@ data "azurerm_storage_account_blob_container_sas" "zip_deploy" {
 
 module "appgw_managed_identity" {
   source  = "Azure/avm-res-managedidentity-userassignedidentity/azurerm"
-  version = "0.4.0"
+  version = "0.5.0"
 
   location            = module.resource_group.location
   name                = "id-appgw-${module.naming.user_assigned_identity.name_unique}"
