@@ -63,7 +63,7 @@ module "resource_group" {
 
 module "storage_account_zip_deploy" {
   source  = "Azure/avm-res-storage-storageaccount/azurerm"
-  version = "0.6.7"
+  version = "0.7.2"
 
   location                 = module.resource_group.location
   name                     = "${module.naming.storage_account.name_unique}test001"
