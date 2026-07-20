@@ -49,7 +49,7 @@ module "naming" {
 
 module "resource_group" {
   source  = "Azure/avm-res-resources-resourcegroup/azurerm"
-  version = "0.2.2"
+  version = "0.4.0"
 
   location         = local.azure_regions[random_integer.region_index.result]
   name             = "${module.naming.resource_group.name_unique}-appgw"
@@ -63,7 +63,7 @@ module "resource_group" {
 
 module "storage_account_zip_deploy" {
   source  = "Azure/avm-res-storage-storageaccount/azurerm"
-  version = "0.6.7"
+  version = "0.7.3"
 
   location                 = module.resource_group.location
   name                     = "${module.naming.storage_account.name_unique}test001"
@@ -131,7 +131,7 @@ data "azurerm_storage_account_blob_container_sas" "zip_deploy" {
 
 module "appgw_managed_identity" {
   source  = "Azure/avm-res-managedidentity-userassignedidentity/azurerm"
-  version = "0.4.0"
+  version = "0.5.1"
 
   location            = module.resource_group.location
   name                = "id-appgw-${module.naming.user_assigned_identity.name_unique}"
