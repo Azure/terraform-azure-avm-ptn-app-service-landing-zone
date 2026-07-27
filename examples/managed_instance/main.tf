@@ -60,7 +60,7 @@ module "naming" {
 
 module "resource_group" {
   source  = "Azure/avm-res-resources-resourcegroup/azurerm"
-  version = "0.2.2"
+  version = "0.4.0"
 
   location         = local.azure_regions[random_integer.region_index.result]
   name             = "${module.naming.resource_group.name_unique}-managed-instance"
@@ -82,7 +82,7 @@ data "archive_file" "scripts" {
 
 module "storage_account_zip_deploy" {
   source  = "Azure/avm-res-storage-storageaccount/azurerm"
-  version = "0.6.7"
+  version = "0.7.3"
 
   location                 = module.resource_group.location
   name                     = "${module.naming.storage_account.name_unique}test001"

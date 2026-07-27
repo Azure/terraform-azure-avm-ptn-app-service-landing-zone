@@ -1,6 +1,6 @@
 module "virtual_network" {
   source  = "Azure/avm-res-network-virtualnetwork/azurerm"
-  version = "0.17.1"
+  version = "0.19.0"
   count   = var.virtual_network_enabled ? 1 : 0
 
   location                = var.location

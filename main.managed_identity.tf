@@ -2,7 +2,7 @@
 # This identity is used by the platform to pull install scripts, access registry adapters, etc.
 module "managed_instance_managed_identity" {
   source  = "Azure/avm-res-managedidentity-userassignedidentity/azurerm"
-  version = "0.4.0"
+  version = "0.5.1"
   count   = var.app_service_plan_os_type == "WindowsManagedInstance" && var.managed_instance_managed_identity_enabled ? 1 : 0
 
   location            = var.location
@@ -16,7 +16,7 @@ module "managed_instance_managed_identity" {
 # Each web app can have its own managed identity, controlled by the managed_identity_enabled field.
 module "web_app_managed_identity" {
   source  = "Azure/avm-res-managedidentity-userassignedidentity/azurerm"
-  version = "0.4.0"
+  version = "0.5.1"
   for_each = {
     for key, app in var.web_apps : key => app
     if app.managed_identity_enabled
@@ -33,7 +33,7 @@ module "web_app_managed_identity" {
 # Each deployment slot can have its own managed identity, controlled by the managed_identity_enabled field on the slot.
 module "web_app_slot_managed_identity" {
   source  = "Azure/avm-res-managedidentity-userassignedidentity/azurerm"
-  version = "0.4.0"
+  version = "0.5.1"
   for_each = {
     for item in flatten([
       for app_key, app in var.web_apps : [
