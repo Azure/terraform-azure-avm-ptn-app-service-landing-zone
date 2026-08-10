@@ -65,10 +65,10 @@ resource "azurerm_storage_blob" "managed_instance" {
   for_each = local.managed_instance_blobs
 
   name                   = each.value.name
-  storage_account_name   = module.storage_account[0].name
-  storage_container_name = each.value.container_name
   type                   = each.value.type
   source                 = each.value.source
+  storage_account_name   = module.storage_account[0].name
+  storage_container_name = each.value.container_name
 
   depends_on = [time_sleep.wait_for_storage_account]
 }
