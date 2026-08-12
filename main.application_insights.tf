@@ -1,6 +1,6 @@
 module "application_insights" {
   source  = "Azure/avm-res-insights-component/azurerm"
-  version = "0.3.0"
+  version = "0.4.0"
   count   = var.application_insights_enabled ? 1 : 0
 
   location                              = var.location
