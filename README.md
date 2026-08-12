@@ -28,7 +28,7 @@ The following requirements are needed by this module:
 
 - <a name="requirement_azapi"></a> [azapi](#requirement\_azapi) (~> 2.4)
 
-- <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (~> 4.0)
+- <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (~> 5.0)
 
 - <a name="requirement_modtm"></a> [modtm](#requirement\_modtm) (~> 0.3)
 
@@ -5342,7 +5342,7 @@ The following Modules are called:
 
 Source: Azure/avm-res-network-routetable/azurerm
 
-Version: 0.4.1
+Version: 0.5.0
 
 ### <a name="module_app_service_environment"></a> [app\_service\_environment](#module\_app\_service\_environment)
 
@@ -5354,7 +5354,7 @@ Version: 2.0.1
 
 Source: Azure/avm-res-web-serverfarm/azurerm
 
-Version: 2.0.1
+Version: 2.0.8
 
 ### <a name="module_application_gateway"></a> [application\_gateway](#module\_application\_gateway)
 
@@ -5366,7 +5366,7 @@ Version: 0.5.2
 
 Source: Azure/avm-res-insights-component/azurerm
 
-Version: 0.3.0
+Version: 0.4.0
 
 ### <a name="module_bastion_host"></a> [bastion\_host](#module\_bastion\_host)
 
@@ -5378,7 +5378,7 @@ Version: 0.9.0
 
 Source: Azure/avm-res-containerregistry-registry/azurerm
 
-Version: 0.5.1
+Version: 0.7.0
 
 ### <a name="module_front_door"></a> [front\_door](#module\_front\_door)
 
@@ -5402,7 +5402,7 @@ Version: 0.5.1
 
 Source: Azure/avm-res-managedidentity-userassignedidentity/azurerm
 
-Version: 0.4.0
+Version: 0.5.1
 
 ### <a name="module_naming"></a> [naming](#module\_naming)
 
@@ -5468,31 +5468,31 @@ Version: 0.5.0
 
 Source: Azure/avm-res-storage-storageaccount/azurerm
 
-Version: 0.6.7
+Version: 0.7.4
 
 ### <a name="module_virtual_network"></a> [virtual\_network](#module\_virtual\_network)
 
 Source: Azure/avm-res-network-virtualnetwork/azurerm
 
-Version: 0.17.1
+Version: 0.20.0
 
 ### <a name="module_web_app"></a> [web\_app](#module\_web\_app)
 
 Source: Azure/avm-res-web-site/azurerm
 
-Version: 0.21.8
+Version: 0.22.0
 
 ### <a name="module_web_app_managed_identity"></a> [web\_app\_managed\_identity](#module\_web\_app\_managed\_identity)
 
 Source: Azure/avm-res-managedidentity-userassignedidentity/azurerm
 
-Version: 0.4.0
+Version: 0.5.1
 
 ### <a name="module_web_app_slot_managed_identity"></a> [web\_app\_slot\_managed\_identity](#module\_web\_app\_slot\_managed\_identity)
 
 Source: Azure/avm-res-managedidentity-userassignedidentity/azurerm
 
-Version: 0.4.0
+Version: 0.5.1
 
 <!-- markdownlint-disable-next-line MD041 -->
 ## Data Collection

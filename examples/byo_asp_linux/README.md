@@ -17,7 +17,7 @@ terraform {
     }
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "~> 4.0"
+      version = "~> 5.0"
     }
     random = {
       source  = "hashicorp/random"
@@ -58,7 +58,7 @@ module "naming" {
 
 module "resource_group" {
   source  = "Azure/avm-res-resources-resourcegroup/azurerm"
-  version = "0.2.2"
+  version = "0.4.0"
 
   location         = local.azure_regions[random_integer.region_index.result]
   name             = "${module.naming.resource_group.name_unique}-byo-asp-linux"
@@ -68,7 +68,7 @@ module "resource_group" {
 # Virtual Network with subnets
 module "virtual_network" {
   source  = "Azure/avm-res-network-virtualnetwork/azurerm"
-  version = "0.17.1"
+  version = "0.20.0"
 
   location         = module.resource_group.location
   parent_id        = module.resource_group.resource_id
@@ -99,7 +99,7 @@ module "virtual_network" {
 # App Service Plan
 module "app_service_plan" {
   source  = "Azure/avm-res-web-serverfarm/azurerm"
-  version = "2.0.1"
+  version = "2.0.8"
 
   location               = module.resource_group.location
   name                   = module.naming.app_service_plan.name_unique
@@ -134,7 +134,7 @@ module "private_dns_zone_web" {
 
 module "storage_account_zip_deploy" {
   source  = "Azure/avm-res-storage-storageaccount/azurerm"
-  version = "0.6.7"
+  version = "0.7.4"
 
   location                 = module.resource_group.location
   name                     = "${module.naming.storage_account.name_unique}test001"
@@ -274,7 +274,7 @@ The following requirements are needed by this module:
 
 - <a name="requirement_azapi"></a> [azapi](#requirement\_azapi) (~> 2.4)
 
-- <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (~> 4.0)
+- <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (~> 5.0)
 
 - <a name="requirement_random"></a> [random](#requirement\_random) (~> 3.5)
 
@@ -321,7 +321,7 @@ The following Modules are called:
 
 Source: Azure/avm-res-web-serverfarm/azurerm
 
-Version: 2.0.1
+Version: 2.0.8
 
 ### <a name="module_naming"></a> [naming](#module\_naming)
 
@@ -339,13 +339,13 @@ Version: 0.5.0
 
 Source: Azure/avm-res-resources-resourcegroup/azurerm
 
-Version: 0.2.2
+Version: 0.4.0
 
 ### <a name="module_storage_account_zip_deploy"></a> [storage\_account\_zip\_deploy](#module\_storage\_account\_zip\_deploy)
 
 Source: Azure/avm-res-storage-storageaccount/azurerm
 
-Version: 0.6.7
+Version: 0.7.4
 
 ### <a name="module_test"></a> [test](#module\_test)
 
@@ -357,7 +357,7 @@ Version:
 
 Source: Azure/avm-res-network-virtualnetwork/azurerm
 
-Version: 0.17.1
+Version: 0.20.0
 
 <!-- markdownlint-disable-next-line MD041 -->
 ## Data Collection
