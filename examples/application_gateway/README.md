@@ -17,7 +17,7 @@ terraform {
     }
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "~> 4.0"
+      version = "~> 5.1"
     }
     random = {
       source  = "hashicorp/random"
@@ -58,7 +58,7 @@ module "naming" {
 
 module "resource_group" {
   source  = "Azure/avm-res-resources-resourcegroup/azurerm"
-  version = "0.2.2"
+  version = "0.4.0"
 
   location         = local.azure_regions[random_integer.region_index.result]
   name             = "${module.naming.resource_group.name_unique}-appgw"
@@ -72,7 +72,7 @@ module "resource_group" {
 
 module "storage_account_zip_deploy" {
   source  = "Azure/avm-res-storage-storageaccount/azurerm"
-  version = "0.6.7"
+  version = "0.8.1"
 
   location                 = module.resource_group.location
   name                     = "${module.naming.storage_account.name_unique}test001"
@@ -140,7 +140,7 @@ data "azurerm_storage_account_blob_container_sas" "zip_deploy" {
 
 module "appgw_managed_identity" {
   source  = "Azure/avm-res-managedidentity-userassignedidentity/azurerm"
-  version = "0.4.0"
+  version = "0.5.2"
 
   location            = module.resource_group.location
   name                = "id-appgw-${module.naming.user_assigned_identity.name_unique}"
@@ -150,7 +150,7 @@ module "appgw_managed_identity" {
 
 module "appgw_key_vault" {
   source  = "Azure/avm-res-keyvault-vault/azurerm"
-  version = "0.10.2"
+  version = "0.11.0"
 
   location            = module.resource_group.location
   name                = "kv-agw-${module.naming.key_vault.name_unique}"
@@ -288,7 +288,7 @@ The following requirements are needed by this module:
 
 - <a name="requirement_azapi"></a> [azapi](#requirement\_azapi) (~> 2.4)
 
-- <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (~> 4.0)
+- <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (~> 5.1)
 
 - <a name="requirement_random"></a> [random](#requirement\_random) (~> 3.5)
 
@@ -340,13 +340,13 @@ The following Modules are called:
 
 Source: Azure/avm-res-keyvault-vault/azurerm
 
-Version: 0.10.2
+Version: 0.11.0
 
 ### <a name="module_appgw_managed_identity"></a> [appgw\_managed\_identity](#module\_appgw\_managed\_identity)
 
 Source: Azure/avm-res-managedidentity-userassignedidentity/azurerm
 
-Version: 0.4.0
+Version: 0.5.2
 
 ### <a name="module_naming"></a> [naming](#module\_naming)
 
@@ -358,13 +358,13 @@ Version: 0.4.3
 
 Source: Azure/avm-res-resources-resourcegroup/azurerm
 
-Version: 0.2.2
+Version: 0.4.0
 
 ### <a name="module_storage_account_zip_deploy"></a> [storage\_account\_zip\_deploy](#module\_storage\_account\_zip\_deploy)
 
 Source: Azure/avm-res-storage-storageaccount/azurerm
 
-Version: 0.6.7
+Version: 0.8.1
 
 ### <a name="module_test"></a> [test](#module\_test)
 
