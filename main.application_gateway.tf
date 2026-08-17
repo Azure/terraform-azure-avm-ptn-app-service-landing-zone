@@ -1,6 +1,6 @@
 module "application_gateway" {
   source  = "Azure/avm-res-network-applicationgateway/azurerm"
-  version = "0.5.2"
+  version = "0.5.3"
   count   = var.application_gateway_enabled && length(var.web_apps) > 0 ? 1 : 0
 
   # Required inputs
