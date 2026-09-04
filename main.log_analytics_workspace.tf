@@ -58,13 +58,9 @@ resource "azapi_resource" "log_analytics_workspace_private_endpoint" {
       ]
     }
   }
-  create_headers         = var.enable_telemetry ? { "User-Agent" : local.avm_azapi_header } : null
-  delete_headers         = var.enable_telemetry ? { "User-Agent" : local.avm_azapi_header } : null
-  read_headers           = var.enable_telemetry ? { "User-Agent" : local.avm_azapi_header } : null
   response_export_values = []
   retry                  = var.log_analytics_workspace_retry
   tags                   = var.tags
-  update_headers         = var.enable_telemetry ? { "User-Agent" : local.avm_azapi_header } : null
 
   depends_on = [
     module.log_analytics_workspace,
@@ -95,12 +91,8 @@ resource "azapi_resource" "log_analytics_workspace_private_endpoint_dns_zone_gro
       ]
     }
   }
-  create_headers         = var.enable_telemetry ? { "User-Agent" : local.avm_azapi_header } : null
-  delete_headers         = var.enable_telemetry ? { "User-Agent" : local.avm_azapi_header } : null
-  read_headers           = var.enable_telemetry ? { "User-Agent" : local.avm_azapi_header } : null
   response_export_values = []
   retry                  = var.log_analytics_workspace_retry
-  update_headers         = var.enable_telemetry ? { "User-Agent" : local.avm_azapi_header } : null
 }
 
 # Link Application Insights to the AMPLS created by the LAW module
@@ -115,13 +107,9 @@ resource "azapi_resource" "application_insights_ampls_scoped_service" {
       linkedResourceId = module.application_insights[0].resource_id
     }
   }
-  create_headers         = var.enable_telemetry ? { "User-Agent" : local.avm_azapi_header } : null
-  delete_headers         = var.enable_telemetry ? { "User-Agent" : local.avm_azapi_header } : null
   ignore_casing          = true
-  read_headers           = var.enable_telemetry ? { "User-Agent" : local.avm_azapi_header } : null
   response_export_values = []
   retry                  = var.log_analytics_workspace_retry
-  update_headers         = var.enable_telemetry ? { "User-Agent" : local.avm_azapi_header } : null
 
   depends_on = [module.log_analytics_workspace]
 }

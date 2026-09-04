@@ -50,7 +50,6 @@ module "resource_group" {
   enable_telemetry = var.enable_telemetry
 }
 
-
 locals {
   container_registry_login_server = "${local.container_registry_name}.azurecr.io"
   container_registry_name         = module.naming.container_registry.name_unique
