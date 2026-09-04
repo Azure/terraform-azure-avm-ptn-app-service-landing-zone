@@ -123,11 +123,11 @@ resource "time_sleep" "wait_for_storage_account" {
 
 resource "azurerm_storage_blob" "zip_deploy" {
   name                   = "app.zip"
-  storage_account_name   = module.storage_account_zip_deploy.name
-  storage_container_name = "zip-deploy"
   type                   = "Block"
   content_md5            = filemd5("${path.module}/app.zip")
   source                 = "${path.module}/app.zip"
+  storage_account_name   = module.storage_account_zip_deploy.name
+  storage_container_name = "zip-deploy"
 
   depends_on = [time_sleep.wait_for_storage_account]
 }
