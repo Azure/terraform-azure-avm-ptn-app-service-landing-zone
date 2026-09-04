@@ -1,11 +1,10 @@
 module "storage_account" {
   source  = "Azure/avm-res-storage-storageaccount/azurerm"
-  version = "0.6.7"
+  version = "0.8.1"
   count   = var.storage_account_enabled || local.managed_instance_storage_account_needed ? 1 : 0
 
   location                            = var.location
   name                                = coalesce(var.storage_account_name, module.naming.resource_names.storage_account)
-  resource_group_name                 = local.resource_group_name
   access_tier                         = var.storage_account_access_tier
   account_replication_type            = var.storage_account_account_replication_type
   account_tier                        = var.storage_account_account_tier
@@ -48,6 +47,7 @@ module "storage_account" {
   shared_access_key_enabled = var.storage_account_shared_access_key_enabled || local.managed_instance_shared_access_key_needed
   shares                    = merge(var.storage_account_shares, local.managed_instance_shares)
   tags                      = try(coalesce(var.storage_account_tags, var.tags), {})
+  resource_group_name       = local.resource_group_name
 }
 
 resource "time_sleep" "wait_for_storage_account" {
