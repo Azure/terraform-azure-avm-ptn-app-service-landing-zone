@@ -53,7 +53,7 @@ module "resource_group" {
 
   location         = local.azure_regions[random_integer.region_index.result]
   name             = "${module.naming.resource_group.name_unique}-byo-asp-linux"
-  enable_telemetry = var.enable_telemetry
+  enable_telemetry = false
 }
 
 # Virtual Network with subnets
@@ -64,7 +64,7 @@ module "virtual_network" {
   location         = module.resource_group.location
   parent_id        = module.resource_group.resource_id
   address_space    = ["10.0.0.0/16"]
-  enable_telemetry = var.enable_telemetry
+  enable_telemetry = false
   name             = module.naming.virtual_network.name_unique
   subnets = {
     app_service = {
@@ -96,7 +96,7 @@ module "app_service_plan" {
   name                   = module.naming.app_service_plan.name_unique
   os_type                = "Linux"
   parent_id              = module.resource_group.resource_id
-  enable_telemetry       = var.enable_telemetry
+  enable_telemetry       = false
   sku_name               = "P1v3"
   worker_count           = 3
   zone_balancing_enabled = true
@@ -109,7 +109,7 @@ module "private_dns_zone_web" {
 
   domain_name      = "privatelink.azurewebsites.net"
   parent_id        = module.resource_group.resource_id
-  enable_telemetry = var.enable_telemetry
+  enable_telemetry = false
   virtual_network_links = {
     vnet_link = {
       name               = "vnet-link"
@@ -143,7 +143,7 @@ module "storage_account_zip_deploy" {
       }
     }
   }
-  enable_telemetry              = var.enable_telemetry
+  enable_telemetry              = false
   network_rules                 = null
   public_network_access_enabled = true
   shared_access_key_enabled     = true
@@ -193,7 +193,7 @@ module "test" {
   app_service_plan_enabled       = false
   app_service_plan_resource_id   = module.app_service_plan.resource_id
   app_service_subnet_resource_id = module.virtual_network.subnets["app_service"].resource_id
-  enable_telemetry               = var.enable_telemetry
+  enable_telemetry               = false
   # Front Door (created by the module)
   front_door_enabled                             = true
   log_analytics_workspace_internet_query_enabled = true

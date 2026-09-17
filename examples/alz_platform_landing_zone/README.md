@@ -64,7 +64,7 @@ module "resource_group" {
 
   location         = local.azure_regions[random_integer.region_index.result]
   name             = "${module.naming.resource_group.name_unique}-alz"
-  enable_telemetry = var.enable_telemetry
+  enable_telemetry = false
 }
 
 # ------------------------------------------------------------------
@@ -78,7 +78,7 @@ module "hub_virtual_network" {
   location         = module.resource_group.location
   parent_id        = module.resource_group.resource_id
   address_space    = ["10.100.0.0/16"]
-  enable_telemetry = var.enable_telemetry
+  enable_telemetry = false
   name             = "vnet-hub-${module.naming.virtual_network.name_unique}"
   subnets = {
     AzureFirewallSubnet = {
@@ -105,7 +105,7 @@ module "firewall_public_ip" {
   name                = "pip-fw-${module.naming.public_ip.name_unique}"
   resource_group_name = module.resource_group.name
   allocation_method   = "Static"
-  enable_telemetry    = var.enable_telemetry
+  enable_telemetry    = false
   sku                 = "Standard"
   zones               = ["1", "2", "3"]
 }
@@ -119,7 +119,7 @@ module "firewall_management_public_ip" {
   name                = "pip-fw-mgmt-${module.naming.public_ip.name_unique}"
   resource_group_name = module.resource_group.name
   allocation_method   = "Static"
-  enable_telemetry    = var.enable_telemetry
+  enable_telemetry    = false
   sku                 = "Standard"
   zones               = ["1", "2", "3"]
 }
@@ -132,7 +132,7 @@ module "firewall_policy" {
   location            = module.resource_group.location
   name                = "fwpol-${module.naming.firewall.name_unique}"
   resource_group_name = module.resource_group.name
-  enable_telemetry    = var.enable_telemetry
+  enable_telemetry    = false
   firewall_policy_sku = "Basic"
 }
 
@@ -146,7 +146,7 @@ module "firewall" {
   location            = module.resource_group.location
   name                = "fw-${module.naming.firewall.name_unique}"
   resource_group_name = module.resource_group.name
-  enable_telemetry    = var.enable_telemetry
+  enable_telemetry    = false
   firewall_management_ip_configuration = {
     name                 = "fw-mgmt-ipconfig"
     public_ip_address_id = module.firewall_management_public_ip.public_ip_id
@@ -188,7 +188,7 @@ module "storage_account_zip_deploy" {
       }
     }
   }
-  enable_telemetry              = var.enable_telemetry
+  enable_telemetry              = false
   network_rules                 = null
   public_network_access_enabled = true
   shared_access_key_enabled     = true
@@ -245,7 +245,7 @@ module "test" {
   alz_platform_landing_zone_route_table_enabled                          = true
   alz_platform_landing_zone_route_table_hub_virtual_appliance_ip_address = module.firewall.resource.ip_configuration[0].private_ip_address
   app_service_subnet_address_prefix                                      = "10.1.0.0/24"
-  enable_telemetry                                                       = var.enable_telemetry
+  enable_telemetry                                                       = false
   log_analytics_workspace_internet_query_enabled                         = true
   private_endpoint_subnet_address_prefix                                 = "10.1.1.0/24"
   # Networking
