@@ -60,7 +60,7 @@ module "resource_group" {
 
   location         = local.azure_regions[random_integer.region_index.result]
   name             = "${module.naming.resource_group.name_unique}-public-networking"
-  enable_telemetry = var.enable_telemetry
+  enable_telemetry = false
 }
 
 # ------------------------------------------------------------------
@@ -88,7 +88,7 @@ module "storage_account_zip_deploy" {
       }
     }
   }
-  enable_telemetry              = var.enable_telemetry
+  enable_telemetry              = false
   network_rules                 = null
   public_network_access_enabled = true
   shared_access_key_enabled     = true
@@ -133,7 +133,7 @@ module "test" {
 
   location                                       = module.resource_group.location
   parent_id                                      = module.resource_group.resource_id
-  enable_telemetry                               = var.enable_telemetry
+  enable_telemetry                               = false
   front_door_enabled                             = false
   log_analytics_workspace_internet_query_enabled = true
   private_dns_zones_enabled                      = false

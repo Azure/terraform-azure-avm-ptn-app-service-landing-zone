@@ -53,7 +53,7 @@ module "resource_group" {
 
   location         = local.azure_regions[random_integer.region_index.result]
   name             = "${module.naming.resource_group.name_unique}-ase-windows"
-  enable_telemetry = var.enable_telemetry
+  enable_telemetry = false
 }
 
 # ------------------------------------------------------------------
@@ -81,7 +81,7 @@ module "storage_account_zip_deploy" {
       }
     }
   }
-  enable_telemetry              = var.enable_telemetry
+  enable_telemetry              = false
   network_rules                 = null
   public_network_access_enabled = true
   shared_access_key_enabled     = true
@@ -132,7 +132,7 @@ module "test" {
   app_service_environment_enabled                = true
   app_service_environment_name                   = module.naming.app_service_environment.name_unique
   app_service_plan_os_type                       = "Windows"
-  enable_telemetry                               = var.enable_telemetry
+  enable_telemetry                               = false
   log_analytics_workspace_internet_query_enabled = true
   web_apps = {
     app1 = {
