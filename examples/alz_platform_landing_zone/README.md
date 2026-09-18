@@ -60,7 +60,7 @@ module "naming" {
 
 module "resource_group" {
   source  = "Azure/avm-res-resources-resourcegroup/azurerm"
-  version = "0.2.2"
+  version = "0.4.0"
 
   location         = local.azure_regions[random_integer.region_index.result]
   name             = "${module.naming.resource_group.name_unique}-alz"
@@ -73,7 +73,7 @@ module "resource_group" {
 
 module "hub_virtual_network" {
   source  = "Azure/avm-res-network-virtualnetwork/azurerm"
-  version = "0.17.1"
+  version = "0.22.2"
 
   location         = module.resource_group.location
   parent_id        = module.resource_group.resource_id
@@ -170,11 +170,10 @@ module "firewall" {
 
 module "storage_account_zip_deploy" {
   source  = "Azure/avm-res-storage-storageaccount/azurerm"
-  version = "0.6.7"
+  version = "0.10.0"
 
   location                 = module.resource_group.location
   name                     = "${module.naming.storage_account.name_unique}test001"
-  resource_group_name      = module.resource_group.name
   account_replication_type = "ZRS"
   account_tier             = "Standard"
   containers = {
@@ -192,6 +191,7 @@ module "storage_account_zip_deploy" {
   network_rules                 = null
   public_network_access_enabled = true
   shared_access_key_enabled     = true
+  resource_group_name           = module.resource_group.name
 }
 
 resource "time_sleep" "wait_for_storage_account" {
@@ -374,7 +374,7 @@ Version: 0.2.1
 
 Source: Azure/avm-res-network-virtualnetwork/azurerm
 
-Version: 0.17.1
+Version: 0.22.2
 
 ### <a name="module_naming"></a> [naming](#module\_naming)
 
@@ -386,13 +386,13 @@ Version: 0.4.3
 
 Source: Azure/avm-res-resources-resourcegroup/azurerm
 
-Version: 0.2.2
+Version: 0.4.0
 
 ### <a name="module_storage_account_zip_deploy"></a> [storage\_account\_zip\_deploy](#module\_storage\_account\_zip\_deploy)
 
 Source: Azure/avm-res-storage-storageaccount/azurerm
 
-Version: 0.6.7
+Version: 0.10.0
 
 ### <a name="module_test"></a> [test](#module\_test)
 
