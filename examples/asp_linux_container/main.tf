@@ -47,7 +47,7 @@ module "resource_group" {
 
   location         = local.azure_regions[random_integer.region_index.result]
   name             = "${module.naming.resource_group.name_unique}-asp-linux-container"
-  enable_telemetry = false
+  enable_telemetry = var.enable_telemetry
 }
 
 locals {
@@ -79,7 +79,7 @@ module "test" {
     }
   }
   container_registry_name                        = local.container_registry_name
-  enable_telemetry                               = false
+  enable_telemetry                               = var.enable_telemetry
   log_analytics_workspace_internet_query_enabled = true
   web_apps = {
     app1 = {

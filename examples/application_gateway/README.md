@@ -62,7 +62,7 @@ module "resource_group" {
 
   location         = local.azure_regions[random_integer.region_index.result]
   name             = "${module.naming.resource_group.name_unique}-appgw"
-  enable_telemetry = false
+  enable_telemetry = var.enable_telemetry
 }
 
 # ------------------------------------------------------------------
@@ -90,7 +90,7 @@ module "storage_account_zip_deploy" {
       }
     }
   }
-  enable_telemetry              = false
+  enable_telemetry              = var.enable_telemetry
   network_rules                 = null
   public_network_access_enabled = true
   shared_access_key_enabled     = true
@@ -145,7 +145,7 @@ module "appgw_managed_identity" {
   location            = module.resource_group.location
   name                = "id-appgw-${module.naming.user_assigned_identity.name_unique}"
   resource_group_name = module.resource_group.name
-  enable_telemetry    = false
+  enable_telemetry    = var.enable_telemetry
 }
 
 module "appgw_key_vault" {
@@ -156,7 +156,7 @@ module "appgw_key_vault" {
   name                = "kv-agw-${module.naming.key_vault.name_unique}"
   resource_group_name = module.resource_group.name
   tenant_id           = data.azurerm_client_config.current.tenant_id
-  enable_telemetry    = false
+  enable_telemetry    = var.enable_telemetry
   network_acls = {
     bypass         = "AzureServices"
     default_action = "Allow"
@@ -233,7 +233,7 @@ module "test" {
       key_vault_secret_id = azurerm_key_vault_certificate.appgw_self_signed.versionless_secret_id
     }
   }
-  enable_telemetry                               = false
+  enable_telemetry                               = var.enable_telemetry
   front_door_enabled                             = false
   log_analytics_workspace_internet_query_enabled = true
   web_apps = {
@@ -322,7 +322,7 @@ If it is set to false, then no telemetry will be collected.
 
 Type: `bool`
 
-Default: `true`
+Default: `false`
 
 ## Outputs
 
