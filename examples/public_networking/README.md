@@ -60,7 +60,7 @@ module "resource_group" {
 
   location         = local.azure_regions[random_integer.region_index.result]
   name             = "${module.naming.resource_group.name_unique}-public-networking"
-  enable_telemetry = false
+  enable_telemetry = var.enable_telemetry
 }
 
 # ------------------------------------------------------------------
@@ -88,7 +88,7 @@ module "storage_account_zip_deploy" {
       }
     }
   }
-  enable_telemetry              = false
+  enable_telemetry              = var.enable_telemetry
   network_rules                 = null
   public_network_access_enabled = true
   shared_access_key_enabled     = true
@@ -133,7 +133,7 @@ module "test" {
 
   location                                       = module.resource_group.location
   parent_id                                      = module.resource_group.resource_id
-  enable_telemetry                               = false
+  enable_telemetry                               = var.enable_telemetry
   front_door_enabled                             = false
   log_analytics_workspace_internet_query_enabled = true
   private_dns_zones_enabled                      = false
@@ -224,7 +224,7 @@ If it is set to false, then no telemetry will be collected.
 
 Type: `bool`
 
-Default: `true`
+Default: `false`
 
 ## Outputs
 

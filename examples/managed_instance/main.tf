@@ -64,7 +64,7 @@ module "resource_group" {
 
   location         = local.azure_regions[random_integer.region_index.result]
   name             = "${module.naming.resource_group.name_unique}-managed-instance"
-  enable_telemetry = false
+  enable_telemetry = var.enable_telemetry
 }
 
 # Archive the install scripts into a zip file
@@ -100,7 +100,7 @@ module "storage_account_zip_deploy" {
       }
     }
   }
-  enable_telemetry              = false
+  enable_telemetry              = var.enable_telemetry
   network_rules                 = null
   public_network_access_enabled = true
   shared_access_key_enabled     = true
@@ -163,7 +163,7 @@ module "test" {
   app_service_plan_sku_name    = "P1v4"
   # Enable Bastion Host for RDP access to the managed instance
   bastion_host_enabled = true
-  enable_telemetry     = false
+  enable_telemetry     = var.enable_telemetry
   # Public access is enabled so this example works without self-hosted agents / runners.
   key_vault_network_acls = {
     bypass         = "AzureServices"
