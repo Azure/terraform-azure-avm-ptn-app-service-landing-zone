@@ -1,0 +1,10 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Azure/azure-verified-modules-tools/main/src/Avm.Authoring/Resources/Schemas/v1/avm-module-metadata.schema.json",
+  "moduleDisplayName": "App Service Landing Zone",
+  "moduleDescription": "Intended AVM Terraform pattern module for App Service Landing Zone.",
+  "canonicalType": "app-service-lza/hosting-environment",
+  "owners": [
+    "jaredfholgate"
+  ],
+  "telemetryIdPrefix": "46d3xtrf.ptn.886e27a"
+}
