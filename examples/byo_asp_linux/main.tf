@@ -129,7 +129,6 @@ module "storage_account_zip_deploy" {
 
   location                 = module.resource_group.location
   name                     = "${module.naming.storage_account.name_unique}test001"
-  resource_group_name      = module.resource_group.name
   account_replication_type = "ZRS"
   account_tier             = "Standard"
   containers = {
@@ -147,6 +146,7 @@ module "storage_account_zip_deploy" {
   network_rules                 = null
   public_network_access_enabled = true
   shared_access_key_enabled     = true
+  resource_group_name           = module.resource_group.name
 }
 
 resource "time_sleep" "wait_for_storage_account" {
