@@ -44,12 +44,12 @@ resource "random_integer" "region_index" {
 
 module "naming" {
   source  = "Azure/naming/azurerm"
-  version = "0.4.3"
+  version = "0.4.4"
 }
 
 module "resource_group" {
   source  = "Azure/avm-res-resources-resourcegroup/azurerm"
-  version = "0.2.2"
+  version = "0.4.0"
 
   location         = local.azure_regions[random_integer.region_index.result]
   name             = "${module.naming.resource_group.name_unique}-alz"
@@ -62,7 +62,7 @@ module "resource_group" {
 
 module "hub_virtual_network" {
   source  = "Azure/avm-res-network-virtualnetwork/azurerm"
-  version = "0.17.1"
+  version = "0.22.2"
 
   location         = module.resource_group.location
   parent_id        = module.resource_group.resource_id
@@ -159,7 +159,7 @@ module "firewall" {
 
 module "storage_account_zip_deploy" {
   source  = "Azure/avm-res-storage-storageaccount/azurerm"
-  version = "0.6.7"
+  version = "0.10.0"
 
   location                 = module.resource_group.location
   name                     = "${module.naming.storage_account.name_unique}test001"

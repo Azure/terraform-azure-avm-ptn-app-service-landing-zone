@@ -1,6 +1,6 @@
 module "key_vault" {
   source  = "Azure/avm-res-keyvault-vault/azurerm"
-  version = "0.10.2"
+  version = "0.11.0"
   count   = var.key_vault_enabled || local.managed_instance_key_vault_needed ? 1 : 0
 
   location                       = var.location
