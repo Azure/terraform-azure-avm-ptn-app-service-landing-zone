@@ -1,6 +1,6 @@
 module "container_registry" {
   source  = "Azure/avm-res-containerregistry-registry/azurerm"
-  version = "0.5.1"
+  version = "0.8.0"
   count   = local.container_registry_effectively_enabled ? 1 : 0
 
   location                   = var.location
