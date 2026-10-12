@@ -1,6 +1,6 @@
 module "alz_route_table" {
   source  = "Azure/avm-res-network-routetable/azurerm"
-  version = "0.4.1"
+  version = "0.5.0"
   count   = var.alz_platform_landing_zone_route_table_resource_id == null && var.alz_platform_landing_zone_route_table_enabled ? 1 : 0
 
   location                      = var.location
