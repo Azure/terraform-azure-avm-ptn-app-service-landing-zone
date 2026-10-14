@@ -2,6 +2,8 @@
 
 This module deploys a production-ready Azure App Service hosting environment with enterprise-grade networking, security, and observability. It follows the [Azure App Service Landing Zone Accelerator](https://learn.microsoft.com/azure/cloud-adoption-framework/scenarios/app-platform/app-services/landing-zone-accelerator) architecture and is built using [Azure Verified Modules](https://azure.github.io/Azure-Verified-Modules/).
 
+Examples that use zip deployment run `pre.ps1` to package the upstream ASP.NET sample at commit `19b1e5f8843ca8c36c41aa701823a4f18ee78c53`, targeting .NET 10 to match their App Service runtime. This requires Git and PowerShell 7.4 or later; App Service builds the source archive during deployment.
+
 ## Features
 
 - **App Service Hosting**: Deploy App Service Plans (Linux, Windows, or Windows Managed Instance) or App Service Environments v3 (ASEv3) for isolated workloads. Supports multiple web apps with independent configuration, deployment slots, and managed identities.
