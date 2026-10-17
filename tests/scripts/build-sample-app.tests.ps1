@@ -71,6 +71,12 @@ try {
   $fixture = @'
 terraform {
   required_version = ">= 1.9, < 2.0"
+
+  required_providers {
+    terraform = {
+      source = "terraform.io/builtin/terraform"
+    }
+  }
 }
 
 resource "terraform_data" "archive" {
@@ -89,7 +95,7 @@ resource "terraform_data" "archive" {
     Replace("__MESSAGE__", $contracts[0].Message)
   [IO.File]::WriteAllText((Join-Path $testPath "main.tf"), ($fixture -replace "`r`n", "`n") + "`n", $encoding)
   [IO.File]::WriteAllText((Join-Path $exampleDirectory "main.tf"), "module `"archive`" {`n  source = `"../..`"`n}`n", $encoding)
-  [IO.File]::WriteAllText($contractTestPath, "run `"missing_archive_is_rejected`" {`n  command = plan`n  expect_failures = [terraform_data.archive]`n}`n", $encoding)
+  [IO.File]::WriteAllText($contractTestPath, "mock_provider `"terraform`" {}`n`nrun `"missing_archive_is_rejected`" {`n  command = plan`n  providers = { terraform = terraform }`n  expect_failures = [terraform_data.archive]`n}`n", $encoding)
   $validation = Invoke-AvmTest -Path $testPath -Ecosystem terraform
   if ($validation.Status -ne "pass") { throw "Validation must succeed before the archive is built." }
   $missingArchive = Invoke-AvmTestUnit -Path $testPath -Ecosystem terraform
@@ -128,8 +134,11 @@ resource "terraform_data" "archive" {
 
     $expectedMd5 = (Get-FileHash -LiteralPath "app.zip" -Algorithm MD5).Hash.ToLowerInvariant()
     $checksumTest = @'
+mock_provider "terraform" {}
+
 run "archive_checksum_matches_bytes" {
   command = plan
+  providers = { terraform = terraform }
 
   assert {
     condition     = terraform_data.archive.input == "__MD5__"
