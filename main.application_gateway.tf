@@ -1,7 +1,8 @@
 module "application_gateway" {
-  source  = "Azure/avm-res-network-applicationgateway/azurerm"
-  version = "0.5.2"
-  count   = var.application_gateway_enabled && length(var.web_apps) > 0 ? 1 : 0
+  source    = "Azure/avm-res-network-applicationgateway/azurerm"
+  version   = "0.5.2"
+  providers = { modtm = modtm }
+  count     = var.application_gateway_enabled && length(var.web_apps) > 0 ? 1 : 0
 
   # Required inputs
   backend_address_pools = local.application_gateway_backend_address_pools

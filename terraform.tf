@@ -11,6 +11,10 @@ terraform {
       source  = "hashicorp/azurerm"
       version = "~> 4.0"
     }
+    modtm = {
+      source  = "registry.terraform.io/azure/modtm"
+      version = "~> 0.3"
+    }
     time = {
       source  = "hashicorp/time"
       version = "~> 0.12"

@@ -1,7 +1,8 @@
 module "alz_route_table" {
-  source  = "Azure/avm-res-network-routetable/azurerm"
-  version = "0.4.1"
-  count   = var.alz_platform_landing_zone_route_table_resource_id == null && var.alz_platform_landing_zone_route_table_enabled ? 1 : 0
+  source    = "Azure/avm-res-network-routetable/azurerm"
+  version   = "0.4.1"
+  providers = { modtm = modtm }
+  count     = var.alz_platform_landing_zone_route_table_resource_id == null && var.alz_platform_landing_zone_route_table_enabled ? 1 : 0
 
   location                      = var.location
   name                          = coalesce(var.alz_platform_landing_zone_route_table_name, module.naming.resource_names.alz_route_table)

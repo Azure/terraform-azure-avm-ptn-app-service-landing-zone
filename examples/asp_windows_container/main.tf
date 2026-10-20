@@ -10,6 +10,10 @@ terraform {
       source  = "hashicorp/azurerm"
       version = "~> 4.0"
     }
+    modtm = {
+      source  = "registry.terraform.io/azure/modtm"
+      version = "~> 0.3"
+    }
     random = {
       source  = "hashicorp/random"
       version = "~> 3.5"
@@ -37,13 +41,14 @@ resource "random_integer" "region_index" {
 }
 
 module "naming" {
-  source  = "Azure/naming/azurerm"
-  version = "0.4.3"
+  source  = "Azure/avm-utl-naming/azure"
+  version = "0.2.0"
 }
 
 module "resource_group" {
-  source  = "Azure/avm-res-resources-resourcegroup/azurerm"
-  version = "0.2.2"
+  source    = "Azure/avm-res-resources-resourcegroup/azurerm"
+  version   = "0.2.2"
+  providers = { modtm = modtm }
 
   location         = local.azure_regions[random_integer.region_index.result]
   name             = "${module.naming.resource_group.name_unique}-asp-windows-container"
@@ -59,6 +64,10 @@ locals {
 # Windows Containers require Premium v3 or Isolated v2 SKUs.
 module "test" {
   source = "../../"
+  providers = {
+    azapi = azapi
+    modtm = modtm
+  }
 
   location                 = module.resource_group.location
   parent_id                = module.resource_group.resource_id

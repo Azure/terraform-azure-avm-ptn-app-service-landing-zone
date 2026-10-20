@@ -1,7 +1,8 @@
 module "virtual_network" {
-  source  = "Azure/avm-res-network-virtualnetwork/azurerm"
-  version = "0.17.1"
-  count   = var.virtual_network_enabled ? 1 : 0
+  source    = "Azure/avm-res-network-virtualnetwork/azurerm"
+  version   = "0.17.1"
+  providers = { modtm = modtm }
+  count     = var.virtual_network_enabled ? 1 : 0
 
   location                = var.location
   parent_id               = local.resource_group_id

@@ -10,6 +10,10 @@ terraform {
       source  = "hashicorp/azurerm"
       version = "~> 4.0"
     }
+    modtm = {
+      source  = "registry.terraform.io/azure/modtm"
+      version = "~> 0.3"
+    }
     random = {
       source  = "hashicorp/random"
       version = "~> 3.5"
@@ -43,13 +47,14 @@ resource "random_integer" "region_index" {
 }
 
 module "naming" {
-  source  = "Azure/naming/azurerm"
-  version = "0.4.3"
+  source  = "Azure/avm-utl-naming/azure"
+  version = "0.2.0"
 }
 
 module "resource_group" {
-  source  = "Azure/avm-res-resources-resourcegroup/azurerm"
-  version = "0.2.2"
+  source    = "Azure/avm-res-resources-resourcegroup/azurerm"
+  version   = "0.2.2"
+  providers = { modtm = modtm }
 
   location         = local.azure_regions[random_integer.region_index.result]
   name             = "${module.naming.resource_group.name_unique}-alz"
@@ -61,8 +66,9 @@ module "resource_group" {
 # ------------------------------------------------------------------
 
 module "hub_virtual_network" {
-  source  = "Azure/avm-res-network-virtualnetwork/azurerm"
-  version = "0.17.1"
+  source    = "Azure/avm-res-network-virtualnetwork/azurerm"
+  version   = "0.17.1"
+  providers = { modtm = modtm }
 
   location         = module.resource_group.location
   parent_id        = module.resource_group.resource_id
@@ -87,8 +93,9 @@ module "hub_virtual_network" {
 
 # Public IP for firewall traffic
 module "firewall_public_ip" {
-  source  = "Azure/avm-res-network-publicipaddress/azurerm"
-  version = "0.2.1"
+  source    = "Azure/avm-res-network-publicipaddress/azurerm"
+  version   = "0.2.1"
+  providers = { modtm = modtm }
 
   location            = module.resource_group.location
   name                = "pip-fw-${module.naming.public_ip.name_unique}"
@@ -101,8 +108,9 @@ module "firewall_public_ip" {
 
 # Public IP for firewall management traffic (required for Basic SKU)
 module "firewall_management_public_ip" {
-  source  = "Azure/avm-res-network-publicipaddress/azurerm"
-  version = "0.2.1"
+  source    = "Azure/avm-res-network-publicipaddress/azurerm"
+  version   = "0.2.1"
+  providers = { modtm = modtm }
 
   location            = module.resource_group.location
   name                = "pip-fw-mgmt-${module.naming.public_ip.name_unique}"
@@ -115,8 +123,9 @@ module "firewall_management_public_ip" {
 
 # Firewall Policy (Basic SKU)
 module "firewall_policy" {
-  source  = "Azure/avm-res-network-firewallpolicy/azurerm"
-  version = "0.3.4"
+  source    = "Azure/avm-res-network-firewallpolicy/azurerm"
+  version   = "0.3.4"
+  providers = { modtm = modtm }
 
   location            = module.resource_group.location
   name                = "fwpol-${module.naming.firewall.name_unique}"
@@ -127,8 +136,9 @@ module "firewall_policy" {
 
 # Azure Firewall (Basic SKU)
 module "firewall" {
-  source  = "Azure/avm-res-network-azurefirewall/azurerm"
-  version = "0.4.0"
+  source    = "Azure/avm-res-network-azurefirewall/azurerm"
+  version   = "0.4.0"
+  providers = { modtm = modtm }
 
   firewall_sku_name   = "AZFW_VNet"
   firewall_sku_tier   = "Basic"
@@ -158,8 +168,9 @@ module "firewall" {
 # ------------------------------------------------------------------
 
 module "storage_account_zip_deploy" {
-  source  = "Azure/avm-res-storage-storageaccount/azurerm"
-  version = "0.6.7"
+  source    = "Azure/avm-res-storage-storageaccount/azurerm"
+  version   = "0.6.7"
+  providers = { modtm = modtm }
 
   location                 = module.resource_group.location
   name                     = "${module.naming.storage_account.name_unique}test001"
@@ -228,6 +239,10 @@ data "azurerm_storage_account_blob_container_sas" "zip_deploy" {
 
 module "test" {
   source = "../../"
+  providers = {
+    azapi = azapi
+    modtm = modtm
+  }
 
   location  = module.resource_group.location
   parent_id = module.resource_group.resource_id

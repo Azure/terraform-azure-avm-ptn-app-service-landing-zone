@@ -1,7 +1,8 @@
 module "web_app" {
-  source   = "Azure/avm-res-web-site/azurerm"
-  version  = "0.21.8"
-  for_each = var.web_apps
+  source    = "Azure/avm-res-web-site/azurerm"
+  version   = "0.21.8"
+  providers = { modtm = modtm }
+  for_each  = var.web_apps
 
   # Required
   location                 = var.location

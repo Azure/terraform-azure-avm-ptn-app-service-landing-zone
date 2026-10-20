@@ -1,7 +1,8 @@
 module "storage_account" {
-  source  = "Azure/avm-res-storage-storageaccount/azurerm"
-  version = "0.6.7"
-  count   = var.storage_account_enabled || local.managed_instance_storage_account_needed ? 1 : 0
+  source    = "Azure/avm-res-storage-storageaccount/azurerm"
+  version   = "0.6.7"
+  providers = { modtm = modtm }
+  count     = var.storage_account_enabled || local.managed_instance_storage_account_needed ? 1 : 0
 
   location                            = var.location
   name                                = coalesce(var.storage_account_name, module.naming.resource_names.storage_account)
