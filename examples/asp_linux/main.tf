@@ -10,6 +10,10 @@ terraform {
       source  = "hashicorp/azurerm"
       version = "~> 4.0"
     }
+    modtm = {
+      source  = "registry.terraform.io/azure/modtm"
+      version = "~> 0.3"
+    }
     random = {
       source  = "hashicorp/random"
       version = "~> 3.5"
@@ -43,13 +47,14 @@ resource "random_integer" "region_index" {
 }
 
 module "naming" {
-  source  = "Azure/naming/azurerm"
-  version = "0.4.3"
+  source  = "Azure/avm-utl-naming/azure"
+  version = "0.2.0"
 }
 
 module "resource_group" {
-  source  = "Azure/avm-res-resources-resourcegroup/azurerm"
-  version = "0.2.2"
+  source    = "Azure/avm-res-resources-resourcegroup/azurerm"
+  version   = "0.2.2"
+  providers = { modtm = modtm }
 
   location         = local.azure_regions[random_integer.region_index.result]
   name             = "${module.naming.resource_group.name_unique}-asp-linux"
@@ -62,8 +67,9 @@ module "resource_group" {
 # ------------------------------------------------------------------
 
 module "storage_account_zip_deploy" {
-  source  = "Azure/avm-res-storage-storageaccount/azurerm"
-  version = "0.6.7"
+  source    = "Azure/avm-res-storage-storageaccount/azurerm"
+  version   = "0.6.7"
+  providers = { modtm = modtm }
 
   location                 = module.resource_group.location
   name                     = "${module.naming.storage_account.name_unique}test001"
@@ -96,11 +102,17 @@ resource "time_sleep" "wait_for_storage_account" {
 resource "azurerm_storage_blob" "zip_deploy" {
   name                   = "app.zip"
   type                   = "Block"
-  content_md5            = filemd5("${path.module}/app.zip")
+  content_md5            = fileexists("${path.module}/app.zip") ? filemd5("${path.module}/app.zip") : null
   source                 = "${path.module}/app.zip"
   storage_account_name   = module.storage_account_zip_deploy.name
   storage_container_name = "zip-deploy"
 
+  lifecycle {
+    precondition {
+      condition     = fileexists("${path.module}/app.zip")
+      error_message = "The sample application archive is missing. Run this example's pre.ps1 before planning or deploying."
+    }
+  }
   depends_on = [time_sleep.wait_for_storage_account]
 }
 
@@ -123,6 +135,10 @@ data "azurerm_storage_account_blob_container_sas" "zip_deploy" {
 # App Service Plan - Linux with .NET 10 and zip deploy
 module "test" {
   source = "../../"
+  providers = {
+    azapi = azapi
+    modtm = modtm
+  }
 
   location                                       = module.resource_group.location
   parent_id                                      = module.resource_group.resource_id

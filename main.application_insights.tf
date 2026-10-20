@@ -1,7 +1,8 @@
 module "application_insights" {
-  source  = "Azure/avm-res-insights-component/azurerm"
-  version = "0.3.0"
-  count   = var.application_insights_enabled ? 1 : 0
+  source    = "Azure/avm-res-insights-component/azurerm"
+  version   = "0.3.0"
+  providers = { modtm = modtm }
+  count     = var.application_insights_enabled ? 1 : 0
 
   location                              = var.location
   name                                  = coalesce(var.application_insights_name, module.naming.resource_names.application_insights)

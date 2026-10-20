@@ -1,7 +1,8 @@
 module "container_registry" {
-  source  = "Azure/avm-res-containerregistry-registry/azurerm"
-  version = "0.5.1"
-  count   = local.container_registry_effectively_enabled ? 1 : 0
+  source    = "Azure/avm-res-containerregistry-registry/azurerm"
+  version   = "0.5.1"
+  providers = { modtm = modtm }
+  count     = local.container_registry_effectively_enabled ? 1 : 0
 
   location                   = var.location
   name                       = coalesce(var.container_registry_name, module.naming.resource_names.container_registry)

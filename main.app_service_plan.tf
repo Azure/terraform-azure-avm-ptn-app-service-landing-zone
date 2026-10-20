@@ -1,7 +1,8 @@
 module "app_service_plan" {
-  source  = "Azure/avm-res-web-serverfarm/azurerm"
-  version = "2.0.1"
-  count   = var.app_service_plan_enabled ? 1 : 0
+  source    = "Azure/avm-res-web-serverfarm/azurerm"
+  version   = "2.0.1"
+  providers = { modtm = modtm }
+  count     = var.app_service_plan_enabled ? 1 : 0
 
   location                   = var.location
   name                       = coalesce(var.app_service_plan_name, module.naming.resource_names.app_service_plan)

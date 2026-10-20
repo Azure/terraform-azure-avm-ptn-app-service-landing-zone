@@ -19,6 +19,10 @@ terraform {
       source  = "hashicorp/azurerm"
       version = "~> 4.0"
     }
+    modtm = {
+      source  = "registry.terraform.io/azure/modtm"
+      version = "~> 0.3"
+    }
     random = {
       source  = "hashicorp/random"
       version = "~> 3.5"
@@ -52,13 +56,14 @@ resource "random_integer" "region_index" {
 }
 
 module "naming" {
-  source  = "Azure/naming/azurerm"
-  version = "0.4.3"
+  source  = "Azure/avm-utl-naming/azure"
+  version = "0.2.0"
 }
 
 module "resource_group" {
-  source  = "Azure/avm-res-resources-resourcegroup/azurerm"
-  version = "0.2.2"
+  source    = "Azure/avm-res-resources-resourcegroup/azurerm"
+  version   = "0.2.2"
+  providers = { modtm = modtm }
 
   location         = local.azure_regions[random_integer.region_index.result]
   name             = "${module.naming.resource_group.name_unique}-appgw"
@@ -71,8 +76,9 @@ module "resource_group" {
 # ------------------------------------------------------------------
 
 module "storage_account_zip_deploy" {
-  source  = "Azure/avm-res-storage-storageaccount/azurerm"
-  version = "0.6.7"
+  source    = "Azure/avm-res-storage-storageaccount/azurerm"
+  version   = "0.6.7"
+  providers = { modtm = modtm }
 
   location                 = module.resource_group.location
   name                     = "${module.naming.storage_account.name_unique}test001"
@@ -105,11 +111,17 @@ resource "time_sleep" "wait_for_storage_account" {
 resource "azurerm_storage_blob" "zip_deploy" {
   name                   = "app.zip"
   type                   = "Block"
-  content_md5            = filemd5("${path.module}/app.zip")
+  content_md5            = fileexists("${path.module}/app.zip") ? filemd5("${path.module}/app.zip") : null
   source                 = "${path.module}/app.zip"
   storage_account_name   = module.storage_account_zip_deploy.name
   storage_container_name = "zip-deploy"
 
+  lifecycle {
+    precondition {
+      condition     = fileexists("${path.module}/app.zip")
+      error_message = "The sample application archive is missing. Run this example's pre.ps1 before planning or deploying."
+    }
+  }
   depends_on = [time_sleep.wait_for_storage_account]
 }
 
@@ -139,8 +151,9 @@ data "azurerm_storage_account_blob_container_sas" "zip_deploy" {
 # ------------------------------------------------------------------
 
 module "appgw_managed_identity" {
-  source  = "Azure/avm-res-managedidentity-userassignedidentity/azurerm"
-  version = "0.4.0"
+  source    = "Azure/avm-res-managedidentity-userassignedidentity/azurerm"
+  version   = "0.4.0"
+  providers = { modtm = modtm }
 
   location            = module.resource_group.location
   name                = "id-appgw-${module.naming.user_assigned_identity.name_unique}"
@@ -149,8 +162,9 @@ module "appgw_managed_identity" {
 }
 
 module "appgw_key_vault" {
-  source  = "Azure/avm-res-keyvault-vault/azurerm"
-  version = "0.10.2"
+  source    = "Azure/avm-res-keyvault-vault/azurerm"
+  version   = "0.10.2"
+  providers = { modtm = modtm }
 
   location            = module.resource_group.location
   name                = "kv-agw-${module.naming.key_vault.name_unique}"
@@ -219,6 +233,10 @@ resource "azurerm_key_vault_certificate" "appgw_self_signed" {
 
 module "test" {
   source = "../../"
+  providers = {
+    azapi = azapi
+    modtm = modtm
+  }
 
   location                    = module.resource_group.location
   parent_id                   = module.resource_group.resource_id
@@ -290,6 +308,8 @@ The following requirements are needed by this module:
 
 - <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (~> 4.0)
 
+- <a name="requirement_modtm"></a> [modtm](#requirement\_modtm) (~> 0.3)
+
 - <a name="requirement_random"></a> [random](#requirement\_random) (~> 3.5)
 
 - <a name="requirement_time"></a> [time](#requirement\_time) (~> 0.9)
@@ -350,9 +370,9 @@ Version: 0.4.0
 
 ### <a name="module_naming"></a> [naming](#module\_naming)
 
-Source: Azure/naming/azurerm
+Source: Azure/avm-utl-naming/azure
 
-Version: 0.4.3
+Version: 0.2.0
 
 ### <a name="module_resource_group"></a> [resource\_group](#module\_resource\_group)
 
