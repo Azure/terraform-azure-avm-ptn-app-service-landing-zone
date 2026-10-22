@@ -1,10 +1,9 @@
 # Managed Identity for App Service Managed Instance plan default identity.
 # This identity is used by the platform to pull install scripts, access registry adapters, etc.
 module "managed_instance_managed_identity" {
-  source    = "Azure/avm-res-managedidentity-userassignedidentity/azurerm"
-  version   = "0.4.0"
-  providers = { modtm = modtm }
-  count     = var.app_service_plan_os_type == "WindowsManagedInstance" && var.managed_instance_managed_identity_enabled ? 1 : 0
+  source  = "Azure/avm-res-managedidentity-userassignedidentity/azurerm"
+  version = "0.4.0"
+  count   = var.app_service_plan_os_type == "WindowsManagedInstance" && var.managed_instance_managed_identity_enabled ? 1 : 0
 
   location            = var.location
   name                = coalesce(var.managed_instance_managed_identity_name, module.naming.resource_names.managed_identity)
@@ -16,9 +15,8 @@ module "managed_instance_managed_identity" {
 # Per-web-app User-Assigned Managed Identities.
 # Each web app can have its own managed identity, controlled by the managed_identity_enabled field.
 module "web_app_managed_identity" {
-  source    = "Azure/avm-res-managedidentity-userassignedidentity/azurerm"
-  version   = "0.4.0"
-  providers = { modtm = modtm }
+  source  = "Azure/avm-res-managedidentity-userassignedidentity/azurerm"
+  version = "0.4.0"
   for_each = {
     for key, app in var.web_apps : key => app
     if app.managed_identity_enabled
@@ -34,9 +32,8 @@ module "web_app_managed_identity" {
 # Per-slot User-Assigned Managed Identities.
 # Each deployment slot can have its own managed identity, controlled by the managed_identity_enabled field on the slot.
 module "web_app_slot_managed_identity" {
-  source    = "Azure/avm-res-managedidentity-userassignedidentity/azurerm"
-  version   = "0.4.0"
-  providers = { modtm = modtm }
+  source  = "Azure/avm-res-managedidentity-userassignedidentity/azurerm"
+  version = "0.4.0"
   for_each = {
     for item in flatten([
       for app_key, app in var.web_apps : [

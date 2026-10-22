@@ -1,8 +1,5 @@
 module "naming" {
   source = "./modules/naming"
-  providers = {
-    azapi = azapi
-  }
 
   location                            = var.location
   enable_telemetry                    = var.enable_telemetry

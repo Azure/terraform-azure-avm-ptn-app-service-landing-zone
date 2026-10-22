@@ -10,6 +10,7 @@ terraform {
       source  = "hashicorp/azurerm"
       version = "~> 4.0"
     }
+    # tflint-ignore: terraform_unused_required_providers
     modtm = {
       source  = "registry.terraform.io/azure/modtm"
       version = "~> 0.3"
@@ -46,9 +47,8 @@ module "naming" {
 }
 
 module "resource_group" {
-  source    = "Azure/avm-res-resources-resourcegroup/azurerm"
-  version   = "0.2.2"
-  providers = { modtm = modtm }
+  source  = "Azure/avm-res-resources-resourcegroup/azurerm"
+  version = "0.2.2"
 
   location         = local.azure_regions[random_integer.region_index.result]
   name             = "${module.naming.resource_group.name_unique}-asp-windows-container"
@@ -64,10 +64,6 @@ locals {
 # Windows Containers require Premium v3 or Isolated v2 SKUs.
 module "test" {
   source = "../../"
-  providers = {
-    azapi = azapi
-    modtm = modtm
-  }
 
   location                 = module.resource_group.location
   parent_id                = module.resource_group.resource_id
