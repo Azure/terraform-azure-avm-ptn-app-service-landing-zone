@@ -19,6 +19,7 @@ terraform {
       source  = "hashicorp/azurerm"
       version = "~> 4.0"
     }
+    # tflint-ignore: terraform_unused_required_providers
     modtm = {
       source  = "registry.terraform.io/azure/modtm"
       version = "~> 0.3"
@@ -61,9 +62,8 @@ module "naming" {
 }
 
 module "resource_group" {
-  source    = "Azure/avm-res-resources-resourcegroup/azurerm"
-  version   = "0.2.2"
-  providers = { modtm = modtm }
+  source  = "Azure/avm-res-resources-resourcegroup/azurerm"
+  version = "0.2.2"
 
   location         = local.azure_regions[random_integer.region_index.result]
   name             = "${module.naming.resource_group.name_unique}-ase-windows"
@@ -76,9 +76,8 @@ module "resource_group" {
 # ------------------------------------------------------------------
 
 module "storage_account_zip_deploy" {
-  source    = "Azure/avm-res-storage-storageaccount/azurerm"
-  version   = "0.6.7"
-  providers = { modtm = modtm }
+  source  = "Azure/avm-res-storage-storageaccount/azurerm"
+  version = "0.6.7"
 
   location                 = module.resource_group.location
   name                     = "${module.naming.storage_account.name_unique}test001"
@@ -146,10 +145,6 @@ data "azurerm_storage_account_blob_container_sas" "zip_deploy" {
 # The App Service Plan SKU is automatically set to Isolated v2 tier.
 module "test" {
   source = "../../"
-  providers = {
-    azapi = azapi
-    modtm = modtm
-  }
 
   location  = module.resource_group.location
   parent_id = module.resource_group.resource_id

@@ -1,8 +1,7 @@
 module "private_dns_zone_web" {
-  source    = "Azure/avm-res-network-privatednszone/azurerm"
-  version   = "0.5.0"
-  providers = { modtm = modtm }
-  count     = local.create_private_dns_zone_web ? 1 : 0
+  source  = "Azure/avm-res-network-privatednszone/azurerm"
+  version = "0.5.0"
+  count   = local.create_private_dns_zone_web ? 1 : 0
 
   domain_name = "privatelink.azurewebsites.net"
   parent_id   = local.resource_group_id
@@ -35,10 +34,9 @@ module "private_dns_zone_web" {
 }
 
 module "private_dns_zone_key_vault" {
-  source    = "Azure/avm-res-network-privatednszone/azurerm"
-  version   = "0.5.0"
-  providers = { modtm = modtm }
-  count     = local.create_private_dns_zone_key_vault ? 1 : 0
+  source  = "Azure/avm-res-network-privatednszone/azurerm"
+  version = "0.5.0"
+  count   = local.create_private_dns_zone_key_vault ? 1 : 0
 
   domain_name      = "privatelink.vaultcore.azure.net"
   parent_id        = local.resource_group_id
@@ -54,10 +52,9 @@ module "private_dns_zone_key_vault" {
 }
 
 module "private_dns_zone_storage_blob" {
-  source    = "Azure/avm-res-network-privatednszone/azurerm"
-  version   = "0.5.0"
-  providers = { modtm = modtm }
-  count     = local.create_private_dns_zone_storage_blob ? 1 : 0
+  source  = "Azure/avm-res-network-privatednszone/azurerm"
+  version = "0.5.0"
+  count   = local.create_private_dns_zone_storage_blob ? 1 : 0
 
   domain_name      = "privatelink.blob.core.windows.net"
   parent_id        = local.resource_group_id
@@ -73,10 +70,9 @@ module "private_dns_zone_storage_blob" {
 }
 
 module "private_dns_zone_storage_file" {
-  source    = "Azure/avm-res-network-privatednszone/azurerm"
-  version   = "0.5.0"
-  providers = { modtm = modtm }
-  count     = local.create_private_dns_zone_storage_file ? 1 : 0
+  source  = "Azure/avm-res-network-privatednszone/azurerm"
+  version = "0.5.0"
+  count   = local.create_private_dns_zone_storage_file ? 1 : 0
 
   domain_name      = "privatelink.file.core.windows.net"
   parent_id        = local.resource_group_id
@@ -92,10 +88,9 @@ module "private_dns_zone_storage_file" {
 }
 
 module "private_dns_zone_container_registry" {
-  source    = "Azure/avm-res-network-privatednszone/azurerm"
-  version   = "0.5.0"
-  providers = { modtm = modtm }
-  count     = local.create_private_dns_zone_container_registry ? 1 : 0
+  source  = "Azure/avm-res-network-privatednszone/azurerm"
+  version = "0.5.0"
+  count   = local.create_private_dns_zone_container_registry ? 1 : 0
 
   domain_name      = "privatelink.azurecr.io"
   parent_id        = local.resource_group_id
@@ -115,10 +110,9 @@ module "private_dns_zone_container_registry" {
 # ============================================================
 
 module "private_dns_zone_monitor" {
-  source    = "Azure/avm-res-network-privatednszone/azurerm"
-  version   = "0.5.0"
-  providers = { modtm = modtm }
-  count     = local.create_private_dns_zone_monitor ? 1 : 0
+  source  = "Azure/avm-res-network-privatednszone/azurerm"
+  version = "0.5.0"
+  count   = local.create_private_dns_zone_monitor ? 1 : 0
 
   domain_name      = "privatelink.monitor.azure.com"
   parent_id        = local.resource_group_id
@@ -134,10 +128,9 @@ module "private_dns_zone_monitor" {
 }
 
 module "private_dns_zone_oms" {
-  source    = "Azure/avm-res-network-privatednszone/azurerm"
-  version   = "0.5.0"
-  providers = { modtm = modtm }
-  count     = local.create_private_dns_zone_oms ? 1 : 0
+  source  = "Azure/avm-res-network-privatednszone/azurerm"
+  version = "0.5.0"
+  count   = local.create_private_dns_zone_oms ? 1 : 0
 
   domain_name      = "privatelink.oms.opinsights.azure.com"
   parent_id        = local.resource_group_id
@@ -153,10 +146,9 @@ module "private_dns_zone_oms" {
 }
 
 module "private_dns_zone_ods" {
-  source    = "Azure/avm-res-network-privatednszone/azurerm"
-  version   = "0.5.0"
-  providers = { modtm = modtm }
-  count     = local.create_private_dns_zone_ods ? 1 : 0
+  source  = "Azure/avm-res-network-privatednszone/azurerm"
+  version = "0.5.0"
+  count   = local.create_private_dns_zone_ods ? 1 : 0
 
   domain_name      = "privatelink.ods.opinsights.azure.com"
   parent_id        = local.resource_group_id
@@ -172,10 +164,9 @@ module "private_dns_zone_ods" {
 }
 
 module "private_dns_zone_agentsvc" {
-  source    = "Azure/avm-res-network-privatednszone/azurerm"
-  version   = "0.5.0"
-  providers = { modtm = modtm }
-  count     = local.create_private_dns_zone_agentsvc ? 1 : 0
+  source  = "Azure/avm-res-network-privatednszone/azurerm"
+  version = "0.5.0"
+  count   = local.create_private_dns_zone_agentsvc ? 1 : 0
 
   domain_name      = "privatelink.agentsvc.azure-automation.net"
   parent_id        = local.resource_group_id

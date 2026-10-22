@@ -1,8 +1,7 @@
 module "log_analytics_workspace" {
-  source    = "Azure/avm-res-operationalinsights-workspace/azurerm"
-  version   = "0.5.1"
-  providers = { modtm = modtm }
-  count     = local.log_analytics_workspace_creation_enabled ? 1 : 0
+  source  = "Azure/avm-res-operationalinsights-workspace/azurerm"
+  version = "0.5.1"
+  count   = local.log_analytics_workspace_creation_enabled ? 1 : 0
 
   location                                           = var.location
   name                                               = coalesce(var.log_analytics_workspace_name, module.naming.resource_names.log_analytics_workspace)

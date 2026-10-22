@@ -10,6 +10,7 @@ terraform {
       source  = "hashicorp/azurerm"
       version = "~> 4.0"
     }
+    # tflint-ignore: terraform_unused_required_providers
     modtm = {
       source  = "registry.terraform.io/azure/modtm"
       version = "~> 0.3"
@@ -52,9 +53,8 @@ module "naming" {
 }
 
 module "resource_group" {
-  source    = "Azure/avm-res-resources-resourcegroup/azurerm"
-  version   = "0.2.2"
-  providers = { modtm = modtm }
+  source  = "Azure/avm-res-resources-resourcegroup/azurerm"
+  version = "0.2.2"
 
   location         = local.azure_regions[random_integer.region_index.result]
   name             = "${module.naming.resource_group.name_unique}-byo-asp-linux"
@@ -63,9 +63,8 @@ module "resource_group" {
 
 # Virtual Network with subnets
 module "virtual_network" {
-  source    = "Azure/avm-res-network-virtualnetwork/azurerm"
-  version   = "0.17.1"
-  providers = { modtm = modtm }
+  source  = "Azure/avm-res-network-virtualnetwork/azurerm"
+  version = "0.17.1"
 
   location         = module.resource_group.location
   parent_id        = module.resource_group.resource_id
@@ -95,9 +94,8 @@ module "virtual_network" {
 
 # App Service Plan
 module "app_service_plan" {
-  source    = "Azure/avm-res-web-serverfarm/azurerm"
-  version   = "2.0.1"
-  providers = { modtm = modtm }
+  source  = "Azure/avm-res-web-serverfarm/azurerm"
+  version = "2.0.1"
 
   location               = module.resource_group.location
   name                   = module.naming.app_service_plan.name_unique
@@ -111,9 +109,8 @@ module "app_service_plan" {
 
 # Private DNS Zone
 module "private_dns_zone_web" {
-  source    = "Azure/avm-res-network-privatednszone/azurerm"
-  version   = "0.5.0"
-  providers = { modtm = modtm }
+  source  = "Azure/avm-res-network-privatednszone/azurerm"
+  version = "0.5.0"
 
   domain_name      = "privatelink.azurewebsites.net"
   parent_id        = module.resource_group.resource_id
@@ -132,9 +129,8 @@ module "private_dns_zone_web" {
 # ------------------------------------------------------------------
 
 module "storage_account_zip_deploy" {
-  source    = "Azure/avm-res-storage-storageaccount/azurerm"
-  version   = "0.6.7"
-  providers = { modtm = modtm }
+  source  = "Azure/avm-res-storage-storageaccount/azurerm"
+  version = "0.6.7"
 
   location                 = module.resource_group.location
   name                     = "${module.naming.storage_account.name_unique}test001"
@@ -201,10 +197,6 @@ data "azurerm_storage_account_blob_container_sas" "zip_deploy" {
 
 module "test" {
   source = "../../"
-  providers = {
-    azapi = azapi
-    modtm = modtm
-  }
 
   location  = module.resource_group.location
   parent_id = module.resource_group.resource_id

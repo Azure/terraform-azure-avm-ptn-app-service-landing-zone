@@ -1,8 +1,7 @@
 module "bastion_host" {
-  source    = "Azure/avm-res-network-bastionhost/azurerm"
-  version   = "0.9.0"
-  providers = { modtm = modtm }
-  count     = local.bastion_host_effectively_enabled ? 1 : 0
+  source  = "Azure/avm-res-network-bastionhost/azurerm"
+  version = "0.9.0"
+  count   = local.bastion_host_effectively_enabled ? 1 : 0
 
   location            = var.location
   name                = coalesce(var.bastion_host_name, module.naming.resource_names.bastion_host)

@@ -1,8 +1,7 @@
 module "app_service_environment" {
-  source    = "Azure/avm-res-web-hostingenvironment/azurerm"
-  version   = "2.0.1"
-  providers = { modtm = modtm }
-  count     = var.app_service_environment_enabled ? 1 : 0
+  source  = "Azure/avm-res-web-hostingenvironment/azurerm"
+  version = "2.0.1"
+  count   = var.app_service_environment_enabled ? 1 : 0
 
   location                               = var.location
   name                                   = coalesce(var.app_service_environment_name, module.naming.resource_names.app_service_environment)
