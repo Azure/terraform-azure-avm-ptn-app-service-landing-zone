@@ -5,7 +5,6 @@ module "key_vault" {
 
   location                       = var.location
   name                           = coalesce(var.key_vault_name, module.naming.resource_names.key_vault)
-  resource_group_name            = local.resource_group_name
   tenant_id                      = data.azapi_client_config.this.tenant_id
   diagnostic_settings            = var.alz_platform_landing_zone_diagnostic_settings_mode_enabled ? {} : local.key_vault_diagnostic_settings
   enable_telemetry               = var.enable_telemetry
@@ -36,4 +35,5 @@ module "key_vault" {
   sku_name                   = var.key_vault_sku_name
   soft_delete_retention_days = var.key_vault_soft_delete_retention_days
   tags                       = try(coalesce(var.key_vault_tags, var.tags), {})
+  resource_group_name        = local.resource_group_name
 }

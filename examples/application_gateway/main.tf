@@ -72,7 +72,6 @@ module "storage_account_zip_deploy" {
 
   location                 = module.resource_group.location
   name                     = "${module.naming.storage_account.name_unique}test001"
-  resource_group_name      = module.resource_group.name
   account_replication_type = "ZRS"
   account_tier             = "Standard"
   containers = {
@@ -90,6 +89,7 @@ module "storage_account_zip_deploy" {
   network_rules                 = null
   public_network_access_enabled = true
   shared_access_key_enabled     = true
+  resource_group_name           = module.resource_group.name
 }
 
 resource "time_sleep" "wait_for_storage_account" {
@@ -154,11 +154,10 @@ module "appgw_key_vault" {
   source  = "Azure/avm-res-keyvault-vault/azurerm"
   version = "0.13.0"
 
-  location            = module.resource_group.location
-  name                = "kv-agw-${module.naming.key_vault.name_unique}"
-  resource_group_name = module.resource_group.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  enable_telemetry    = var.enable_telemetry
+  location         = module.resource_group.location
+  name             = "kv-agw-${module.naming.key_vault.name_unique}"
+  tenant_id        = data.azurerm_client_config.current.tenant_id
+  enable_telemetry = var.enable_telemetry
   network_acls = {
     bypass         = "AzureServices"
     default_action = "Allow"
@@ -181,6 +180,7 @@ module "appgw_key_vault" {
   wait_for_rbac_before_secret_operations = {
     create = "60s"
   }
+  resource_group_name = module.resource_group.name
 }
 
 # Self-signed certificate - no AVM module exists for KV certificates (data plane operation)
