@@ -30,10 +30,14 @@ output "application_gateway" {
 
 output "application_gateway_url" {
   description = "The FQDN URL of the Application Gateway public IP."
-  value = var.application_gateway_enabled && length(var.web_apps) > 0 ? "https://${coalesce(
-    var.application_gateway_public_ip_domain_name_label,
-    module.naming.resource_names.application_gateway_public_ip_domain_name_label
-  )}.${var.location}.cloudapp.azure.com" : null
+  value = var.application_gateway_enabled && length(var.web_apps) > 0 ? format(
+    "https://%s.%s.cloudapp.azure.com",
+    coalesce(
+      var.application_gateway_public_ip_domain_name_label,
+      module.naming.resource_names.application_gateway_public_ip_domain_name_label
+    ),
+    var.location
+  ) : null
 }
 
 output "application_insights" {
