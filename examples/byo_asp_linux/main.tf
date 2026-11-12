@@ -49,12 +49,12 @@ resource "random_integer" "region_index" {
 
 module "naming" {
   source  = "Azure/avm-utl-naming/azure"
-  version = "0.2.0"
+  version = "0.3.0"
 }
 
 module "resource_group" {
   source  = "Azure/avm-res-resources-resourcegroup/azurerm"
-  version = "0.2.2"
+  version = "0.4.0"
 
   location         = local.azure_regions[random_integer.region_index.result]
   name             = "${module.naming.resource_group.name_unique}-byo-asp-linux"
@@ -64,7 +64,7 @@ module "resource_group" {
 # Virtual Network with subnets
 module "virtual_network" {
   source  = "Azure/avm-res-network-virtualnetwork/azurerm"
-  version = "0.17.1"
+  version = "0.23.0"
 
   location         = module.resource_group.location
   parent_id        = module.resource_group.resource_id
@@ -95,7 +95,7 @@ module "virtual_network" {
 # App Service Plan
 module "app_service_plan" {
   source  = "Azure/avm-res-web-serverfarm/azurerm"
-  version = "2.0.1"
+  version = "2.0.8"
 
   location               = module.resource_group.location
   name                   = module.naming.app_service_plan.name_unique
@@ -110,11 +110,12 @@ module "app_service_plan" {
 # Private DNS Zone
 module "private_dns_zone_web" {
   source  = "Azure/avm-res-network-privatednszone/azurerm"
-  version = "0.5.0"
+  version = "0.6.0"
 
   domain_name      = "privatelink.azurewebsites.net"
   parent_id        = module.resource_group.resource_id
   enable_telemetry = var.enable_telemetry
+  location         = var.location
   virtual_network_links = {
     vnet_link = {
       name               = "vnet-link"
@@ -130,11 +131,10 @@ module "private_dns_zone_web" {
 
 module "storage_account_zip_deploy" {
   source  = "Azure/avm-res-storage-storageaccount/azurerm"
-  version = "0.6.7"
+  version = "0.11.0"
 
   location                 = module.resource_group.location
   name                     = "${module.naming.storage_account.name_unique}test001"
-  resource_group_name      = module.resource_group.name
   account_replication_type = "ZRS"
   account_tier             = "Standard"
   containers = {
@@ -152,6 +152,7 @@ module "storage_account_zip_deploy" {
   network_rules                 = null
   public_network_access_enabled = true
   shared_access_key_enabled     = true
+  resource_group_name           = module.resource_group.name
 }
 
 resource "time_sleep" "wait_for_storage_account" {

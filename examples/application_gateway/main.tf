@@ -49,12 +49,12 @@ resource "random_integer" "region_index" {
 
 module "naming" {
   source  = "Azure/avm-utl-naming/azure"
-  version = "0.2.0"
+  version = "0.3.0"
 }
 
 module "resource_group" {
   source  = "Azure/avm-res-resources-resourcegroup/azurerm"
-  version = "0.2.2"
+  version = "0.4.0"
 
   location         = local.azure_regions[random_integer.region_index.result]
   name             = "${module.naming.resource_group.name_unique}-appgw"
@@ -68,11 +68,10 @@ module "resource_group" {
 
 module "storage_account_zip_deploy" {
   source  = "Azure/avm-res-storage-storageaccount/azurerm"
-  version = "0.6.7"
+  version = "0.11.0"
 
   location                 = module.resource_group.location
   name                     = "${module.naming.storage_account.name_unique}test001"
-  resource_group_name      = module.resource_group.name
   account_replication_type = "ZRS"
   account_tier             = "Standard"
   containers = {
@@ -90,6 +89,7 @@ module "storage_account_zip_deploy" {
   network_rules                 = null
   public_network_access_enabled = true
   shared_access_key_enabled     = true
+  resource_group_name           = module.resource_group.name
 }
 
 resource "time_sleep" "wait_for_storage_account" {
@@ -142,7 +142,7 @@ data "azurerm_storage_account_blob_container_sas" "zip_deploy" {
 
 module "appgw_managed_identity" {
   source  = "Azure/avm-res-managedidentity-userassignedidentity/azurerm"
-  version = "0.4.0"
+  version = "0.6.0"
 
   location            = module.resource_group.location
   name                = "id-appgw-${module.naming.user_assigned_identity.name_unique}"
@@ -152,13 +152,12 @@ module "appgw_managed_identity" {
 
 module "appgw_key_vault" {
   source  = "Azure/avm-res-keyvault-vault/azurerm"
-  version = "0.10.2"
+  version = "0.13.0"
 
-  location            = module.resource_group.location
-  name                = "kv-agw-${module.naming.key_vault.name_unique}"
-  resource_group_name = module.resource_group.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  enable_telemetry    = var.enable_telemetry
+  location         = module.resource_group.location
+  name             = "kv-agw-${module.naming.key_vault.name_unique}"
+  tenant_id        = data.azurerm_client_config.current.tenant_id
+  enable_telemetry = var.enable_telemetry
   network_acls = {
     bypass         = "AzureServices"
     default_action = "Allow"
@@ -181,6 +180,7 @@ module "appgw_key_vault" {
   wait_for_rbac_before_secret_operations = {
     create = "60s"
   }
+  resource_group_name = module.resource_group.name
 }
 
 # Self-signed certificate - no AVM module exists for KV certificates (data plane operation)
