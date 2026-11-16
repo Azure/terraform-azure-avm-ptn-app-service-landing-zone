@@ -49,12 +49,12 @@ resource "random_integer" "region_index" {
 
 module "naming" {
   source  = "Azure/avm-utl-naming/azure"
-  version = "0.2.0"
+  version = "0.3.0"
 }
 
 module "resource_group" {
   source  = "Azure/avm-res-resources-resourcegroup/azurerm"
-  version = "0.2.2"
+  version = "0.5.0"
 
   location         = local.azure_regions[random_integer.region_index.result]
   name             = "${module.naming.resource_group.name_unique}-alz"
@@ -67,7 +67,7 @@ module "resource_group" {
 
 module "hub_virtual_network" {
   source  = "Azure/avm-res-network-virtualnetwork/azurerm"
-  version = "0.17.1"
+  version = "0.23.0"
 
   location         = module.resource_group.location
   parent_id        = module.resource_group.resource_id
@@ -93,7 +93,7 @@ module "hub_virtual_network" {
 # Public IP for firewall traffic
 module "firewall_public_ip" {
   source  = "Azure/avm-res-network-publicipaddress/azurerm"
-  version = "0.2.1"
+  version = "0.3.0"
 
   location            = module.resource_group.location
   name                = "pip-fw-${module.naming.public_ip.name_unique}"
@@ -107,7 +107,7 @@ module "firewall_public_ip" {
 # Public IP for firewall management traffic (required for Basic SKU)
 module "firewall_management_public_ip" {
   source  = "Azure/avm-res-network-publicipaddress/azurerm"
-  version = "0.2.1"
+  version = "0.3.0"
 
   location            = module.resource_group.location
   name                = "pip-fw-mgmt-${module.naming.public_ip.name_unique}"
@@ -133,7 +133,7 @@ module "firewall_policy" {
 # Azure Firewall (Basic SKU)
 module "firewall" {
   source  = "Azure/avm-res-network-azurefirewall/azurerm"
-  version = "0.4.0"
+  version = "0.5.0"
 
   firewall_sku_name   = "AZFW_VNet"
   firewall_sku_tier   = "Basic"
@@ -164,7 +164,7 @@ module "firewall" {
 
 module "storage_account_zip_deploy" {
   source  = "Azure/avm-res-storage-storageaccount/azurerm"
-  version = "0.6.7"
+  version = "0.11.0"
 
   location                 = module.resource_group.location
   name                     = "${module.naming.storage_account.name_unique}test001"
