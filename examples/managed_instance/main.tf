@@ -1,5 +1,5 @@
 terraform {
-  required_version = ">= 1.9, < 2.0"
+  required_version = ">= 1.16, < 2.0"
 
   required_providers {
     archive = {
@@ -13,11 +13,6 @@ terraform {
     azurerm = {
       source  = "hashicorp/azurerm"
       version = "~> 4.0"
-    }
-    # tflint-ignore: terraform_unused_required_providers
-    modtm = {
-      source  = "registry.terraform.io/azure/modtm"
-      version = "~> 0.3"
     }
     random = {
       source  = "hashicorp/random"
@@ -91,6 +86,7 @@ module "storage_account_zip_deploy" {
 
   location                 = module.resource_group.location
   name                     = "${module.naming.storage_account.name_unique}test001"
+  parent_id                = module.resource_group.resource_id
   account_replication_type = "ZRS"
   account_tier             = "Standard"
   containers = {
@@ -108,7 +104,6 @@ module "storage_account_zip_deploy" {
   network_rules                 = null
   public_network_access_enabled = true
   shared_access_key_enabled     = true
-  resource_group_name           = module.resource_group.name
 }
 
 resource "time_sleep" "wait_for_storage_account" {

@@ -1,5 +1,5 @@
 terraform {
-  required_version = ">= 1.9, < 2.0"
+  required_version = ">= 1.16, < 2.0"
 
   required_providers {
     azapi = {
@@ -9,11 +9,6 @@ terraform {
     azurerm = {
       source  = "hashicorp/azurerm"
       version = "~> 4.0"
-    }
-    # tflint-ignore: terraform_unused_required_providers
-    modtm = {
-      source  = "registry.terraform.io/azure/modtm"
-      version = "~> 0.3"
     }
     random = {
       source  = "hashicorp/random"
@@ -95,13 +90,13 @@ module "firewall_public_ip" {
   source  = "Azure/avm-res-network-publicipaddress/azurerm"
   version = "0.3.0"
 
-  location            = module.resource_group.location
-  name                = "pip-fw-${module.naming.public_ip.name_unique}"
-  allocation_method   = "Static"
-  enable_telemetry    = var.enable_telemetry
-  sku                 = "Standard"
-  zones               = ["1", "2", "3"]
-  resource_group_name = module.resource_group.name
+  location          = module.resource_group.location
+  name              = "pip-fw-${module.naming.public_ip.name_unique}"
+  parent_id         = module.resource_group.resource_id
+  allocation_method = "Static"
+  enable_telemetry  = var.enable_telemetry
+  sku               = "Standard"
+  zones             = ["1", "2", "3"]
 }
 
 # Public IP for firewall management traffic (required for Basic SKU)
@@ -109,25 +104,25 @@ module "firewall_management_public_ip" {
   source  = "Azure/avm-res-network-publicipaddress/azurerm"
   version = "0.3.0"
 
-  location            = module.resource_group.location
-  name                = "pip-fw-mgmt-${module.naming.public_ip.name_unique}"
-  allocation_method   = "Static"
-  enable_telemetry    = var.enable_telemetry
-  sku                 = "Standard"
-  zones               = ["1", "2", "3"]
-  resource_group_name = module.resource_group.name
+  location          = module.resource_group.location
+  name              = "pip-fw-mgmt-${module.naming.public_ip.name_unique}"
+  parent_id         = module.resource_group.resource_id
+  allocation_method = "Static"
+  enable_telemetry  = var.enable_telemetry
+  sku               = "Standard"
+  zones             = ["1", "2", "3"]
 }
 
 # Firewall Policy (Basic SKU)
 module "firewall_policy" {
   source  = "Azure/avm-res-network-firewallpolicy/azurerm"
-  version = "0.3.4"
+  version = "0.4.0"
 
   location            = module.resource_group.location
   name                = "fwpol-${module.naming.firewall.name_unique}"
-  resource_group_name = module.resource_group.name
   enable_telemetry    = var.enable_telemetry
   firewall_policy_sku = "Basic"
+  parent_id           = module.resource_group.resource_id
 }
 
 # Azure Firewall (Basic SKU)
@@ -168,6 +163,7 @@ module "storage_account_zip_deploy" {
 
   location                 = module.resource_group.location
   name                     = "${module.naming.storage_account.name_unique}test001"
+  parent_id                = module.resource_group.resource_id
   account_replication_type = "ZRS"
   account_tier             = "Standard"
   containers = {
@@ -185,7 +181,6 @@ module "storage_account_zip_deploy" {
   network_rules                 = null
   public_network_access_enabled = true
   shared_access_key_enabled     = true
-  resource_group_name           = module.resource_group.name
 }
 
 resource "time_sleep" "wait_for_storage_account" {

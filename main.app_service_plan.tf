@@ -1,6 +1,6 @@
 module "app_service_plan" {
   source  = "Azure/avm-res-web-serverfarm/azurerm"
-  version = "2.0.8"
+  version = "2.1.0"
   count   = var.app_service_plan_enabled ? 1 : 0
 
   location                   = var.location

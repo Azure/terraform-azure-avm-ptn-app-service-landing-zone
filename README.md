@@ -8,6 +8,62 @@ Examples that use zip deployment run `pre.ps1` to package the upstream ASP.NET s
 
 Terraform validation does not require a prebuilt archive. Planning and deployment require the genuine `app.zip`; a missing archive fails with instructions to run the example's `pre.ps1`.
 
+## Upgrading existing deployments
+
+This version requires Terraform 1.16 or later. Back up state securely and review the plan for unexpected changes, replacements, or deletions before applying. The historical-state procedures below have not been tested against a deployed instance of this pattern.
+
+### Application Gateway
+
+If this pattern created an Application Gateway public IP, the gateway module upgrade requires transferring that existing IP into the new module's state. After updating and initializing the configuration, inspect the existing IP's Azure resource ID with `terraform state show`. Replace `landing_zone` below with your pattern module address and `<public-ip-resource-id>` with that existing ID. Do not apply between removal and import.
+
+```powershell
+terraform state pull > terraform.tfstate.backup
+terraform state show 'module.landing_zone.module.application_gateway[0].azurerm_public_ip.this[0]'
+terraform state rm 'module.landing_zone.module.application_gateway[0].azurerm_public_ip.this[0]'
+terraform import `
+  'module.landing_zone.module.application_gateway[0].azapi_resource.public_ip_addresses["default"]' `
+  '<public-ip-resource-id>'
+terraform plan
+```
+
+Stop if the plan proposes replacing or deleting the public IP or gateway. See the [gateway upgrade guide](https://github.com/Azure/terraform-azurerm-avm-res-network-applicationgateway/blob/v0.6.0/UPGRADE.md) for the underlying state migration.
+
+The `application_gateway` output now exposes the upgraded child module's outputs. Replace `application_gateway_id` with `resource_id`, `application_gateway_name` with `name`, `public_ip_id` with `public_ip_addresses["default"].resource_id`, and `new_public_ip_address` with `public_ip_addresses["default"].ip_address`. The previous `backend_address_pools`, `backend_http_settings`, `frontend_port`, `http_listeners`, `probes`, `request_routing_rules`, `ssl_certificates`, `tags`, and `waf_configuration` outputs are no longer available.
+
+Sensitive certificate inputs can cause Terraform to warn that a gateway validation message refers to sensitive values.
+
+### Log Analytics workspace
+
+On the first upgrade plan, workspace shared keys can be unknown until apply. If downstream resources depend on those keys, review the plan carefully and stop if it proposes unintended changes or replacements. The child module's optional migration switch is not exposed by this pattern. If needed, separately plan and apply only `module.landing_zone.module.log_analytics_workspace`, review that targeted plan and its dependencies first, and then run a full plan before applying other changes. Targeted applies are exceptional and this sequence has not been tested against historical state.
+
+The workspace module has its own private-endpoint DNS migration guidance in its [upgrade notes](https://github.com/Azure/terraform-azurerm-avm-res-operationalinsights-workspace/blob/v0.7.0/_header.md). This pattern manages its AMPLS private endpoint and DNS zone group separately; do not apply the child-module DNS import instructions to those resources.
+
+### Storage accounts and Key Vault
+
+The storage account upgrade moves containers and file shares into child modules. For every existing key, add the applicable `moved` block in your root configuration before planning. Replace `landing_zone` and the example keys with the actual module address and keys from state, including any managed-instance keys.
+
+```hcl
+moved {
+  from = module.landing_zone.module.storage_account[0].azapi_resource.containers["example"]
+  to   = module.landing_zone.module.storage_account[0].module.containers["example"].azapi_resource.this
+}
+
+moved {
+  from = module.landing_zone.module.storage_account[0].azapi_resource.share["example"]
+  to   = module.landing_zone.module.storage_account[0].module.shares["example"].azapi_resource.this
+}
+```
+
+Keep the blocks for every workspace and stop if the plan proposes replacing or deleting storage resources. Review the [storage account upgrade guide](https://github.com/Azure/terraform-azurerm-avm-res-storage-storageaccount/blob/v0.11.0/_header.md) for role assignments, diagnostics, and sovereign-cloud caveats.
+
+If the Key Vault module managed a private endpoint DNS zone group, import that existing zone group before applying. The pattern's endpoint key is `default`; use the actual endpoint and DNS zone group IDs from your state and follow the [Key Vault upgrade guide](https://github.com/Azure/terraform-azurerm-avm-res-keyvault-vault/blob/v0.13.1/_header.md). The new destination is `module.landing_zone.module.key_vault[0].azapi_resource.private_dns_zone_groups["default"]`. The guide also covers locks and cross-tenant role assignments.
+
+The [Application Insights upgrade guide](https://github.com/Azure/terraform-azurerm-avm-res-insights-component/blob/v0.5.0/_header.md) describes its temporary unknown outputs and lock considerations.
+
+### Other output changes
+
+The `container_registry.resource` output is no longer available; use the child module's discrete outputs such as `container_registry.login_server`, `container_registry.name`, and `container_registry.resource_id`. The `web_apps` child outputs no longer include `deployment_slot_locks`, `resource_lock`, or `resource_private_endpoints`; use `private_endpoints` for the supported private-endpoint output. The `web_apps` output is sensitive because the upgraded child module marks its resource output sensitive.
+
 ## Features
 
 - **App Service Hosting**: Deploy App Service Plans (Linux, Windows, or Windows Managed Instance) or App Service Environments v3 (ASEv3) for isolated workloads. Supports multiple web apps with independent configuration, deployment slots, and managed identities.
@@ -28,13 +84,11 @@ Terraform validation does not require a prebuilt archive. Planning and deploymen
 
 The following requirements are needed by this module:
 
-- <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (>= 1.9, < 2.0)
+- <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (>= 1.16, < 2.0)
 
 - <a name="requirement_azapi"></a> [azapi](#requirement\_azapi) (~> 2.12)
 
 - <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (~> 4.0)
-
-- <a name="requirement_modtm"></a> [modtm](#requirement\_modtm) (~> 0.3)
 
 - <a name="requirement_time"></a> [time](#requirement\_time) (~> 0.12)
 
@@ -5343,67 +5397,67 @@ The following Modules are called:
 
 Source: Azure/avm-res-network-routetable/azurerm
 
-Version: 0.4.1
+Version: 0.6.0
 
 ### <a name="module_app_service_environment"></a> [app\_service\_environment](#module\_app\_service\_environment)
 
 Source: Azure/avm-res-web-hostingenvironment/azurerm
 
-Version: 2.0.1
+Version: 2.1.0
 
 ### <a name="module_app_service_plan"></a> [app\_service\_plan](#module\_app\_service\_plan)
 
 Source: Azure/avm-res-web-serverfarm/azurerm
 
-Version: 2.0.1
+Version: 2.1.0
 
 ### <a name="module_application_gateway"></a> [application\_gateway](#module\_application\_gateway)
 
 Source: Azure/avm-res-network-applicationgateway/azurerm
 
-Version: 0.5.2
+Version: 0.6.0
 
 ### <a name="module_application_insights"></a> [application\_insights](#module\_application\_insights)
 
 Source: Azure/avm-res-insights-component/azurerm
 
-Version: 0.3.0
+Version: 0.5.0
 
 ### <a name="module_bastion_host"></a> [bastion\_host](#module\_bastion\_host)
 
 Source: Azure/avm-res-network-bastionhost/azurerm
 
-Version: 0.9.0
+Version: 0.10.0
 
 ### <a name="module_container_registry"></a> [container\_registry](#module\_container\_registry)
 
 Source: Azure/avm-res-containerregistry-registry/azurerm
 
-Version: 0.5.1
+Version: 0.9.0
 
 ### <a name="module_front_door"></a> [front\_door](#module\_front\_door)
 
 Source: Azure/avm-res-cdn-profile/azurerm
 
-Version: 0.1.9
+Version: 0.2.0
 
 ### <a name="module_key_vault"></a> [key\_vault](#module\_key\_vault)
 
 Source: Azure/avm-res-keyvault-vault/azurerm
 
-Version: 0.10.2
+Version: 0.13.1
 
 ### <a name="module_log_analytics_workspace"></a> [log\_analytics\_workspace](#module\_log\_analytics\_workspace)
 
 Source: Azure/avm-res-operationalinsights-workspace/azurerm
 
-Version: 0.5.1
+Version: 0.7.0
 
 ### <a name="module_managed_instance_managed_identity"></a> [managed\_instance\_managed\_identity](#module\_managed\_instance\_managed\_identity)
 
 Source: Azure/avm-res-managedidentity-userassignedidentity/azurerm
 
-Version: 0.4.0
+Version: 0.6.0
 
 ### <a name="module_naming"></a> [naming](#module\_naming)
 
@@ -5415,85 +5469,85 @@ Version:
 
 Source: Azure/avm-res-network-privatednszone/azurerm
 
-Version: 0.5.0
+Version: 0.6.0
 
 ### <a name="module_private_dns_zone_container_registry"></a> [private\_dns\_zone\_container\_registry](#module\_private\_dns\_zone\_container\_registry)
 
 Source: Azure/avm-res-network-privatednszone/azurerm
 
-Version: 0.5.0
+Version: 0.6.0
 
 ### <a name="module_private_dns_zone_key_vault"></a> [private\_dns\_zone\_key\_vault](#module\_private\_dns\_zone\_key\_vault)
 
 Source: Azure/avm-res-network-privatednszone/azurerm
 
-Version: 0.5.0
+Version: 0.6.0
 
 ### <a name="module_private_dns_zone_monitor"></a> [private\_dns\_zone\_monitor](#module\_private\_dns\_zone\_monitor)
 
 Source: Azure/avm-res-network-privatednszone/azurerm
 
-Version: 0.5.0
+Version: 0.6.0
 
 ### <a name="module_private_dns_zone_ods"></a> [private\_dns\_zone\_ods](#module\_private\_dns\_zone\_ods)
 
 Source: Azure/avm-res-network-privatednszone/azurerm
 
-Version: 0.5.0
+Version: 0.6.0
 
 ### <a name="module_private_dns_zone_oms"></a> [private\_dns\_zone\_oms](#module\_private\_dns\_zone\_oms)
 
 Source: Azure/avm-res-network-privatednszone/azurerm
 
-Version: 0.5.0
+Version: 0.6.0
 
 ### <a name="module_private_dns_zone_storage_blob"></a> [private\_dns\_zone\_storage\_blob](#module\_private\_dns\_zone\_storage\_blob)
 
 Source: Azure/avm-res-network-privatednszone/azurerm
 
-Version: 0.5.0
+Version: 0.6.0
 
 ### <a name="module_private_dns_zone_storage_file"></a> [private\_dns\_zone\_storage\_file](#module\_private\_dns\_zone\_storage\_file)
 
 Source: Azure/avm-res-network-privatednszone/azurerm
 
-Version: 0.5.0
+Version: 0.6.0
 
 ### <a name="module_private_dns_zone_web"></a> [private\_dns\_zone\_web](#module\_private\_dns\_zone\_web)
 
 Source: Azure/avm-res-network-privatednszone/azurerm
 
-Version: 0.5.0
+Version: 0.6.0
 
 ### <a name="module_storage_account"></a> [storage\_account](#module\_storage\_account)
 
 Source: Azure/avm-res-storage-storageaccount/azurerm
 
-Version: 0.6.7
+Version: 0.11.0
 
 ### <a name="module_virtual_network"></a> [virtual\_network](#module\_virtual\_network)
 
 Source: Azure/avm-res-network-virtualnetwork/azurerm
 
-Version: 0.17.1
+Version: 0.23.0
 
 ### <a name="module_web_app"></a> [web\_app](#module\_web\_app)
 
 Source: Azure/avm-res-web-site/azurerm
 
-Version: 0.21.8
+Version: 0.25.0
 
 ### <a name="module_web_app_managed_identity"></a> [web\_app\_managed\_identity](#module\_web\_app\_managed\_identity)
 
 Source: Azure/avm-res-managedidentity-userassignedidentity/azurerm
 
-Version: 0.4.0
+Version: 0.6.0
 
 ### <a name="module_web_app_slot_managed_identity"></a> [web\_app\_slot\_managed\_identity](#module\_web\_app\_slot\_managed\_identity)
 
 Source: Azure/avm-res-managedidentity-userassignedidentity/azurerm
 
-Version: 0.4.0
+Version: 0.6.0
 
 <!-- markdownlint-disable-next-line MD041 -->
 ## Data Collection
