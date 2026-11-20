@@ -79,7 +79,7 @@ output "container_registry_id" {
 
 output "container_registry_login_server" {
   description = "The login server URL of the Container Registry."
-  value       = local.container_registry_effectively_enabled ? module.container_registry[0].resource.login_server : null
+  value       = local.container_registry_effectively_enabled ? module.container_registry[0].login_server : null
 }
 
 output "container_registry_name" {
@@ -211,5 +211,6 @@ output "web_app_slot_managed_identities" {
 
 output "web_apps" {
   description = "A map of web app resource outputs from the AVM module, keyed by the web_apps map key."
+  sensitive   = true
   value       = module.web_app
 }

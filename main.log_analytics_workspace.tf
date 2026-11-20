@@ -1,11 +1,11 @@
 module "log_analytics_workspace" {
   source  = "Azure/avm-res-operationalinsights-workspace/azurerm"
-  version = "0.5.1"
+  version = "0.7.0"
   count   = local.log_analytics_workspace_creation_enabled ? 1 : 0
 
   location                                           = var.location
   name                                               = coalesce(var.log_analytics_workspace_name, module.naming.resource_names.log_analytics_workspace)
-  resource_group_name                                = local.resource_group_name
+  parent_id                                          = local.resource_group_id
   enable_telemetry                                   = var.enable_telemetry
   log_analytics_workspace_internet_ingestion_enabled = local.virtual_network_enabled ? "false" : "true"
   log_analytics_workspace_internet_query_enabled     = var.log_analytics_workspace_internet_query_enabled

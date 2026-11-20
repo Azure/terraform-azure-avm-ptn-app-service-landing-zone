@@ -1,5 +1,5 @@
 terraform {
-  required_version = ">= 1.9, < 2.0"
+  required_version = ">= 1.16, < 2.0"
 
   required_providers {
     azapi = {
@@ -9,11 +9,6 @@ terraform {
     azurerm = {
       source  = "hashicorp/azurerm"
       version = "~> 4.0"
-    }
-    # tflint-ignore: terraform_unused_required_providers
-    modtm = {
-      source  = "registry.terraform.io/azure/modtm"
-      version = "~> 0.3"
     }
     random = {
       source  = "hashicorp/random"
@@ -49,12 +44,12 @@ resource "random_integer" "region_index" {
 
 module "naming" {
   source  = "Azure/avm-utl-naming/azure"
-  version = "0.2.0"
+  version = "0.3.0"
 }
 
 module "resource_group" {
   source  = "Azure/avm-res-resources-resourcegroup/azurerm"
-  version = "0.2.2"
+  version = "0.5.0"
 
   location         = local.azure_regions[random_integer.region_index.result]
   name             = "${module.naming.resource_group.name_unique}-appgw"
@@ -68,11 +63,11 @@ module "resource_group" {
 
 module "storage_account_zip_deploy" {
   source  = "Azure/avm-res-storage-storageaccount/azurerm"
-  version = "0.6.7"
+  version = "0.11.0"
 
   location                 = module.resource_group.location
   name                     = "${module.naming.storage_account.name_unique}test001"
-  resource_group_name      = module.resource_group.name
+  parent_id                = module.resource_group.resource_id
   account_replication_type = "ZRS"
   account_tier             = "Standard"
   containers = {
@@ -115,8 +110,18 @@ resource "azurerm_storage_blob" "zip_deploy" {
   depends_on = [time_sleep.wait_for_storage_account]
 }
 
+data "azapi_resource_action" "zip_deploy_storage_key" {
+  action                 = "listKeys"
+  resource_id            = module.storage_account_zip_deploy.resource_id
+  type                   = "Microsoft.Storage/storageAccounts@2023-05-01"
+  response_export_values = []
+  sensitive_response_export_values = {
+    key = "keys[?keyName=='key1'].value | [0]"
+  }
+}
+
 data "azurerm_storage_account_blob_container_sas" "zip_deploy" {
-  connection_string = module.storage_account_zip_deploy.resource.primary_connection_string
+  connection_string = "DefaultEndpointsProtocol=https;AccountName=${module.storage_account_zip_deploy.name};AccountKey=${data.azapi_resource_action.zip_deploy_storage_key.sensitive_output.key};EndpointSuffix=core.windows.net"
   container_name    = "zip-deploy"
   expiry            = "2099-01-01T00:00:00Z"
   start             = "2024-01-01T00:00:00Z"
@@ -142,7 +147,7 @@ data "azurerm_storage_account_blob_container_sas" "zip_deploy" {
 
 module "appgw_managed_identity" {
   source  = "Azure/avm-res-managedidentity-userassignedidentity/azurerm"
-  version = "0.4.0"
+  version = "0.6.0"
 
   location            = module.resource_group.location
   name                = "id-appgw-${module.naming.user_assigned_identity.name_unique}"
@@ -152,13 +157,13 @@ module "appgw_managed_identity" {
 
 module "appgw_key_vault" {
   source  = "Azure/avm-res-keyvault-vault/azurerm"
-  version = "0.10.2"
+  version = "0.13.1"
 
-  location            = module.resource_group.location
-  name                = "kv-agw-${module.naming.key_vault.name_unique}"
-  resource_group_name = module.resource_group.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-  enable_telemetry    = var.enable_telemetry
+  location         = module.resource_group.location
+  name             = "kv-agw-${module.naming.key_vault.name_unique}"
+  parent_id        = module.resource_group.resource_id
+  tenant_id        = data.azurerm_client_config.current.tenant_id
+  enable_telemetry = var.enable_telemetry
   network_acls = {
     bypass         = "AzureServices"
     default_action = "Allow"

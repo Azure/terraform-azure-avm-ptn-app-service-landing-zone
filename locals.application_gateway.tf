@@ -1,4 +1,7 @@
 locals {
+  application_gateway_name        = coalesce(var.application_gateway_name, module.naming.resource_names.application_gateway)
+  application_gateway_resource_id = "${local.resource_group_id}/providers/Microsoft.Network/applicationGateways/${local.application_gateway_name}"
+
   # Auto-generate Application Gateway configuration from web apps if not explicitly provided
   application_gateway_backend_address_pools = var.application_gateway_backend_address_pools != null ? var.application_gateway_backend_address_pools : {
     for key, app in var.web_apps : key => {
@@ -9,12 +12,20 @@ locals {
   }
   application_gateway_backend_http_settings = var.application_gateway_backend_http_settings != null ? var.application_gateway_backend_http_settings : {
     for key, app in var.web_apps : key => {
-      name                                = module.naming.resource_names.application_gateway_http_setting[key]
-      port                                = 443
-      protocol                            = "Https"
-      pick_host_name_from_backend_address = true
-      probe_name                          = module.naming.resource_names.application_gateway_probe[key]
-      request_timeout                     = 120
+      name                                 = module.naming.resource_names.application_gateway_http_setting[key]
+      port                                 = 443
+      protocol                             = "Https"
+      affinity_cookie_name                 = null
+      authentication_certificate           = null
+      connection_draining                  = null
+      cookie_based_affinity                = "Disabled"
+      dedicated_backend_connection_enabled = false
+      host_name                            = null
+      path                                 = null
+      pick_host_name_from_backend_address  = true
+      probe_name                           = module.naming.resource_names.application_gateway_probe[key]
+      request_timeout                      = 120
+      trusted_root_certificate_names       = null
     }
   }
   application_gateway_frontend_ports = var.application_gateway_frontend_ports != null ? var.application_gateway_frontend_ports : {
@@ -28,13 +39,18 @@ locals {
     }
   }
   application_gateway_http_listeners = var.application_gateway_http_listeners != null ? var.application_gateway_http_listeners : {
-    for key, app in var.web_apps : key => merge({
-      name               = module.naming.resource_names.application_gateway_listener[key]
-      frontend_port_name = var.application_gateway_ssl_certificates != null ? "port-443" : "port-80"
-      host_name          = null
-      }, var.application_gateway_ssl_certificates != null ? {
-      ssl_certificate_name = values(var.application_gateway_ssl_certificates)[0].name
-    } : {})
+    for key, app in var.web_apps : key => {
+      name                           = module.naming.resource_names.application_gateway_listener[key]
+      frontend_port_name             = nonsensitive(var.application_gateway_ssl_certificates != null) ? "port-443" : "port-80"
+      frontend_ip_configuration_name = null
+      firewall_policy_id             = null
+      require_sni                    = null
+      host_name                      = null
+      host_names                     = null
+      ssl_certificate_name           = nonsensitive(var.application_gateway_ssl_certificates != null) ? nonsensitive(values(var.application_gateway_ssl_certificates)[0].name) : null
+      ssl_profile_name               = null
+      custom_error_configuration     = null
+    }
   }
   application_gateway_probe_configurations = var.application_gateway_probe_configurations != null ? var.application_gateway_probe_configurations : {
     for key, app in var.web_apps : key => {
@@ -56,12 +72,15 @@ locals {
   }
   application_gateway_request_routing_rules = var.application_gateway_request_routing_rules != null ? var.application_gateway_request_routing_rules : {
     for idx_key in keys(var.web_apps) : idx_key => {
-      name                       = module.naming.resource_names.application_gateway_routing_rule[idx_key]
-      rule_type                  = "Basic"
-      http_listener_name         = module.naming.resource_names.application_gateway_listener[idx_key]
-      backend_address_pool_name  = module.naming.resource_names.application_gateway_backend_pool[idx_key]
-      backend_http_settings_name = module.naming.resource_names.application_gateway_http_setting[idx_key]
-      priority                   = 100 + index(keys(var.web_apps), idx_key)
+      name                        = module.naming.resource_names.application_gateway_routing_rule[idx_key]
+      rule_type                   = "Basic"
+      http_listener_name          = module.naming.resource_names.application_gateway_listener[idx_key]
+      backend_address_pool_name   = module.naming.resource_names.application_gateway_backend_pool[idx_key]
+      backend_http_settings_name  = module.naming.resource_names.application_gateway_http_setting[idx_key]
+      priority                    = 100 + index(keys(var.web_apps), idx_key)
+      url_path_map_name           = null
+      redirect_configuration_name = null
+      rewrite_rule_set_name       = null
     }
   }
   # Application Gateway subnet
