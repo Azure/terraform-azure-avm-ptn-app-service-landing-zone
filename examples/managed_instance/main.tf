@@ -129,8 +129,18 @@ resource "azurerm_storage_blob" "zip_deploy" {
   depends_on = [time_sleep.wait_for_storage_account]
 }
 
+data "azapi_resource_action" "zip_deploy_storage_key" {
+  action                 = "listKeys"
+  resource_id            = module.storage_account_zip_deploy.resource_id
+  type                   = "Microsoft.Storage/storageAccounts@2023-05-01"
+  response_export_values = []
+  sensitive_response_export_values = {
+    key = "keys[?keyName=='key1'].value | [0]"
+  }
+}
+
 data "azurerm_storage_account_blob_container_sas" "zip_deploy" {
-  connection_string = module.storage_account_zip_deploy.resource.primary_connection_string
+  connection_string = "DefaultEndpointsProtocol=https;AccountName=${module.storage_account_zip_deploy.name};AccountKey=${data.azapi_resource_action.zip_deploy_storage_key.sensitive_output.key};EndpointSuffix=core.windows.net"
   container_name    = "zip-deploy"
   expiry            = "2099-01-01T00:00:00Z"
   start             = "2024-01-01T00:00:00Z"
