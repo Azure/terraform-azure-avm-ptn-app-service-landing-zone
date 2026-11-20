@@ -14,6 +14,8 @@ This version requires Terraform 1.16 or later. Back up state securely and review
 
 ### Application Gateway
 
+The default configuration retains inline WAF settings and does not resolve Azure's previously observed `ApplicationGatewayWafConfigurationDeprecated` rejection. Azure no longer permits new WAF v2 deployments with legacy WAF configuration; see [Microsoft's WAF policy migration guidance](https://learn.microsoft.com/azure/web-application-firewall/ag/upgrade-ag-waf-policy). Migrating an existing gateway does not by itself reconcile the inline settings in this Terraform configuration.
+
 If this pattern created an Application Gateway public IP, the gateway module upgrade requires transferring that existing IP into the new module's state. After updating and initializing the configuration, inspect the existing IP's Azure resource ID with `terraform state show`. Replace `landing_zone` below with your pattern module address and `<public-ip-resource-id>` with that existing ID. Do not apply between removal and import.
 
 ```powershell
