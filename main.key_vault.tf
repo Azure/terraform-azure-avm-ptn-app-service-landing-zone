@@ -15,7 +15,7 @@ module "key_vault" {
   private_endpoints = local.virtual_network_enabled ? {
     default = {
       subnet_resource_id            = local.private_endpoint_subnet_id
-      private_dns_zone_resource_ids = local.private_dns_zone_key_vault_id != null ? toset([local.private_dns_zone_key_vault_id]) : toset([])
+      private_dns_zone_resource_ids = local.create_private_dns_zone_key_vault || var.private_dns_zone_key_vault_resource_id != null ? toset([local.private_dns_zone_key_vault_id]) : toset([])
     }
   } : {}
   public_network_access_enabled = var.key_vault_public_network_access_enabled

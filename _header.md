@@ -62,7 +62,7 @@ The [Application Insights upgrade guide](https://github.com/Azure/terraform-azur
 
 ### Other output changes
 
-The `container_registry.resource` output is no longer available; use the child module's discrete outputs such as `container_registry.login_server`, `container_registry.name`, and `container_registry.resource_id`. The `web_apps` child outputs no longer include `deployment_slot_locks`, `resource_lock`, or `resource_private_endpoints`; use `private_endpoints` for the supported private-endpoint output. The `web_apps` output is sensitive because the upgraded child module marks its resource output sensitive.
+The `container_registry.resource` output is no longer available; use the child module's discrete outputs such as `container_registry.login_server`, `container_registry.name`, and `container_registry.resource_id`. The `web_apps` child outputs no longer include `deployment_slot_locks`, `resource_lock`, or `resource_private_endpoints`; use `private_endpoints` for the supported private-endpoint output. The `application_insights`, `container_registry`, `log_analytics_workspace`, `storage_account`, and `web_apps` outputs are sensitive because they contain sensitive child outputs. Callers exposing these values as root outputs must mark them sensitive.
 
 ## Features
 

@@ -64,7 +64,7 @@ The [Application Insights upgrade guide](https://github.com/Azure/terraform-azur
 
 ### Other output changes
 
-The `container_registry.resource` output is no longer available; use the child module's discrete outputs such as `container_registry.login_server`, `container_registry.name`, and `container_registry.resource_id`. The `web_apps` child outputs no longer include `deployment_slot_locks`, `resource_lock`, or `resource_private_endpoints`; use `private_endpoints` for the supported private-endpoint output. The `web_apps` output is sensitive because the upgraded child module marks its resource output sensitive.
+The `container_registry.resource` output is no longer available; use the child module's discrete outputs such as `container_registry.login_server`, `container_registry.name`, and `container_registry.resource_id`. The `web_apps` child outputs no longer include `deployment_slot_locks`, `resource_lock`, or `resource_private_endpoints`; use `private_endpoints` for the supported private-endpoint output. The `application_insights`, `container_registry`, `log_analytics_workspace`, `storage_account`, and `web_apps` outputs are sensitive because they contain sensitive child outputs. Callers exposing these values as root outputs must mark them sensitive.
 
 ## Features
 
@@ -5265,7 +5265,7 @@ Description: The FQDN URL of the Application Gateway public IP.
 
 ### <a name="output_application_insights"></a> [application\_insights](#output\_application\_insights)
 
-Description: The Application Insights resource output from the AVM module.
+Description: The sensitive Application Insights resource output from the AVM module.
 
 ### <a name="output_application_insights_connection_string"></a> [application\_insights\_connection\_string](#output\_application\_insights\_connection\_string)
 
@@ -5285,7 +5285,7 @@ Description: The resource ID of the Bastion Host (created or BYO).
 
 ### <a name="output_container_registry"></a> [container\_registry](#output\_container\_registry)
 
-Description: The Container Registry resource output from the AVM module.
+Description: The sensitive Container Registry resource output from the AVM module.
 
 ### <a name="output_container_registry_id"></a> [container\_registry\_id](#output\_container\_registry\_id)
 
@@ -5317,7 +5317,7 @@ Description: The name of the Key Vault.
 
 ### <a name="output_log_analytics_workspace"></a> [log\_analytics\_workspace](#output\_log\_analytics\_workspace)
 
-Description: The Log Analytics workspace resource output from the AVM module.
+Description: The sensitive Log Analytics workspace resource output from the AVM module.
 
 ### <a name="output_log_analytics_workspace_id"></a> [log\_analytics\_workspace\_id](#output\_log\_analytics\_workspace\_id)
 
@@ -5357,7 +5357,7 @@ Description: The resource ID of the route table (created or BYO).
 
 ### <a name="output_storage_account"></a> [storage\_account](#output\_storage\_account)
 
-Description: The Storage Account resource output from the AVM module.
+Description: The sensitive Storage Account resource output from the AVM module.
 
 ### <a name="output_storage_account_id"></a> [storage\_account\_id](#output\_storage\_account\_id)
 

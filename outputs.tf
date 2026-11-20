@@ -41,7 +41,8 @@ output "application_gateway_url" {
 }
 
 output "application_insights" {
-  description = "The Application Insights resource output from the AVM module."
+  description = "The sensitive Application Insights resource output from the AVM module."
+  sensitive   = true
   value       = var.application_insights_enabled && var.application_insights_resource_id == null ? module.application_insights[0] : null
 }
 
@@ -68,7 +69,8 @@ output "bastion_host_id" {
 }
 
 output "container_registry" {
-  description = "The Container Registry resource output from the AVM module."
+  description = "The sensitive Container Registry resource output from the AVM module."
+  sensitive   = true
   value       = local.container_registry_effectively_enabled ? module.container_registry[0] : null
 }
 
@@ -108,7 +110,8 @@ output "key_vault_name" {
 }
 
 output "log_analytics_workspace" {
-  description = "The Log Analytics workspace resource output from the AVM module."
+  description = "The sensitive Log Analytics workspace resource output from the AVM module."
+  sensitive   = true
   value       = local.log_analytics_workspace_creation_enabled ? module.log_analytics_workspace[0] : null
 }
 
@@ -158,7 +161,8 @@ output "route_table_id" {
 }
 
 output "storage_account" {
-  description = "The Storage Account resource output from the AVM module."
+  description = "The sensitive Storage Account resource output from the AVM module."
+  sensitive   = true
   value       = length(module.storage_account) > 0 ? module.storage_account[0] : null
 }
 
