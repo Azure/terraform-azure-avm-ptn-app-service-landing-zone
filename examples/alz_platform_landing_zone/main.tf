@@ -97,11 +97,11 @@ module "firewall_public_ip" {
 
   location            = module.resource_group.location
   name                = "pip-fw-${module.naming.public_ip.name_unique}"
-  resource_group_name = module.resource_group.name
   allocation_method   = "Static"
   enable_telemetry    = var.enable_telemetry
   sku                 = "Standard"
   zones               = ["1", "2", "3"]
+  resource_group_name = module.resource_group.name
 }
 
 # Public IP for firewall management traffic (required for Basic SKU)
@@ -111,11 +111,11 @@ module "firewall_management_public_ip" {
 
   location            = module.resource_group.location
   name                = "pip-fw-mgmt-${module.naming.public_ip.name_unique}"
-  resource_group_name = module.resource_group.name
   allocation_method   = "Static"
   enable_telemetry    = var.enable_telemetry
   sku                 = "Standard"
   zones               = ["1", "2", "3"]
+  resource_group_name = module.resource_group.name
 }
 
 # Firewall Policy (Basic SKU)
@@ -125,9 +125,9 @@ module "firewall_policy" {
 
   location            = module.resource_group.location
   name                = "fwpol-${module.naming.firewall.name_unique}"
-  resource_group_name = module.resource_group.name
   enable_telemetry    = var.enable_telemetry
   firewall_policy_sku = "Basic"
+  resource_group_name = module.resource_group.name
 }
 
 # Azure Firewall (Basic SKU)
@@ -168,7 +168,6 @@ module "storage_account_zip_deploy" {
 
   location                 = module.resource_group.location
   name                     = "${module.naming.storage_account.name_unique}test001"
-  resource_group_name      = module.resource_group.name
   account_replication_type = "ZRS"
   account_tier             = "Standard"
   containers = {
@@ -186,6 +185,7 @@ module "storage_account_zip_deploy" {
   network_rules                 = null
   public_network_access_enabled = true
   shared_access_key_enabled     = true
+  resource_group_name           = module.resource_group.name
 }
 
 resource "time_sleep" "wait_for_storage_account" {

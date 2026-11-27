@@ -5,7 +5,6 @@ module "log_analytics_workspace" {
 
   location                                           = var.location
   name                                               = coalesce(var.log_analytics_workspace_name, module.naming.resource_names.log_analytics_workspace)
-  resource_group_name                                = local.resource_group_name
   enable_telemetry                                   = var.enable_telemetry
   log_analytics_workspace_internet_ingestion_enabled = local.virtual_network_enabled ? "false" : "true"
   log_analytics_workspace_internet_query_enabled     = var.log_analytics_workspace_internet_query_enabled
@@ -19,6 +18,7 @@ module "log_analytics_workspace" {
   } : {}
   monitor_private_link_scoped_service_name = module.naming.resource_names.ampls_law_scoped_service
   tags                                     = var.tags
+  resource_group_name                      = local.resource_group_name
 }
 
 # Look up the AMPLS created by the LAW module to get its canonical resource ID

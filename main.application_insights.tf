@@ -5,7 +5,6 @@ module "application_insights" {
 
   location                              = var.location
   name                                  = coalesce(var.application_insights_name, module.naming.resource_names.application_insights)
-  resource_group_name                   = local.resource_group_name
   workspace_id                          = local.log_analytics_workspace_resource_id
   application_type                      = var.application_insights_application_type
   daily_data_cap_in_gb                  = var.application_insights_daily_data_cap_in_gb
@@ -22,4 +21,5 @@ module "application_insights" {
   role_assignments                      = var.application_insights_role_assignments
   sampling_percentage                   = var.application_insights_sampling_percentage
   tags                                  = try(coalesce(var.application_insights_tags, var.tags), {})
+  resource_group_name                   = local.resource_group_name
 }
