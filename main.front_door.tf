@@ -1,6 +1,6 @@
 module "front_door" {
   source  = "Azure/avm-res-cdn-profile/azurerm"
-  version = "0.1.9"
+  version = "0.3.0"
   count   = var.front_door_enabled && length(var.web_apps) > 0 ? 1 : 0
 
   location            = "Global"

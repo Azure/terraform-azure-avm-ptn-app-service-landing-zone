@@ -1,11 +1,10 @@
 module "alz_route_table" {
   source  = "Azure/avm-res-network-routetable/azurerm"
-  version = "0.4.1"
+  version = "0.7.0"
   count   = var.alz_platform_landing_zone_route_table_resource_id == null && var.alz_platform_landing_zone_route_table_enabled ? 1 : 0
 
   location                      = var.location
   name                          = coalesce(var.alz_platform_landing_zone_route_table_name, module.naming.resource_names.alz_route_table)
-  resource_group_name           = local.resource_group_name
   bgp_route_propagation_enabled = false
   enable_telemetry              = var.enable_telemetry
   routes = merge(
@@ -26,5 +25,6 @@ module "alz_route_table" {
       }
     } : {}
   )
-  tags = var.tags
+  tags                = var.tags
+  resource_group_name = local.resource_group_name
 }
