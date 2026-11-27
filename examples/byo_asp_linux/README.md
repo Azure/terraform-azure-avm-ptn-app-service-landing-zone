@@ -8,7 +8,7 @@ This example demonstrates using the module with pre-existing (Bring Your Own) re
 
 ```hcl
 terraform {
-  required_version = ">= 1.9, < 2.0"
+  required_version = ">= 1.16, < 2.0"
 
   required_providers {
     azapi = {
@@ -18,11 +18,6 @@ terraform {
     azurerm = {
       source  = "hashicorp/azurerm"
       version = "~> 4.0"
-    }
-    # tflint-ignore: terraform_unused_required_providers
-    modtm = {
-      source  = "registry.terraform.io/azure/modtm"
-      version = "~> 0.3"
     }
     random = {
       source  = "hashicorp/random"
@@ -58,12 +53,12 @@ resource "random_integer" "region_index" {
 
 module "naming" {
   source  = "Azure/avm-utl-naming/azure"
-  version = "0.2.0"
+  version = "0.3.0"
 }
 
 module "resource_group" {
   source  = "Azure/avm-res-resources-resourcegroup/azurerm"
-  version = "0.2.2"
+  version = "0.5.0"
 
   location         = local.azure_regions[random_integer.region_index.result]
   name             = "${module.naming.resource_group.name_unique}-byo-asp-linux"
@@ -73,7 +68,7 @@ module "resource_group" {
 # Virtual Network with subnets
 module "virtual_network" {
   source  = "Azure/avm-res-network-virtualnetwork/azurerm"
-  version = "0.17.1"
+  version = "0.23.0"
 
   location         = module.resource_group.location
   parent_id        = module.resource_group.resource_id
@@ -104,7 +99,7 @@ module "virtual_network" {
 # App Service Plan
 module "app_service_plan" {
   source  = "Azure/avm-res-web-serverfarm/azurerm"
-  version = "2.0.1"
+  version = "2.1.0"
 
   location               = module.resource_group.location
   name                   = module.naming.app_service_plan.name_unique
@@ -119,11 +114,12 @@ module "app_service_plan" {
 # Private DNS Zone
 module "private_dns_zone_web" {
   source  = "Azure/avm-res-network-privatednszone/azurerm"
-  version = "0.5.0"
+  version = "0.6.0"
 
   domain_name      = "privatelink.azurewebsites.net"
   parent_id        = module.resource_group.resource_id
   enable_telemetry = var.enable_telemetry
+  location         = var.location
   virtual_network_links = {
     vnet_link = {
       name               = "vnet-link"
@@ -139,11 +135,11 @@ module "private_dns_zone_web" {
 
 module "storage_account_zip_deploy" {
   source  = "Azure/avm-res-storage-storageaccount/azurerm"
-  version = "0.6.7"
+  version = "0.11.0"
 
   location                 = module.resource_group.location
   name                     = "${module.naming.storage_account.name_unique}test001"
-  resource_group_name      = module.resource_group.name
+  parent_id                = module.resource_group.resource_id
   account_replication_type = "ZRS"
   account_tier             = "Standard"
   containers = {
@@ -186,8 +182,18 @@ resource "azurerm_storage_blob" "zip_deploy" {
   depends_on = [time_sleep.wait_for_storage_account]
 }
 
+data "azapi_resource_action" "zip_deploy_storage_key" {
+  action                 = "listKeys"
+  resource_id            = module.storage_account_zip_deploy.resource_id
+  type                   = "Microsoft.Storage/storageAccounts@2023-05-01"
+  response_export_values = []
+  sensitive_response_export_values = {
+    key = "keys[?keyName=='key1'].value | [0]"
+  }
+}
+
 data "azurerm_storage_account_blob_container_sas" "zip_deploy" {
-  connection_string = module.storage_account_zip_deploy.resource.primary_connection_string
+  connection_string = "DefaultEndpointsProtocol=https;AccountName=${module.storage_account_zip_deploy.name};AccountKey=${data.azapi_resource_action.zip_deploy_storage_key.sensitive_output.key};EndpointSuffix=core.windows.net"
   container_name    = "zip-deploy"
   expiry            = "2099-01-01T00:00:00Z"
   start             = "2024-01-01T00:00:00Z"
@@ -281,13 +287,11 @@ module "test" {
 
 The following requirements are needed by this module:
 
-- <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (>= 1.9, < 2.0)
+- <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) (>= 1.16, < 2.0)
 
 - <a name="requirement_azapi"></a> [azapi](#requirement\_azapi) (~> 2.4)
 
 - <a name="requirement_azurerm"></a> [azurerm](#requirement\_azurerm) (~> 4.0)
-
-- <a name="requirement_modtm"></a> [modtm](#requirement\_modtm) (~> 0.3)
 
 - <a name="requirement_random"></a> [random](#requirement\_random) (~> 3.5)
 
@@ -300,6 +304,7 @@ The following resources are used by this module:
 - [azurerm_storage_blob.zip_deploy](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/storage_blob) (resource)
 - [random_integer.region_index](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/integer) (resource)
 - [time_sleep.wait_for_storage_account](https://registry.terraform.io/providers/hashicorp/time/latest/docs/resources/sleep) (resource)
+- [azapi_resource_action.zip_deploy_storage_key](https://registry.terraform.io/providers/Azure/azapi/latest/docs/data-sources/resource_action) (data source)
 - [azurerm_client_config.current](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/client_config) (data source)
 - [azurerm_storage_account_blob_container_sas.zip_deploy](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/storage_account_blob_container_sas) (data source)
 
@@ -322,6 +327,14 @@ Type: `bool`
 
 Default: `true`
 
+### <a name="input_location"></a> [location](#input\_location)
+
+Description: The Azure region for this module's resources or telemetry deployment.
+
+Type: `string`
+
+Default: `"eastus"`
+
 ## Outputs
 
 No outputs.
@@ -334,31 +347,31 @@ The following Modules are called:
 
 Source: Azure/avm-res-web-serverfarm/azurerm
 
-Version: 2.0.1
+Version: 2.1.0
 
 ### <a name="module_naming"></a> [naming](#module\_naming)
 
 Source: Azure/avm-utl-naming/azure
 
-Version: 0.2.0
+Version: 0.3.0
 
 ### <a name="module_private_dns_zone_web"></a> [private\_dns\_zone\_web](#module\_private\_dns\_zone\_web)
 
 Source: Azure/avm-res-network-privatednszone/azurerm
 
-Version: 0.5.0
+Version: 0.6.0
 
 ### <a name="module_resource_group"></a> [resource\_group](#module\_resource\_group)
 
 Source: Azure/avm-res-resources-resourcegroup/azurerm
 
-Version: 0.2.2
+Version: 0.5.0
 
 ### <a name="module_storage_account_zip_deploy"></a> [storage\_account\_zip\_deploy](#module\_storage\_account\_zip\_deploy)
 
 Source: Azure/avm-res-storage-storageaccount/azurerm
 
-Version: 0.6.7
+Version: 0.11.0
 
 ### <a name="module_test"></a> [test](#module\_test)
 
@@ -370,7 +383,7 @@ Version:
 
 Source: Azure/avm-res-network-virtualnetwork/azurerm
 
-Version: 0.17.1
+Version: 0.23.0
 
 <!-- markdownlint-disable-next-line MD041 -->
 ## Data Collection

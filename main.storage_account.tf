@@ -1,11 +1,11 @@
 module "storage_account" {
   source  = "Azure/avm-res-storage-storageaccount/azurerm"
-  version = "0.6.7"
+  version = "0.11.0"
   count   = var.storage_account_enabled || local.managed_instance_storage_account_needed ? 1 : 0
 
   location                            = var.location
   name                                = coalesce(var.storage_account_name, module.naming.resource_names.storage_account)
-  resource_group_name                 = local.resource_group_name
+  parent_id                           = local.resource_group_id
   access_tier                         = var.storage_account_access_tier
   account_replication_type            = var.storage_account_account_replication_type
   account_tier                        = var.storage_account_account_tier
@@ -21,7 +21,7 @@ module "storage_account" {
         name                          = "pe-${coalesce(var.storage_account_name, module.naming.resource_names.storage_account)}-blob"
         subresource_name              = "blob"
         subnet_resource_id            = local.private_endpoint_subnet_id
-        private_dns_zone_resource_ids = local.private_dns_zone_storage_blob_id != null ? toset([local.private_dns_zone_storage_blob_id]) : toset([])
+        private_dns_zone_resource_ids = local.create_private_dns_zone_storage_blob || var.private_dns_zone_storage_blob_resource_id != null ? toset([local.private_dns_zone_storage_blob_id]) : toset([])
       }
     },
     length(merge(var.storage_account_shares, local.managed_instance_shares)) > 0 ? {
@@ -29,7 +29,7 @@ module "storage_account" {
         name                          = "pe-${coalesce(var.storage_account_name, module.naming.resource_names.storage_account)}-file"
         subresource_name              = "file"
         subnet_resource_id            = local.private_endpoint_subnet_id
-        private_dns_zone_resource_ids = local.private_dns_zone_storage_file_id != null ? toset([local.private_dns_zone_storage_file_id]) : toset([])
+        private_dns_zone_resource_ids = local.create_private_dns_zone_storage_file || var.private_dns_zone_storage_file_resource_id != null ? toset([local.private_dns_zone_storage_file_id]) : toset([])
       }
     } : {}
   ) : {}

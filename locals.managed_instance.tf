@@ -33,7 +33,7 @@ locals {
   # instance features need it, creating an implicit dependency on the key vault.
   managed_instance_key_vault_name = local.managed_instance_key_vault_needed ? module.key_vault[0].name : coalesce(var.key_vault_name, module.naming.resource_names.key_vault)
   # Auto-enable key vault when convenience variables need it
-  managed_instance_key_vault_needed = length(var.managed_instance_registry_adapters) > 0 || length([
+  managed_instance_key_vault_needed = nonsensitive(length(var.managed_instance_registry_adapters) > 0) || length([
     for m in var.managed_instance_storage_mounts : m if m.type == "AzureFiles"
   ]) > 0
   # --- Key vault secrets for registry adapters ---

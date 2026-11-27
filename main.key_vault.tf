@@ -1,11 +1,11 @@
 module "key_vault" {
   source  = "Azure/avm-res-keyvault-vault/azurerm"
-  version = "0.10.2"
+  version = "0.13.1"
   count   = var.key_vault_enabled || local.managed_instance_key_vault_needed ? 1 : 0
 
   location                       = var.location
   name                           = coalesce(var.key_vault_name, module.naming.resource_names.key_vault)
-  resource_group_name            = local.resource_group_name
+  parent_id                      = local.resource_group_id
   tenant_id                      = data.azapi_client_config.this.tenant_id
   diagnostic_settings            = var.alz_platform_landing_zone_diagnostic_settings_mode_enabled ? {} : local.key_vault_diagnostic_settings
   enable_telemetry               = var.enable_telemetry
@@ -15,7 +15,7 @@ module "key_vault" {
   private_endpoints = local.virtual_network_enabled ? {
     default = {
       subnet_resource_id            = local.private_endpoint_subnet_id
-      private_dns_zone_resource_ids = local.private_dns_zone_key_vault_id != null ? toset([local.private_dns_zone_key_vault_id]) : toset([])
+      private_dns_zone_resource_ids = local.create_private_dns_zone_key_vault || var.private_dns_zone_key_vault_resource_id != null ? toset([local.private_dns_zone_key_vault_id]) : toset([])
     }
   } : {}
   public_network_access_enabled = var.key_vault_public_network_access_enabled
