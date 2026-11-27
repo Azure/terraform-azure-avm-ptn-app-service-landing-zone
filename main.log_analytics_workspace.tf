@@ -1,6 +1,6 @@
 module "log_analytics_workspace" {
   source  = "Azure/avm-res-operationalinsights-workspace/azurerm"
-  version = "0.5.1"
+  version = "0.7.0"
   count   = local.log_analytics_workspace_creation_enabled ? 1 : 0
 
   location                                           = var.location
